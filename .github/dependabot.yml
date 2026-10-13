@@ -4,7 +4,13 @@ updates:
     directory: /
     schedule: { interval: weekly }
     groups:
-      all: { patterns: ["*"] }
+      all: { patterns: ["*"], update-types: [minor, patch] }
+    ignore:
+      # These hang every auth route in `npm run dev` (#39). Drop once a fixed release exists.
+      - dependency-name: wrangler
+        versions: ["4.150.x"]
+      - dependency-name: "@cloudflare/vite-plugin"
+        versions: ["1.63.2"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
