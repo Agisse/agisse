@@ -36,7 +36,7 @@ Every AI feature goes through `worker/lib/openrouter.ts`. It uses the user's own
 
 ## The job feed
 
-The feed reads the `vacancy` table and ranks it per user without a model call: an embedding match against the user's profile, their chosen functions, freshness and deadlines (`worker/lib/vacancies.ts`). This repository doesn't fill that table. On agisse.xyz a separate pipeline, startup-radar, scrapes and classifies the roles and writes `vacancy`, `profile_embedding` and `vacancy_fit`. A self-hosted copy starts with an empty feed, or with the synthetic roles from `npm run db:seed`.
+The feed reads the `vacancy` table and ranks it per user without a model call: an embedding match against the user's profile, their chosen functions, freshness and deadlines (`worker/lib/vacancies.ts`). This repository doesn't fill that table. A separate feed provider writes `vacancy`, `profile_embedding` and `vacancy_fit` to the [feed contract](/feed-contract); agisse.xyz's own provider is private. A self-hosted copy starts with an empty feed, or with the synthetic roles from `npm run db:seed`.
 
 ## Free tiers
 
