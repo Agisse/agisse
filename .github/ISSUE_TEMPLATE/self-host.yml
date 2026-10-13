@@ -1,0 +1,38 @@
+name: Self-host help
+description: Trouble running your own copy of Agisse.
+labels: [question, "area:self-host"]
+body:
+  - type: markdown
+    attributes:
+      value: Self-hosting is supported on a best-effort basis by the community. Check the Self-host section of the README first. Never paste secrets, keys or connection strings.
+  - type: dropdown
+    id: step
+    attributes:
+      label: Where you're stuck
+      options:
+        - Local development (npm run dev)
+        - Database or migrations
+        - Cloudflare deploy (Worker, R2, secrets)
+        - AI keys
+        - Sign-in or becoming the admin
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you did and what happened
+      description: The commands you ran and their output.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or version
+      placeholder: output of git rev-parse --short HEAD
+  - type: input
+    id: node
+    attributes:
+      label: Node version
+      placeholder: output of node --version
