@@ -1,0 +1,15 @@
+# Changelog
+
+All notable changes to Agisse are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+
+- CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
+- Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.
+- Issue forms for bugs, feature ideas and self-host help, and a pull request template.
+- `npm run db:seed` fills a development database with synthetic companies, roles and a test student.
+- A release workflow that attaches the browser extension zip to each GitHub release.
+
+[Unreleased]: https://github.com/Agisse/agisse/commits/main
