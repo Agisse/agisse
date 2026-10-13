@@ -271,6 +271,8 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
   const moreOn = prefs.industries.length + prefs.languages.length + (prefs.remoteOnly ? 1 : 0) + (prefs.sponsorsOnly ? 1 : 0)
   const filtersOn = prefs.programs.length + prefs.countries.length + prefs.functions.length + (prefs.level === 'any' ? 0 : 1) + moreOn
   // Nearest neighbours rank every role, so a count says nothing; the order is the point.
+  // No open role at all: this copy has no feed provider (docs/feed-contract.md), not a filter problem.
+  const noFeed = facets?.total === 0
   const count = similar ? (items ? 'Most similar first' : '') : total != null ? `${total.toLocaleString('en-GB')} ${total === 1 ? 'role' : 'roles'}` : items ? `${visible.length}${more ? '+' : ''} roles` : ''
 
   const row = (v: Vacancy, sub = false) => (
@@ -303,7 +305,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
 
   return (
     <div className="vacancy-feed" aria-busy={loading} ref={root}>
-      <form className="feed-bar" onSubmit={submit} role="search">
+      <form className="feed-bar" onSubmit={submit} role="search" hidden={noFeed}>
         <label className="feed-search">
           <Search aria-hidden="true" />
           <span className="sr-only">Keywords</span>
@@ -388,14 +390,14 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
         </div>
       )}
 
-      {!profiled && (
+      {!profiled && !noFeed && (
         <p className="index-card__profile-nudge">
           <IdCard aria-hidden="true" />
           <span><Link href="/profile">Add your résumé</Link> to rank these by fit.</span>
         </p>
       )}
 
-      <div className="feed-head">
+      <div className="feed-head" hidden={noFeed}>
         {!similar && (
           <div className="feed-head__views">
           <div className="feed-views" role="group" aria-label="View">
@@ -439,12 +441,18 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
         </ul>
       )}
 
-      {items && visible.length === 0 && !error && (
+      {items && visible.length === 0 && !error && (noFeed ? (
+        <div className="open-roles__empty">
+          <p>No open roles yet: this copy of Agisse has no job feed connected. You can still add any posting yourself and see how well it fits.</p>
+          <Link href="/jobs?view=add" className="btn btn--sm">Add a job</Link>
+          <p className="muted">Running this copy? <a href="/docs/feed-contract">Connect a feed provider</a></p>
+        </div>
+      ) : (
         <div className="open-roles__empty">
           <p>{VIEWS[view].empty}</p>
           {chosen.length > 0 ? <button type="button" className="btn btn--sm" onClick={clearAll}>Clear all filters</button> : view !== 'match' && <button type="button" className="btn btn--sm" onClick={() => pick('match')}>Show every role</button>}
         </div>
-      )}
+      ))}
 
       {visible.length > 0 && (
         <section className="feed-results" aria-label="Roles">
