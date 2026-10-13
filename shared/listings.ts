@@ -204,10 +204,10 @@ export type VacancyCountry = keyof typeof VACANCY_COUNTRIES
 export const VACANCY_FUNCTIONS = {
   ib: 'Investment banking', 'm&a': 'M&A & transactions', pe_vc: 'Private equity & VC', asset_mgmt: 'Asset & wealth management',
   sales_trading: 'Sales & trading', risk: 'Risk & compliance', audit: 'Audit, tax & accounting', corp_finance: 'Corporate finance & FP&A',
-  consulting: 'Consulting', strategy: 'Strategy & BizOps', ops: 'Operations', data: 'Data & analytics', product: 'Product',
+  consulting: 'Consulting', strategy: 'Strategy & BizOps', ops: 'Operations & logistics', data: 'Data & analytics', product: 'Product',
   sales: 'Sales & partnerships', marketing: 'Marketing & growth', software: 'Software & IT', engineering: 'Engineering',
   legal: 'Law & legal', science: 'Science & research', healthcare: 'Healthcare & medicine', hr: 'HR & recruiting',
-  design: 'Design & architecture', policy: 'Policy & public affairs', education: 'Teaching & education', media: 'Media & journalism',
+  design: 'Design & architecture', policy: 'Policy & public sector', education: 'Teaching & education', media: 'Media & journalism',
   sustainability: 'Sustainability & environment',
 } as const
 export type VacancyFunction = keyof typeof VACANCY_FUNCTIONS
