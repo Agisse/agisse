@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.
 - An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
 - An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved. Add a job stays hidden until then too, instead of offering checks that can't run yet. So do a feed role's Tailor my CV and the "Applied to it?" question, which also wait for approval.
+- The privacy policy now lists the geocoding, map-tile and logo services your browser contacts, and that your own AI key sends requests straight to that provider. Umami is gone from it; Agisse doesn't use it.
 
 ### For contributors and self-hosters
 

@@ -5,7 +5,7 @@ description: What Agisse collects, why, who processes it and how to exercise you
 
 # Privacy policy
 
-_Last updated: 11 October 2026_
+_Last updated: 14 October 2026_
 
 Agisse is in an invite-only beta. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
 
@@ -41,13 +41,15 @@ We never sell your data and never use it to advertise to you.
 | Neon | Postgres database | EU region |
 | OpenRouter | Routes AI requests to model providers (such as Anthropic, OpenAI, Google, Mistral and others) | USA and other countries |
 | Exa | Web search for companies, people and postings | USA |
+| Nominatim (OpenStreetMap Foundation) | Turns job locations into map points; your browser sends it the location text and your IP address | UK |
+| OpenFreeMap | Map tiles for the world map; your browser sends it your IP address | [where] |
+| logo.dev | Company logos; your browser sends it the company's domain or name and your IP address | USA |
 | PostHog | Product analytics, cookieless | EU or USA |
-| Umami | Privacy-friendly page analytics, cookieless | EU |
 | Resend | Sending email from hello@agisse.xyz | USA |
 | Google | Sign in with Google, if you choose it | USA |
 | Sentry | Error reports | USA |
 
-Each processor works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation.
+Each processor works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation.
 
 ## Cookies
 
