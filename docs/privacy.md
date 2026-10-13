@@ -9,14 +9,6 @@ _Last updated: 11 October 2026_
 
 Agisse is in an invite-only beta. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
 
-## Who is responsible
-
-The controller is **Lennart Steen**, Brussels, Belgium.
-
-- Company number: **TODO (enterprise number)**
-- Address: **TODO (postal address)**
-- Email: [hello@agisse.xyz](mailto:hello@agisse.xyz)
-
 ## What we hold
 
 | Data | What it is | Why |
