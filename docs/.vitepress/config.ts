@@ -23,7 +23,7 @@ export default defineConfig({
       { text: 'Guides', link: '/guides/' },
     ],
     sidebar: [
-      { text: 'Guides', items: [{ text: 'Extension', link: '/extension' }, { text: 'MCP', link: '/mcp' }] },
+      { text: 'Guides', items: [{ text: 'Extension', link: '/extension' }, { text: 'MCP', link: '/mcp' }, { text: 'Self-host', link: '/self-host' }] },
       { text: 'How it works', items: [{ text: 'Architecture', link: '/architecture' }, { text: 'Data flow', link: '/data-flow' }, { text: 'Feed contract', link: '/feed-contract' }] },
       { text: 'Selection processes', items: [{ text: 'All employers and tests', link: '/guides/' }] },
       { text: 'Legal', items: [{ text: 'Privacy', link: '/privacy' }, { text: 'Terms', link: '/terms' }, { text: 'Imprint', link: '/imprint' }] },
