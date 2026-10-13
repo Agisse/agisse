@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+# The linkedin-client-id rule matches type imports of shared/linkedin-review.
+[[allowlists]]
+description = "linkedin-review imports"
+targetRules = ["linkedin-client-id"]
+regexTarget = "line"
+regexes = ['''^import .*[Ll]inkedin.*[Rr]eview''']
+paths = ['''^src/lib/api\.ts$''', '''^worker/index\.ts$''']
