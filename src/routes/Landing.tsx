@@ -452,7 +452,6 @@ const FAQ: [string, string][] = [
 
 const FOOTER: [string, string][] = [
   ['/docs/', 'Docs'],
-  ['https://github.com/agisse/agisse', 'Open source'],
   ['/docs/mcp', 'MCP'],
   ['/docs/extension', 'Browser extension'],
   ['/docs/privacy', 'Privacy'],
