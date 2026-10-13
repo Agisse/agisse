@@ -24,6 +24,7 @@ export default defineConfig({
     ],
     sidebar: [
       { text: 'Guides', items: [{ text: 'Extension', link: '/extension' }, { text: 'MCP', link: '/mcp' }] },
+      { text: 'How it works', items: [{ text: 'Architecture', link: '/architecture' }] },
       { text: 'Selection processes', items: [{ text: 'All employers and tests', link: '/guides/' }] },
       { text: 'Legal', items: [{ text: 'Privacy', link: '/privacy' }, { text: 'Terms', link: '/terms' }, { text: 'Imprint', link: '/imprint' }] },
     ],
