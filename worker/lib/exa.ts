@@ -3,6 +3,13 @@ import { eq } from 'drizzle-orm'
 import { schema, type Db } from '../db'
 import type { Meter } from './openrouter'
 
+declare global {
+  interface Env {
+    /** Unset turns people search off with a clear message; the rest of the app works. */
+    EXA_API_KEY?: string
+  }
+}
+
 // Exa refreshes its people index weekly, so a week-old answer is as good as a fresh one.
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -62,7 +69,7 @@ async function cached<T>(db: Db | undefined, key: string, fetcher: () => Promise
   return results
 }
 
-async function exaPost<T>(apiKey: string, path: 'search' | 'contents', body: unknown): Promise<T & { costDollars?: { total: number } }> {
+async function exaPost<T>(apiKey: string | undefined, path: 'search' | 'contents', body: unknown): Promise<T & { costDollars?: { total: number } }> {
   if (!apiKey) throw new Error('People search is off on this server: set EXA_API_KEY to turn it on.')
   const res = await fetch(`https://api.exa.ai/${path}`, {
     method: 'POST',
@@ -76,7 +83,7 @@ async function exaPost<T>(apiKey: string, path: 'search' | 'contents', body: unk
   return res.json()
 }
 
-export async function exaPeopleSearch(apiKey: string, query: string, numResults = 12, meter?: Meter, db?: Db): Promise<ExaPerson[]> {
+export async function exaPeopleSearch(apiKey: string | undefined, query: string, numResults = 12, meter?: Meter, db?: Db): Promise<ExaPerson[]> {
   const body = { query, category: 'people', type: 'auto', numResults, contents: { text: { maxCharacters: 2000 } } }
   const results = await cached(db, `people:${JSON.stringify(body)}`, async () => {
     const data = await exaPost<ExaResponse>(apiKey, 'search', body)

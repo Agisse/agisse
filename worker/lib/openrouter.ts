@@ -1,6 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { COMPAT, type UserKey } from './byok'
 
+declare global {
+  interface Env {
+    /** Agisse's own key. Unset on a bring-your-own-key server: model calls then need the user's key. */
+    OPENROUTER_API_KEY?: string
+  }
+}
+
 // OpenRouter structured generation with a free-model fallback chain.
 // Free models have low rate limits; we walk a preference list, then any other ":free" model,
 // and fail transparently when nothing answers. Models without structured output get the schema in the prompt.
@@ -123,7 +130,7 @@ function extractJson(text: string): unknown {
 }
 
 export async function generateStructured<T>(opts: {
-  apiKey: string
+  apiKey?: string
   preferredModels: string[]
   system: string
   user: string
@@ -321,7 +328,7 @@ async function generateDirect<T>(
 }
 
 /** Speech to text for one recorded answer (base64 audio). One paid call, booked on the meter; no fallback chain. */
-export async function transcribe(opts: { apiKey: string; model: string; audio: string; format: 'webm' | 'ogg' | 'mp4' | 'wav'; meter?: Meter }): Promise<string> {
+export async function transcribe(opts: { apiKey?: string; model: string; audio: string; format: 'webm' | 'ogg' | 'mp4' | 'wav'; meter?: Meter }): Promise<string> {
   // An own OpenRouter key pays for audio too; OpenAI and Anthropic keys don't, so Agisse's key does and it is booked.
   const own = opts.meter?.byok?.provider === 'openrouter' ? opts.meter.byok.key : null
   if (!own && !opts.apiKey) throw new NoAiKey()
