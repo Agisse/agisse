@@ -1,0 +1,315 @@
+/* Arctic Shores practice games: security dial, predict, team sales, balance, order/patterns, token search. */
+.arc-tally {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Security dial */
+.arc-dial {
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.arc-dial svg {
+  width: 100%;
+  height: 100%;
+}
+.arc-dial__face {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.arc-dial__window {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 8;
+}
+.arc-dial__digit {
+  font-family: var(--font-display);
+  font-size: 18px;
+  fill: var(--ink-2);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.arc-dial__digit[data-target='true'] {
+  fill: var(--ink);
+  font-weight: 700;
+  font-size: 24px;
+}
+.arc-dial__pointer {
+  stroke: var(--red);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.arc-dial__hub {
+  fill: var(--ink);
+}
+.arc-locks {
+  display: flex;
+  gap: var(--space-2);
+}
+.arc-locks > span {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+}
+.arc-locks > span[data-on='true'] {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+/* Predict */
+.arc-cards {
+  display: flex;
+  gap: var(--space-3);
+  min-height: 104px;
+}
+.arc-card {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 104px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.arc-symbol {
+  width: 44px;
+  height: 44px;
+  fill: var(--ink);
+}
+
+/* Team sales */
+.arc-matrix {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-14);
+}
+.arc-matrix caption {
+  font-size: var(--fs-12);
+  padding-bottom: var(--space-1);
+}
+.arc-matrix th,
+.arc-matrix td {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  text-align: center;
+  font-weight: 400;
+}
+.arc-matrix td[data-on='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.arc-history {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-12);
+}
+.arc-history li {
+  display: grid;
+  border: 1px solid var(--rule);
+}
+.arc-history span {
+  width: 22px;
+  text-align: center;
+}
+.arc-history span[data-move='L'] {
+  background: var(--red-tint);
+  color: var(--red);
+}
+
+/* Balance */
+.arc-refs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-5);
+}
+.arc-scale {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 260px);
+}
+.arc-scale__pans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  width: 100%;
+}
+.arc-pan {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  align-content: flex-start;
+  gap: 2px;
+  min-height: 24px;
+}
+.arc-scale__beam {
+  width: 100%;
+  height: 3px;
+  background: var(--ink);
+  transition: transform var(--dur);
+}
+.arc-scale__beam[data-tilt='1'] {
+  transform: rotate(-6deg);
+}
+.arc-scale__beam[data-tilt='-1'] {
+  transform: rotate(6deg);
+}
+.arc-scale__post {
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-bottom: 16px solid var(--ink);
+  border-top: 0;
+}
+.arc-shape {
+  width: 22px;
+  height: 22px;
+  fill: var(--ink);
+}
+.arc-shape[data-shape='square'] {
+  fill: var(--game-blue);
+}
+.arc-shape[data-shape='triangle'] {
+  fill: var(--game-orange);
+}
+.arc-shape[data-shape='star'] {
+  fill: var(--green);
+}
+.arc-shape[data-shape='hexagon'] {
+  fill: var(--ink-2);
+}
+.arc-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+.arc-picker {
+  display: flex;
+  gap: var(--space-1);
+}
+.arc-picker__add {
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Order / patterns */
+.arc-frame {
+  width: clamp(64px, 18vw, 104px);
+  height: auto;
+}
+.arc-frame--mini {
+  width: 40px;
+}
+.arc-frame__box {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.arc-builder {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  width: min(100%, 560px);
+}
+.arc-builder__group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+}
+.arc-builder__group[data-attr='pos'] {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+}
+.arc-builder__group legend {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+  padding: 0 var(--space-1);
+}
+.arc-opt {
+  position: relative;
+  display: grid;
+  cursor: pointer;
+  border-radius: var(--radius);
+  outline: 2px solid transparent;
+}
+.arc-opt input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.arc-opt:has(input:checked) {
+  outline-color: var(--ink);
+}
+.arc-opt:has(input:focus-visible) {
+  outline-color: var(--ring);
+  outline-offset: 2px;
+}
+
+/* Token search */
+.arc-field {
+  display: grid;
+  grid-template-columns: repeat(4, clamp(52px, 17vw, 72px));
+  grid-template-rows: repeat(4, clamp(52px, 17vw, 72px));
+  gap: var(--space-2);
+}
+.arc-box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--game-orange);
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.arc-box .rsn-key {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  color: var(--paper);
+}
+.arc-box[data-state='open'],
+.arc-box[data-state='token'] {
+  background: var(--paper);
+}
+.arc-box[data-state] .rsn-key {
+  color: var(--ink-3);
+}
+.arc-box[data-wrong='true'] {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 2px var(--red);
+}
+.arc-token {
+  width: 50%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 2px solid var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .arc-scale__beam,
+  .arc-box {
+    transition: none;
+  }
+}

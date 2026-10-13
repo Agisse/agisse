@@ -1,0 +1,290 @@
+/* HireVue-style games: numerosity, disconumbers, pathfinder, image puzzle / resemble, shape match, emotions. */
+.hv-key {
+  font-size: var(--fs-11);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.hv-cell {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  background: var(--paper);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.hv-cell:disabled {
+  cursor: default;
+}
+.hv-cell[aria-pressed='true'] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.hv-cell[data-answer='true'],
+.hv-faceopt[data-answer='true'],
+.hv-labels [data-answer='true'] {
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 2px var(--green);
+}
+.hv-labels .btn:disabled,
+.hv-faceopt:disabled,
+.hv-tile:disabled {
+  opacity: 1;
+}
+.hv-countdown {
+  width: min(480px, 100%);
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left;
+  animation: hv-countdown linear forwards;
+  animation-duration: var(--timer-ms);
+}
+@keyframes hv-countdown {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Numerosity */
+.hv-target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.hv-op {
+  display: grid;
+  place-items: center;
+  width: 1.2em;
+  aspect-ratio: 1;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-size: var(--fs-32);
+}
+.hv-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: var(--space-2);
+}
+.hv-tile {
+  position: relative;
+  width: clamp(56px, 18vw, 72px);
+  height: clamp(56px, 18vw, 72px);
+  font-family: var(--font-display);
+  font-size: var(--fs-24);
+  font-variant-numeric: tabular-nums;
+}
+.hv-tile[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.hv-tile .hv-key,
+.hv-disc__key {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+}
+
+/* Disconumbers: circles on a ring; at higher levels each drifts on a small orbit. */
+.hv-disco {
+  position: relative;
+  width: min(340px, 100%);
+  aspect-ratio: 1;
+}
+.hv-disc {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  padding: 0;
+  border: 2px solid hsl(var(--hv-hue) 55% 38%);
+  border-radius: 50%;
+  background: hsl(var(--hv-hue) 60% 94%);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-24);
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--dur-fast), transform var(--dur-fast);
+}
+.hv-disc:disabled {
+  cursor: default;
+}
+.hv-disc[data-lit='true'] {
+  background: hsl(var(--hv-hue) 70% 45%);
+  color: var(--paper);
+  transform: scale(1.15);
+}
+.hv-disc[aria-pressed='true'] {
+  box-shadow: 0 0 0 3px var(--ink);
+}
+.hv-disco[data-moving='true'] .hv-disc {
+  animation: hv-orbit 5s linear infinite;
+  animation-delay: var(--hv-delay);
+}
+@keyframes hv-orbit {
+  0% {
+    translate: 18px 0;
+  }
+  25% {
+    translate: 0 18px;
+  }
+  50% {
+    translate: -18px 0;
+  }
+  75% {
+    translate: 0 -18px;
+  }
+  100% {
+    translate: 18px 0;
+  }
+}
+
+/* Pathfinder */
+.hv-board {
+  display: grid;
+  gap: 2px;
+  align-items: center;
+}
+.hv-edge {
+  font-size: var(--fs-14);
+  text-align: center;
+}
+.hv-board .hv-cell {
+  width: clamp(40px, 12vw, 56px);
+  aspect-ratio: 1;
+}
+.hv-pipe {
+  width: 100%;
+  height: 100%;
+  stroke: var(--ink-3);
+  stroke-width: 8;
+  stroke-linecap: butt;
+  fill: var(--ink-3);
+}
+.hv-pipe[data-on='true'] {
+  stroke: var(--green);
+  fill: var(--green);
+}
+.hv-pipe circle {
+  stroke: none;
+}
+
+/* Image puzzle and Resemble */
+.hv-artframe {
+  display: grid;
+  gap: var(--space-2);
+}
+.hv-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.hv-artframe .hv-art {
+  width: min(300px, 80vw);
+  height: auto;
+  border: 1px solid var(--ink);
+}
+.hv-pieces {
+  display: grid;
+  gap: 2px;
+  width: min(300px, 80vw);
+}
+.hv-piece {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-color: transparent;
+}
+.hv-resemble {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: center;
+}
+.hv-swatches {
+  display: grid;
+  gap: 2px;
+  width: min(200px, 40vw);
+}
+.hv-swatch {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid var(--rule-soft);
+  background: var(--paper);
+}
+.hv-swatch[data-c='1'] {
+  background: var(--green);
+}
+.hv-swatch[data-c='2'] {
+  background: var(--yellow);
+}
+.hv-swatch[data-c='3'] {
+  background: var(--game-blue);
+}
+.hv-swatch[data-c='4'] {
+  background: var(--red);
+}
+.hv-swatch--sm {
+  width: 18px;
+}
+.hv-brush[aria-checked='true'] {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* Shape match */
+.hv-figs {
+  display: grid;
+  gap: var(--space-1);
+}
+.hv-figcell {
+  width: clamp(40px, 13vw, 64px);
+  aspect-ratio: 1;
+}
+.hv-fig {
+  width: 86%;
+  height: 86%;
+}
+.hv-fig circle {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+}
+
+/* Emotions */
+.hv-face {
+  width: min(220px, 60vw);
+  height: auto;
+  background: var(--paper-2);
+  border-radius: var(--radius);
+}
+.btn.hv-faceopt {
+  flex-direction: column;
+  height: auto;
+  padding: var(--space-2);
+}
+.btn.hv-faceopt svg.hv-face--sm {
+  width: clamp(80px, 26vw, 140px);
+  height: auto;
+}
+.hv-situation {
+  max-width: 44ch;
+  margin: 0;
+  font-size: var(--fs-16);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-countdown {
+    animation-duration: var(--timer-ms) !important;
+    animation-timing-function: steps(8, end);
+  }
+  .hv-disco[data-moving='true'] .hv-disc {
+    animation-duration: 20s;
+  }
+  .hv-disc,
+  .hv-disc[data-lit='true'] {
+    transition: none;
+    transform: none;
+  }
+}

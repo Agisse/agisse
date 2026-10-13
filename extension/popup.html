@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="top">
+      <span class="logo">
+        <img src="icons/icon-128.png" alt="" aria-hidden="true" />
+        Agisse
+      </span>
+      <label class="origin">
+        <span class="visually-hidden">Agisse address</span>
+        <select id="origin">
+          <option value="https://agisse.xyz">agisse.xyz</option>
+          <option value="http://localhost:5173">localhost:5173</option>
+        </select>
+      </label>
+    </header>
+
+    <section class="card">
+      <div class="head">
+        <h1 class="label">This tab</h1>
+        <span class="head__meta" id="host"></span>
+      </div>
+      <button class="btn btn--primary" id="send" type="button">Save posting</button>
+      <button class="btn" id="evaluate" type="button">Save and evaluate</button>
+      <div class="notice" id="note" role="status" hidden></div>
+      <button class="btn btn--small" id="unhide" type="button" hidden>Show the Agisse button on this site again</button>
+    </section>
+
+    <section class="card" id="li" hidden>
+      <div class="head">
+        <h2 class="label">Your LinkedIn profile</h2>
+      </div>
+      <p class="hint">On your own profile: checks your headline, About, experience and skills the way a recruiter skims them.</p>
+      <button class="btn" id="li-review" type="button">Review my profile</button>
+      <ol class="li-out" id="li-out"></ol>
+    </section>
+
+    <section class="card" id="apply" hidden>
+      <div class="head">
+        <h2 class="label">Application</h2>
+      </div>
+      <label class="field">
+        <span>Posting in Agisse</span>
+        <select id="job"></select>
+      </label>
+      <p class="hint" id="keywords"></p>
+      <button class="btn btn--small" id="cv" type="button">Open tailored CV</button>
+      <button class="btn" id="saved-answers" type="button">Your saved answers for this form</button>
+      <ol class="qs" id="as"></ol>
+      <button class="btn" id="questions" type="button">Draft answers to this form's questions</button>
+      <ol class="qs" id="qs"></ol>
+    </section>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

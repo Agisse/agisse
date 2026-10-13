@@ -1,0 +1,23 @@
+{
+  "name": "data-stretch",
+  "seekerName": "Marco Rossi",
+  "resume": "Marco Rossi — Rotterdam\nEDUCATION\nErasmus University Rotterdam — BSc Economics and Business Economics (2021–2024). Minor in Data Analytics.\nEXPERIENCE\nCoolblue — Pricing Analyst Intern (Feb–Jul 2024): maintained weekly price-elasticity dashboards in Looker; wrote SQL queries to track promotion uplift across 6 product categories.\nAlbert Heijn — Store Associate (2019–2021).\nPROJECTS\nBachelor thesis: regression analysis of housing prices in Rotterdam using Python (pandas, statsmodels).\nSKILLS\nSQL, Python (pandas), Excel, Looker. Languages: Italian (native), English (fluent), Dutch (basic).",
+  "profile": {
+    "university": "Erasmus University Rotterdam",
+    "degree": "BSc Economics and Business Economics",
+    "gradYear": "2024",
+    "internships": [
+      "Coolblue"
+    ],
+    "skills": [
+      "SQL",
+      "Python",
+      "Looker"
+    ]
+  },
+  "posting": "Adyen — Data Scientist, Risk (Amsterdam)\nAdyen's risk team builds the machine-learning models that decide in milliseconds whether a payment is fraudulent.\nYou will design, train and deploy gradient-boosted and deep-learning models on billions of transactions, own features end to end in production, and run experiments with product teams.\nWhat we look for:\n- MSc or PhD in computer science, statistics, physics or a related quantitative field\n- 3+ years of experience building and deploying ML models in production\n- Expert Python and SQL; experience with Spark or similar distributed data tools\n- Strong grasp of statistics and experimental design\n- Experience with fraud, risk or payments data is a plus\nFluent English required.",
+  "expectScore": [
+    1.5,
+    3.4
+  ]
+}

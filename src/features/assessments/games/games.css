@@ -1,0 +1,70 @@
+/* Shared drill surface. Games compose these; game-specific rules go in their own section below. */
+.game {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: center;
+  padding: var(--space-6) var(--space-4);
+  min-height: 320px;
+  user-select: none;
+}
+.game__prompt {
+  font-size: var(--fs-15);
+  color: var(--ink-2);
+  text-align: center;
+}
+.game__stimulus {
+  font-family: var(--font-display);
+  font-size: var(--fs-44);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  text-align: center;
+  min-height: 1.2em;
+}
+.game__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+.game__choice {
+  min-width: 96px;
+}
+.game__grid {
+  display: grid;
+  gap: var(--space-2);
+}
+.game__cell {
+  width: 56px;
+  aspect-ratio: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.game__cell[data-on='true'] {
+  background: var(--ink);
+}
+.game__input {
+  font-size: var(--fs-24);
+  text-align: center;
+  width: 10ch;
+}
+.game__feedback {
+  font-size: var(--fs-14);
+  min-height: 1.4em;
+  text-align: center;
+}
+.game__feedback--ok {
+  color: var(--green-ink);
+}
+.game__feedback--bad {
+  color: var(--red);
+}
+.game__keys,
+.game__sub {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+  text-align: center;
+}
+.game__keys::before {
+  content: 'Keys: ';
+}

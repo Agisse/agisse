@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)" />
+    <script>
+      // Theme before first paint: the saved choice, else the system's, kept in sync while it changes.
+      ;(function () {
+        var m = matchMedia('(prefers-color-scheme: dark)')
+        function apply() {
+          var t = null
+          try { t = localStorage.getItem('agisse.theme') } catch (e) {}
+          document.documentElement.classList.toggle('dark', t ? t === 'dark' : m.matches)
+        }
+        apply()
+        m.addEventListener('change', apply)
+        window.addEventListener('agisse:theme', apply)
+      })()
+    </script>
+    <title>Agisse: AI job search assistant for students and graduates</title>
+    <meta name="description" content="Agisse ranks open roles across Europe against your CV, tells you which to apply to, tailors your CV and cover letter, finds people to message and preps every interview round. Free to start." />
+    <link rel="canonical" href="https://agisse.xyz/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:site_name" content="Agisse" />
+    <meta property="og:url" content="https://agisse.xyz/" />
+    <meta property="og:title" content="Agisse: land your first job in Europe, with AI on your side" />
+    <meta property="og:description" content="Agisse finds European roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare. You make every call and press every send." />
+    <meta property="og:image" content="https://agisse.xyz/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Agisse: land your first job in Europe. A feed of job openings ranked against your CV." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Agisse: land your first job in Europe, with AI on your side" />
+    <meta name="twitter:description" content="Agisse finds European roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare. You make every call and press every send." />
+    <meta name="twitter:image" content="https://agisse.xyz/og.png" />
+    <meta name="twitter:image:alt" content="Agisse: land your first job in Europe. A feed of job openings ranked against your CV." />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM summary" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://agisse.xyz/#org",
+            "name": "Agisse",
+            "url": "https://agisse.xyz/",
+            "logo": "https://agisse.xyz/logo.png",
+            "email": "hello@agisse.xyz",
+            "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "email": "hello@agisse.xyz", "availableLanguage": "en" },
+            "sameAs": ["https://www.instagram.com/agisse.xyz/"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://agisse.xyz/#website",
+            "name": "Agisse",
+            "url": "https://agisse.xyz/",
+            "publisher": { "@id": "https://agisse.xyz/#org" }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://agisse.xyz/#app",
+            "name": "Agisse",
+            "url": "https://agisse.xyz/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "AI job search assistant for students and early-career job seekers in Europe: ranks open roles against your CV, gives an apply-or-skip verdict, tailors your CV and cover letter, finds people worth messaging at a company, and prepares you for each interview round. Also available as an MCP server for Claude, Codex, Cursor and other AI clients.",
+            "featureList": ["Job feed of European internships, graduate programmes and first jobs ranked against your CV", "Apply-or-skip verdict per posting, requirement by requirement", "Tailored CV and cover letter that never invent experience", "People to message at a company, ranked by shared background, with a drafted note", "Aptitude test, interview and case practice", "Sourced salary range and negotiation script", "Application tracking board"],
+            "audience": { "@type": "Audience", "audienceType": "Students and early-career job seekers" },
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR", "description": "Free account with a first search included" },
+            "publisher": { "@id": "https://agisse.xyz/#org" }
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              { "@type": "Question", "name": "Who is Agisse for?", "acceptedAnswer": { "@type": "Answer", "text": "Students and people in their first few years of work, from the first search to the offer talk." } },
+              { "@type": "Question", "name": "What does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Agisse is free during the beta. Your first search works while you wait on the waitlist." } },
+              { "@type": "Question", "name": "Does Agisse apply or message people for me?", "acceptedAnswer": { "@type": "Answer", "text": "No. It fills the form and drafts the message; you submit and send them yourself, from your own account." } },
+              { "@type": "Question", "name": "What does it need from me?", "acceptedAnswer": { "@type": "Answer", "text": "Your CV. Import it as a PDF and check the fields it fills: your background is what the ranking and the messages are built on." } }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script defer src="https://analytics.agisse.xyz/script.js" data-website-id="17424ef9-c715-4f43-b20b-69833e99eeab" data-domains="agisse.xyz,www.agisse.xyz"></script>
+  </head>
+  <body>
+    <!-- The homepage as plain HTML for crawlers and AI assistants that don't run JS. React replaces it; the Worker strips it for signed-in visitors. Keep in step with src/routes/Landing.tsx. -->
+    <div id="root"><div class="home">
+      <main>
+        <section class="home__section">
+          <h1 class="home__title">Land your first job in Europe, with AI on your side</h1>
+          <p class="home__lede">Agisse finds the roles that fit your CV, tells you which ones are worth it, and helps you apply, reach out and prepare. You make every call and press every send.</p>
+          <p><a class="home__btn" href="/sign-in?mode=sign-up">Request an invite</a> Invite-only beta. Getting better every day. Never applies or messages for you. Built for students and graduates in Europe.</p>
+        </section>
+        <section class="home__section">
+          <h2 class="home__h2">A co-pilot, not an autopilot</h2>
+          <p>Bots that fire off hundreds of applications in your name get you ignored. Agisse does the research and the drafting, then hands you the wheel.</p>
+          <ul>
+            <li>Tells you the ten roles worth your time instead of spraying hundreds of applications</li>
+            <li>Drafts a personal note you send yourself</li>
+            <li>Rewords your CV, never adds to it</li>
+            <li>Preps you for every round</li>
+          </ul>
+        </section>
+        <section class="home__section">
+          <h2 class="home__h2">From first search to signed offer</h2>
+          <h3>Apply where you can actually win</h3><p>Every posting gets a clear verdict against your CV, requirement by requirement, then a CV and cover letter tailored to the ones that fit.</p>
+          <h3>Reach someone who will answer</h3><p>People at the company you have something in common with, and a short note drafted for you to send from your own account.</p>
+          <h3>Walk into every round prepared</h3><p>How each company's hiring rounds run, real reported questions to practise, and a sourced salary range when the offer comes.</p>
+          <p>Also: CV review, a browser extension that brings Agisse to any job posting, an application board, and use from Claude, Codex, Cursor or any MCP client (<a href="/docs/mcp">how to connect</a>).</p>
+        </section>
+        <section class="home__section">
+          <h2 class="home__h2">Questions</h2>
+          <h3>Does Agisse apply or message people for me?</h3><p>No, and that is on purpose. It fills forms and drafts messages; you submit and send them yourself, from your own accounts.</p>
+          <h3>Who is Agisse for?</h3><p>Students and graduates in their first few years of work who are looking for internships, graduate programmes and first jobs in Europe.</p>
+          <h3>What does it cost?</h3><p>Agisse is free during the beta. Your first search works while you wait on the waitlist.</p>
+          <h3>What does it need from me?</h3><p>Your CV. Import it as a PDF and check the fields it fills: your background is what the ranking and the drafts are built on.</p>
+        </section>
+      </main>
+      <footer class="home__foot"><a href="/docs/">Docs</a> · <a href="/docs/mcp">MCP</a> · <a href="/docs/extension">Browser extension</a> · <a href="/sign-in">Sign in</a></footer>
+    </div></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

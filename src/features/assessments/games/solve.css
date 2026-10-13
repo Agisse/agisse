@@ -1,0 +1,174 @@
+/* McKinsey Solve practice: Sea Wolf and Redrock. A calm tool surface: panels, compact tables, chips. */
+.solve {
+  justify-items: stretch;
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  user-select: text;
+}
+.solve-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.solve-panel {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+.solve-panel > .btn {
+  justify-self: start;
+}
+.solve-panel__head {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.solve-note,
+.solve-muted {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--ink-2);
+}
+.solve-q {
+  margin: 0;
+  font-size: var(--fs-15);
+}
+.solve-brief {
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--fs-14);
+}
+.solve > .btn {
+  justify-self: center;
+}
+
+/* Tables */
+.solve-scroll {
+  overflow-x: auto;
+}
+.solve-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-14);
+  font-variant-numeric: tabular-nums;
+}
+.solve-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+  text-transform: capitalize;
+  border-bottom: 1px solid var(--rule);
+  padding: var(--space-1) var(--space-2);
+  white-space: nowrap;
+}
+.solve-table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--rule-soft);
+}
+.solve-table tr[data-on='true'] td {
+  background: var(--paper-2);
+}
+.solve-table td[data-bad='true'] {
+  color: var(--red);
+  font-weight: 600;
+}
+.solve-traits {
+  font-size: var(--fs-13);
+  color: var(--ink-2);
+}
+
+/* Lists (shortlist, journal) */
+.solve-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-14);
+  font-variant-numeric: tabular-nums;
+}
+.solve-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  min-height: 32px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.solve-list li > span:first-child {
+  flex: 1;
+}
+.solve-journal {
+  border-style: dashed;
+  min-height: 120px;
+}
+
+/* Draggable figures */
+.solve-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.solve-chip {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-variant-numeric: tabular-nums;
+  cursor: grab;
+}
+.solve-chip:hover {
+  border-color: var(--ink);
+}
+.solve-chip[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+/* Bar chart */
+.solve-chart {
+  width: 100%;
+  height: auto;
+}
+.solve-chart__bar {
+  fill: var(--ink-3);
+}
+.solve-chart__label {
+  font-size: 11px;
+  fill: var(--ink-2);
+}
+
+/* Calculator and answer blanks */
+.solve-calc {
+  font-variant-numeric: tabular-nums;
+}
+.solve-calc__out {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--fs-18);
+  font-variant-numeric: tabular-nums;
+}
+.solve-blanks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.solve-blanks .field {
+  min-width: min(200px, 100%);
+}

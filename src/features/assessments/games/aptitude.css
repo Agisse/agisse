@@ -1,0 +1,269 @@
+/* Classic aptitude items: numerical data, verbal true/false/cannot say, SJT, critical reasoning, diagrammatic.
+   The plain two-pane look of online ability tests: data left, question and lettered options right. */
+.apt {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  width: min(960px, 100%);
+  padding: var(--space-5) var(--space-4);
+  align-items: start;
+}
+.apt__keys {
+  grid-column: 1 / -1;
+}
+.apt__stim {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--fs-15);
+  line-height: 1.6;
+}
+.apt__stim p {
+  margin: 0 0 var(--space-3);
+}
+.apt__stim p:last-child {
+  margin: 0;
+}
+.apt__caption {
+  font-weight: 650;
+  font-size: var(--fs-14);
+  margin-bottom: var(--space-3);
+}
+.apt__side {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.apt__question {
+  font-size: var(--fs-16);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.apt__rule {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--fs-13);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.apt__options {
+  display: grid;
+  gap: var(--space-2);
+}
+.apt__opt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-15);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+}
+.apt__opt:hover:enabled {
+  border-color: var(--ink-3);
+  background: var(--paper-2);
+}
+.apt__opt:disabled {
+  cursor: default;
+}
+.apt__opt[aria-pressed='true'] {
+  border-color: var(--ink);
+}
+.apt__opt[data-state='right'] {
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--green);
+}
+.apt__opt[data-state='wrong'] {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red);
+}
+.apt__letter {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  font-size: var(--fs-12);
+  font-weight: 650;
+  color: var(--ink-2);
+}
+.apt__explain {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  font-size: var(--fs-14);
+  line-height: 1.55;
+}
+.apt__verdict {
+  margin: 0;
+  font-weight: 700;
+}
+.apt__explain--ok .apt__verdict {
+  color: var(--green-ink);
+}
+.apt__explain--bad .apt__verdict {
+  color: var(--red);
+}
+.apt__why p {
+  margin: 0 0 var(--space-1);
+}
+.apt__next {
+  justify-self: start;
+}
+
+/* Data tables and charts */
+.apt__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-14);
+  font-variant-numeric: tabular-nums;
+}
+.apt__table th,
+.apt__table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--rule-soft);
+  text-align: right;
+}
+.apt__table th:first-child,
+.apt__table td:first-child {
+  text-align: left;
+}
+.apt__table thead th {
+  border-bottom: 1px solid var(--ink-3);
+  font-weight: 650;
+}
+.apt__note {
+  margin-top: var(--space-2);
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+}
+.apt__chart {
+  width: 100%;
+  height: auto;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.apt__chart text {
+  fill: var(--ink);
+}
+.apt__chart rect {
+  fill: #3a6ea5;
+}
+
+/* Diagrammatic */
+.apt__flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.apt__flow + .apt__flow {
+  margin-top: var(--space-3);
+}
+.apt__fig {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px 6px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+}
+.apt__fig svg {
+  width: 22px;
+  height: 22px;
+}
+.apt__box {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+}
+.apt__box svg {
+  width: 20px;
+  height: 20px;
+}
+.apt__arrow {
+  color: var(--ink-3);
+}
+.apt__opt .apt__fig {
+  border: 0;
+  padding: 0;
+}
+.apt__label {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+  margin-bottom: var(--space-2);
+}
+
+/* SJT */
+.apt__sjt {
+  display: grid;
+  gap: var(--space-2);
+}
+.apt__resp {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.apt__rate {
+  display: flex;
+  gap: 4px;
+}
+.apt__rate button {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.apt__rate button[aria-pressed='true'] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.apt__rate button:disabled {
+  cursor: default;
+}
+.apt__key {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+}
+.apt__scale {
+  font-size: var(--fs-12);
+  color: var(--ink-2);
+}
+
+@media (max-width: 760px) {
+  .apt {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+  }
+}

@@ -1,0 +1,353 @@
+/* Behavioural games: balloons, cards, easy or hard, keypresses, arrows, lengths, towers, money exchange. */
+.pym-key {
+  font-size: var(--fs-11);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.btn--primary .pym-key,
+.btn--ink .pym-key {
+  color: inherit;
+  opacity: 0.75;
+}
+.pym-tally {
+  font-variant-numeric: tabular-nums;
+}
+.pym-timer {
+  width: min(480px, 100%);
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left;
+  animation: pym-timer linear forwards;
+  animation-duration: var(--timer-ms);
+}
+@keyframes pym-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+.pym-note {
+  max-width: 480px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--amber-tint);
+  font-size: var(--fs-14);
+}
+
+/* Balloons */
+.pym-balloon {
+  width: min(220px, 60vw);
+  height: auto;
+  overflow: visible;
+}
+.pym-balloon__body {
+  transform-origin: 100px 240px;
+  transition: transform var(--dur-fast) var(--ease-out);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.pym-balloon__body[data-colour='red'] {
+  fill: #d9473f;
+}
+.pym-balloon__body[data-colour='yellow'] {
+  fill: var(--yellow);
+}
+.pym-balloon__body[data-colour='blue'] {
+  fill: #4f86d9;
+}
+.pym-balloon__string {
+  fill: none;
+}
+.pym-balloon__pop {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  fill: var(--red);
+}
+
+/* Cards and energy generators */
+.pym-decks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(64px, 110px));
+  gap: var(--space-3);
+}
+.pym-deck {
+  position: relative;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  font-family: var(--font-display);
+  font-size: var(--fs-32);
+  background: repeating-linear-gradient(45deg, var(--paper), var(--paper) 6px, var(--paper-2) 6px, var(--paper-2) 12px);
+}
+.pym-deck .pym-key {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+}
+.pym-deck[data-picked='true'] {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.pym-deck:disabled {
+  opacity: 1;
+}
+.pym-deck__name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pym-deck--gen .pym-deck__name {
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.pym-deck--gen {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border-width: 3px;
+  color: var(--paper);
+}
+.pym-deck--gen[data-colour='green'] {
+  background: var(--green);
+}
+.pym-deck--gen[data-colour='blue'] {
+  background: var(--game-blue);
+}
+.pym-deck--gen[data-colour='orange'] {
+  background: var(--game-orange);
+}
+.pym-deck--gen[data-colour='purple'] {
+  background: #6b3fa0;
+}
+.pym-deck--gen .pym-key {
+  color: var(--paper);
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+@media (max-width: 480px) {
+  .pym-decks {
+    grid-template-columns: repeat(2, 110px);
+  }
+}
+
+/* Easy or hard */
+.pym-effort {
+  align-items: center;
+  text-align: center;
+}
+.pym-effort__pay {
+  font-family: var(--font-display);
+  font-size: var(--fs-32);
+  font-variant-numeric: tabular-nums;
+}
+.pym-meter {
+  width: min(480px, 100%);
+  height: 18px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+.pym-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+.pym-mash {
+  height: 96px;
+  width: min(320px, 100%);
+  font-size: var(--fs-20);
+  touch-action: manipulation;
+}
+
+/* Keypresses */
+.pym-pad {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space-2);
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-44);
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.pym-pad[data-phase='go'] {
+  background: var(--green);
+  color: var(--paper);
+}
+.pym-pad[data-phase='stop'] {
+  background: var(--red);
+  color: var(--paper);
+}
+.pym-pad__count {
+  font-size: var(--fs-24);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Arrows / direction */
+.pym-flank {
+  display: grid;
+  place-items: center;
+  gap: var(--space-1);
+  min-height: 120px;
+  font-size: var(--fs-64);
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+.pym-flank[data-colour='blue'] {
+  color: var(--game-blue);
+}
+.pym-flank[data-colour='red'] {
+  color: var(--red);
+  text-decoration: underline double; /* not colour alone: red = sides */
+}
+.pym-flank__tag {
+  font-family: var(--font-display);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+}
+.pym-flank__fix {
+  color: var(--ink-3);
+  font-size: var(--fs-32);
+}
+@media (max-width: 480px) {
+  .pym-flank {
+    font-size: var(--fs-44);
+  }
+}
+
+/* Lengths */
+.pym-face {
+  width: min(200px, 55vw);
+  height: auto;
+}
+.pym-face > circle:first-child {
+  fill: var(--yellow);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+.pym-face__eye {
+  fill: var(--ink);
+}
+.pym-face__mouth {
+  stroke: var(--ink);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+/* Towers */
+.pym-towers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: center;
+  align-items: flex-end;
+  text-align: center;
+}
+.pym-tower {
+  --disc: 40px;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 3px solid var(--ink);
+}
+.pym-tower--small {
+  --disc: 22px;
+  gap: var(--space-2);
+}
+.pym-peg {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  width: calc(var(--disc) + 16px);
+  padding: 0 0 4px;
+  border: none;
+  background: linear-gradient(var(--ink), var(--ink)) center / 4px 100% no-repeat;
+}
+button.pym-peg {
+  cursor: pointer;
+}
+button.pym-peg:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.pym-peg__key {
+  position: absolute;
+  bottom: -22px;
+}
+.pym-disc {
+  display: grid;
+  place-items: center;
+  width: var(--disc);
+  height: var(--disc);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: calc(var(--disc) * 0.45);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.pym-disc[data-disc='0'] {
+  background: var(--red);
+}
+.pym-disc[data-disc='1'] {
+  background: var(--green);
+}
+.pym-disc[data-disc='2'] {
+  background: var(--game-blue);
+}
+.pym-disc[data-disc='3'] {
+  background: var(--yellow);
+  color: var(--ink);
+}
+.pym-disc[data-disc='4'] {
+  background: #6b3fa0;
+}
+.pym-disc[data-held='true'] {
+  transform: translateY(-14px);
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
+}
+
+/* Money exchange */
+.pym-money {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  width: min(360px, 100%);
+}
+.pym-money__value {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+.pym-money__value input {
+  width: 100%;
+  accent-color: var(--green);
+}
+.pym-money__scale {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pym-balloon__body,
+  .pym-disc {
+    transition: none;
+  }
+  /* The global override snaps animation to 0.01ms; keep the countdown, but stepped. */
+  .pym-timer {
+    animation-duration: var(--timer-ms) !important;
+    animation-timing-function: steps(8, end);
+  }
+}

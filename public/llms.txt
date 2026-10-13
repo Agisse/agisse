@@ -1,0 +1,42 @@
+# Agisse
+
+> Agisse is an AI job-search copilot for students and early-career job seekers in Europe targeting consulting, finance and tech roles. It ranks open roles against your CV, tells you which postings to apply to and which to skip, tailors your CV and cover letter, finds the people worth messaging at a company, and prepares you for each interview round. You always press submit and send yourself; Agisse never applies or messages on your behalf.
+
+Agisse is in invite-only beta. Join the waitlist at https://agisse.xyz; referrals move you up the list, and approved users can invite friends directly. Creating an account is free and includes a first search. Contact: hello@agisse.xyz.
+
+Who it is for: students and graduates in their first few years of work looking for internships, insight/spring weeks, summer and off-cycle internships, graduate programmes and first jobs across Europe.
+
+## What it does
+
+- **Jobs for you**: a feed of open roles across Europe (about 30 countries), filtered by your dealbreakers (programme type, level, remote, salary, countries) with deadlines always visible, ranked by your skills and target industries.
+- **Apply or skip**: paste any job posting and get a 1–5 score against your CV, a requirement-by-requirement match, and a clear verdict. Below 4.0 means don't apply.
+- **Tailored CV and cover letter**: rewords your real experience for the role, never invents employers, schools or skills. Export to PDF or LaTeX (Overleaf).
+- **Who to message**: finds people at a target company who share ground with you (same school, former employer, student club), explains why each one matters, and drafts a short note you send yourself.
+- **Prepare**: aptitude test practice (numerical, verbal, situational judgement, critical thinking, diagrammatic), mock interviews, case and technical drills, what each company's rounds test and questions candidates reported.
+- **Offer**: a sourced salary range and a negotiation script.
+- **Tracking**: one board for every application, with follow-ups and deadlines flagged.
+
+## Docs
+
+- [Home](https://agisse.xyz/): product overview and FAQ
+- [Docs](https://agisse.xyz/docs/): what Agisse is and how to connect to it
+- [MCP setup](https://agisse.xyz/docs/mcp): connect Claude, ChatGPT/Codex, Cursor or any MCP client; endpoint, OAuth sign-in, tools
+- [Browser extension](https://agisse.xyz/docs/extension): send a job posting or profile into Agisse in one click
+
+## Selection processes and online tests
+
+- [All employers and tests](https://agisse.xyz/docs/guides/): sourced, dated guides to how employers screen graduates and interns
+- [McKinsey](https://agisse.xyz/docs/guides/mckinsey), [BCG](https://agisse.xyz/docs/guides/bcg), [Bain](https://agisse.xyz/docs/guides/bain), [Goldman Sachs](https://agisse.xyz/docs/guides/goldman-sachs), [JPMorgan](https://agisse.xyz/docs/guides/jpmorgan), [Morgan Stanley](https://agisse.xyz/docs/guides/morgan-stanley), [Deloitte](https://agisse.xyz/docs/guides/deloitte), [PwC](https://agisse.xyz/docs/guides/pwc), [EY](https://agisse.xyz/docs/guides/ey), [KPMG](https://agisse.xyz/docs/guides/kpmg): stages, test provider, time limits, sources
+- [SHL](https://agisse.xyz/docs/tests/shl), [pymetrics](https://agisse.xyz/docs/tests/pymetrics), [HireVue games](https://agisse.xyz/docs/tests/hirevue), [Arctic Shores](https://agisse.xyz/docs/tests/arctic-shores), [Aon](https://agisse.xyz/docs/tests/aon), [Cappfinity](https://agisse.xyz/docs/tests/cappfinity), [Sova](https://agisse.xyz/docs/tests/sova), [McKinsey Solve](https://agisse.xyz/docs/tests/mckinsey-solve), [Watson-Glaser](https://agisse.xyz/docs/tests/watson-glaser): every task, what it measures, length, tactics
+
+## FAQ
+
+- **Who is Agisse for?** Students and people in their first few years of work, from the first search to the offer talk.
+- **What does it cost?** Agisse is free during the beta. Your first search works while you wait on the waitlist.
+- **Does Agisse apply or message people for me?** No. It drafts answers and messages; you fill in, submit and send them yourself.
+- **Does it scrape LinkedIn?** No. It uses the public web only and never logs into LinkedIn; profile links are opened by you.
+- **What does it need from me?** Your CV, imported as a PDF.
+
+## Optional
+
+- [Sign up](https://agisse.xyz/sign-in?mode=sign-up): create a free account

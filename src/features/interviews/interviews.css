@@ -1,0 +1,453 @@
+/* Interviews hub (/prepare/interviews) and the pieces it shares with the mock interview and story bank. Tokens only. */
+
+.interviews {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 46rem;
+}
+
+/* The one primary action: a card. */
+.iv-start {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--rule-soft), var(--shadow-sm);
+  scroll-margin-top: calc(var(--strip-h, 64px) + var(--space-4));
+}
+.iv-start__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-20);
+  letter-spacing: -0.02em;
+}
+.iv-start-btn {
+  justify-self: start;
+}
+.iv-seg {
+  justify-self: start;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.iv-seg > button {
+  flex: 0 0 auto;
+  padding: 0 var(--space-4);
+  font-size: var(--fs-14);
+  white-space: nowrap;
+}
+.iv-link {
+  color: var(--blue-ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Quiet entries: a ruled list that opens one section at a time. */
+.iv-more {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.iv-more > li {
+  border-bottom: 1px solid var(--rule-soft);
+  scroll-margin-top: calc(var(--strip-h, 64px) + var(--space-4));
+}
+.iv-more__row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  text-align: left;
+}
+.iv-more__title {
+  display: block;
+  font-weight: 600;
+  font-size: var(--fs-16);
+}
+.iv-more__line {
+  display: block;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+}
+.iv-more__chev {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+  transition: transform var(--dur) var(--ease-out);
+}
+.iv-more__row:hover .iv-more__title {
+  color: var(--blue-ink);
+}
+.iv-more__row[aria-expanded='true'] .iv-more__chev {
+  transform: rotate(180deg);
+}
+.iv-more__panel {
+  padding: 0 0 var(--space-6);
+}
+.iv-more__panel .stories {
+  margin-top: 0;
+}
+
+.iv-section,
+.iv-pane {
+  display: grid;
+  gap: var(--space-4);
+}
+.iv-section > .iv-pane {
+  padding-top: var(--space-2);
+}
+.iv-answer {
+  display: flex;
+  gap: var(--space-2);
+}
+.iv-answer .field__input {
+  flex: 1;
+  min-width: 0;
+}
+.iv-result {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-18);
+}
+.iv-ok,
+.iv-miss {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+}
+.iv-ok {
+  color: var(--green);
+}
+.iv-miss {
+  color: var(--red);
+}
+.iv-feedback {
+  display: grid;
+  gap: var(--space-2);
+}
+.iv-tree,
+.iv-list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--space-1);
+}
+.iv-tree .tnum {
+  color: var(--ink-2);
+}
+.iv-tree .tnum::before {
+  content: '· ';
+}
+.iv-fold {
+  border-top: 1px solid var(--rule-soft);
+  padding: var(--space-3) 0;
+}
+.iv-fold > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.iv-fold > summary:hover {
+  color: var(--blue-ink);
+}
+.iv-fold[open] {
+  display: grid;
+  gap: var(--space-2);
+}
+.iv-dl {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.iv-dl dt {
+  font-weight: 600;
+  font-size: var(--fs-13);
+}
+.iv-dl dd {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/* Group exercise grid */
+.iv-grid {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.iv-grid__row {
+  display: grid;
+  gap: var(--space-2);
+}
+.iv-grid .seg > button {
+  height: 32px;
+  font-size: var(--fs-13);
+}
+
+/* In-tray */
+.iv-tray {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.iv-tray > li {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.iv-tray p {
+  margin: 0;
+}
+.iv-tray__pick {
+  width: auto;
+  justify-self: start;
+  height: 36px;
+  margin-top: var(--space-1);
+}
+
+/* Flashcards */
+.iv-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  box-shadow: inset 0 0 0 1px var(--rule-soft), var(--shadow-sm);
+}
+.iv-card__answer {
+  color: var(--ink-2);
+  max-width: 60ch;
+}
+
+/* Mock interview additions */
+.mock__tips {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--ink-2);
+  display: grid;
+  gap: var(--space-1);
+}
+.mock__delivery {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.mock__delivery > div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.mock__delivery dt {
+  font-weight: 600;
+  font-size: var(--fs-14);
+}
+.mock__delivery dd {
+  margin: 0;
+}
+.mock__flag {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* Story bank competency coverage */
+.stories__coverage {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.stories__coverage > li {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-13);
+  color: var(--ink-3);
+  border: 1px dashed var(--rule);
+}
+.stories__coverage > li.is-covered {
+  color: var(--green-ink);
+  background: var(--green-tint);
+  border-color: transparent;
+}
+.stories__coverage > li.stories__coverage-note {
+  border: 0;
+  padding: 0;
+}
+
+@media (max-width: 560px) {
+  .iv-start {
+    padding: var(--space-4);
+  }
+  /* Segments wrap as whole labels instead of hiding the last ones off to the side. */
+  .iv-seg {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .mock__delivery > div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.mock__done {
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+.mock__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.mock__exit {
+  justify-self: start;
+}
+
+/* Touch: main controls reach 44px. */
+@media (pointer: coarse) {
+  .interviews .btn,
+  .mock .btn,
+  .interviews .seg > button,
+  .interviews .chip,
+  .iv-more__row,
+  .iv-link {
+    min-height: 44px;
+  }
+  .iv-fold > summary,
+  .case__brief > summary {
+    padding-block: var(--space-3);
+  }
+}
+
+/* Investment banking (/prepare/interviews/banking). */
+.ib-head {
+  display: grid;
+  gap: var(--space-2);
+}
+.ib-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  justify-self: start;
+  margin-left: -4px;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+}
+.ib-back:hover {
+  color: var(--blue-ink);
+}
+.ib-back svg {
+  width: 16px;
+  height: 16px;
+}
+.ib-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-24);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.ib-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+}
+.ib-facts__row {
+  display: contents;
+}
+.ib-facts dt {
+  color: var(--ink-2);
+}
+.ib-facts dd {
+  margin: 0;
+  font-weight: 500;
+}
+.ib-answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+}
+.ib-answer .field {
+  width: 9rem;
+}
+.ib-skip {
+  justify-self: start;
+  font-size: var(--fs-14);
+}
+.ib-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  counter-reset: step;
+}
+.ib-steps > li {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  column-gap: var(--space-2);
+  counter-increment: step;
+}
+.ib-steps > li::before {
+  content: counter(step);
+  grid-row: span 2;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.ib-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+.ib-cols h4,
+.iv-section h4.label {
+  margin-bottom: var(--space-2);
+}
+.ib-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.ib-links a {
+  font-weight: 600;
+  color: var(--blue-ink);
+  text-underline-offset: 3px;
+}
+.ib-links a:hover {
+  text-decoration: underline;
+}
+@media (max-width: 520px) {
+  .ib-facts {
+    grid-template-columns: 1fr;
+    row-gap: 0;
+  }
+  .ib-facts dd {
+    margin-bottom: var(--space-2);
+  }
+}
+.ib-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+}
+.ib-verdict > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}

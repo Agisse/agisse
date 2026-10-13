@@ -1,0 +1,6 @@
+/* Homepage extras Tailwind expresses poorly. Colours come from the app tokens, so dark mode follows. */
+.home { overflow-x: clip; -webkit-font-smoothing: antialiased; }
+.home ::selection { background: var(--blue-soft); color: var(--ink); }
+.home :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+html:has(.home) { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html:has(.home) { scroll-behavior: auto; } }

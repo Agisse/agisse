@@ -1,0 +1,178 @@
+/* Consulting cases (/prepare/interviews/case). Tokens only; shares the interviews hub primitives. */
+
+.case__prompt {
+  font-size: var(--fs-16);
+  line-height: 1.55;
+  max-width: 65ch;
+}
+.case__reveal {
+  justify-self: start;
+}
+.case__brief > summary {
+  cursor: pointer;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.case__brief > summary:hover {
+  color: var(--blue-ink);
+}
+.case__brief > p {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-2);
+  max-width: 65ch;
+}
+.case__exhibit {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+  overflow-x: auto;
+}
+.case__exhibit .apt__table {
+  background: var(--paper);
+}
+.case__ref {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--blue-soft);
+}
+.case__ref p {
+  margin: 0;
+  max-width: 65ch;
+}
+.case__ref .iv-list,
+.case__ref .iv-dl dd {
+  color: var(--ink);
+}
+.case__verdict {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.case__over {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* Five dimensions: a quiet row of figures; the weak one in amber. */
+.case__scores {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+.case__scores > div {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+}
+.case__scores dt {
+  font-size: var(--fs-13);
+  color: var(--ink-2);
+}
+.case__scores dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-20);
+}
+.case__scores > .is-low {
+  background: var(--amber-tint);
+}
+.case__scores > .is-low dd {
+  color: var(--amber);
+}
+
+.case__standing {
+  display: grid;
+  gap: var(--space-3);
+}
+.case__line {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-18);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.case__fixes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.case__fixes > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.case__fixes .btn {
+  flex: none;
+  gap: 4px;
+}
+.case__fixes svg {
+  width: 14px;
+  height: 14px;
+}
+
+.case__res {
+  display: grid;
+  gap: var(--space-2);
+}
+.case__res-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.case__res-list > li {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.case__res-list > li:first-child {
+  border-top: 1px solid var(--rule-soft);
+}
+.case__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  font-weight: 600;
+  color: var(--blue-ink);
+}
+.case__link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.case__link svg {
+  width: 13px;
+  height: 13px;
+  color: var(--ink-3);
+}
+
+/* Phones: the five figures become a short ruled list instead of a grid with an orphan. */
+@media (max-width: 560px) {
+  .case__scores {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .case__scores > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+  }
+  .case__scores dd {
+    font-size: var(--fs-16);
+  }
+}

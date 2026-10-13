@@ -1,0 +1,85 @@
+{
+  "manifest_version": 3,
+  "name": "Agisse",
+  "version": "0.7.0",
+  "description": "Save the job posting or LinkedIn profile in this tab to Agisse, see on job pages what's already on your board, keywords your CV misses, and draft answers to an application's questions.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://agisse.xyz/*",
+    "http://localhost/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Agisse",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://agisse.xyz/*",
+        "http://localhost/*"
+      ],
+      "js": [
+        "content-agisse.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://*.indeed.com/*",
+        "https://*.indeed.nl/*",
+        "https://*.indeed.de/*",
+        "https://*.indeed.fr/*",
+        "https://*.indeed.co.uk/*",
+        "https://*.indeed.be/*",
+        "https://boards.greenhouse.io/*",
+        "https://job-boards.greenhouse.io/*",
+        "https://job-boards.eu.greenhouse.io/*",
+        "https://jobs.lever.co/*",
+        "https://jobs.eu.lever.co/*",
+        "https://jobs.ashbyhq.com/*",
+        "https://*.jobs.personio.de/*",
+        "https://*.jobs.personio.com/*",
+        "https://*.recruitee.com/*",
+        "https://apply.workable.com/*",
+        "https://jobs.smartrecruiters.com/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://www.stepstone.de/*",
+        "https://www.stepstone.nl/*",
+        "https://www.stepstone.be/*",
+        "https://www.arbeitnow.com/*"
+      ],
+      "js": [
+        "jobpage.js",
+        "badge.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [{ "resources": ["icons/icon-48.png"], "matches": ["<all_urls>"] }],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "save-posting": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Save the posting in this tab to Agisse"
+    }
+  }
+}

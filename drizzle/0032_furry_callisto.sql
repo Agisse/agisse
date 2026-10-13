@@ -1,0 +1,1 @@
+ALTER TABLE "training_session" ADD COLUMN "provider_game_id" text;

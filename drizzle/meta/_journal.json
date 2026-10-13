@@ -1,0 +1,237 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789843467375,
+      "tag": "0000_familiar_moonstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789848140855,
+      "tag": "0001_unknown_timeslip",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789848471819,
+      "tag": "0002_daffy_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790168763652,
+      "tag": "0003_nifty_mariko_yashida",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790191619455,
+      "tag": "0004_thin_killraven",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790193475897,
+      "tag": "0005_freezing_prism",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790194085399,
+      "tag": "0006_smooth_the_watchers",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790423499757,
+      "tag": "0007_spooky_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790425963416,
+      "tag": "0008_opposite_may_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790510356530,
+      "tag": "0009_fantastic_dakota_north",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790512387861,
+      "tag": "0010_clear_microchip",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790512891743,
+      "tag": "0011_sweet_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790514067548,
+      "tag": "0012_strange_pandemic",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1790521327407,
+      "tag": "0013_tired_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1790532647612,
+      "tag": "0014_happy_morbius",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790535339436,
+      "tag": "0015_grey_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790544522021,
+      "tag": "0016_elite_grandmaster",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790607718980,
+      "tag": "0017_noisy_speed_demon",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790632209644,
+      "tag": "0018_daily_lizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790665486403,
+      "tag": "0019_absent_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1790667184221,
+      "tag": "0020_powerful_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790672946182,
+      "tag": "0021_amused_tiger_shark",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791102916899,
+      "tag": "0022_chief_mordo",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791106506781,
+      "tag": "0023_elite_annihilus",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791107452484,
+      "tag": "0024_spotty_whizzer",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791214395276,
+      "tag": "0025_opposite_wiccan",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791217460787,
+      "tag": "0026_jazzy_squadron_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791583449315,
+      "tag": "0027_numerous_deadpool",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791583645359,
+      "tag": "0028_polite_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791583802396,
+      "tag": "0029_powerful_jack_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791751399944,
+      "tag": "0030_ancient_screwball",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791752512602,
+      "tag": "0031_loose_runaways",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791755201100,
+      "tag": "0032_furry_callisto",
+      "breakpoints": true
+    }
+  ]
+}

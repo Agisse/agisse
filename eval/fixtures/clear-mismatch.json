@@ -1,0 +1,23 @@
+{
+  "name": "clear-mismatch",
+  "seekerName": "Sofie Martens",
+  "resume": "Sofie Martens — Antwerp\nEDUCATION\nKarel de Grote University of Applied Sciences — Bachelor in Marketing (2021–2024).\nEXPERIENCE\nStudio Brussel — Social Media Intern (Feb–May 2024): planned Instagram and TikTok content calendars; grew weekly reach by 20% over the internship.\nZara — Sales Associate, part-time (2020–2023).\nSKILLS\nCanva, Meta Business Suite, Google Analytics, copywriting. Languages: Dutch (native), English (fluent).",
+  "profile": {
+    "university": "Karel de Grote University of Applied Sciences",
+    "degree": "Bachelor in Marketing",
+    "gradYear": "2024",
+    "internships": [
+      "Studio Brussel"
+    ],
+    "skills": [
+      "Canva",
+      "Google Analytics",
+      "copywriting"
+    ]
+  },
+  "posting": "Collibra — Senior Backend Engineer (Java), Brussels\nJoin the platform team that powers Collibra's data intelligence cloud. You will design distributed services in Java and Kotlin, own their reliability on Kubernetes, and mentor junior engineers.\nRequirements:\n- 6+ years of professional backend development in Java or Kotlin\n- Deep experience with distributed systems, PostgreSQL and event streaming (Kafka)\n- Experience running services on Kubernetes in AWS or GCP\n- Degree in computer science or equivalent experience\n- Excellent English",
+  "expectScore": [
+    1,
+    2.4
+  ]
+}

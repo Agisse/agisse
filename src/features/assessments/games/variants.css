@@ -1,0 +1,123 @@
+/* Provider variants of the core games: Flashback, Pulse, Digitspan/Digits, Tiles, Tickets. */
+
+/* Flashback: three shape colours (the core palette's blue and orange plus the token green). */
+.var-flash {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+}
+.var-flash__name {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.var-c0 {
+  color: var(--game-blue);
+}
+.var-c1 {
+  color: var(--game-orange);
+}
+.var-c2 {
+  color: var(--green);
+}
+
+/* Pulse: a grey object that sometimes carries a red dot. */
+.var-pulse {
+  display: grid;
+  place-items: center;
+  width: 140px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 6px solid var(--ink-3);
+  background: var(--paper-2);
+}
+.var-pulse__dot {
+  width: 36px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* Digitspan / Digits */
+.var-span {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+.var-span__input {
+  width: min(60vw, 14ch);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.var-span--rev {
+  color: var(--game-orange);
+}
+
+/* Tiles: blue targets, orange distractors. */
+.var-tile {
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.var-tile:disabled {
+  cursor: default;
+}
+.var-tile[data-lit='target'] {
+  background: var(--game-blue);
+  border-color: var(--game-blue);
+  color: var(--paper);
+}
+.var-tile[data-lit='distractor'] {
+  background: #e08a2e;
+  border-color: #e08a2e;
+}
+
+/* Tickets: a stage split into a number half (top) and a shape half (bottom). */
+.var-reminder {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+  text-align: center;
+  transition: opacity 1.2s var(--ease-out, ease-out);
+}
+.var-reminder[data-faded='true'] {
+  opacity: 0;
+}
+.var-tickets {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  width: min(100%, 280px);
+  height: 240px;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+}
+.var-tickets__half {
+  display: grid;
+  place-items: center;
+}
+.var-tickets__half + .var-tickets__half {
+  border-top: 2px dashed var(--rule);
+}
+.var-ticket {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+}
+.var-ticket__num {
+  font-family: var(--font-display);
+  font-size: var(--fs-32);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .var-reminder {
+    transition: none;
+  }
+}

@@ -1,0 +1,42 @@
+import type { ReactNode } from 'react'
+import { Link, useLocation } from 'wouter'
+import { ProgressPanel } from '../components/ProgressPanel'
+
+const TABS = [
+  ['/prepare', 'Tests', 'Practise the online tests employers use.'],
+  ['/prepare/interviews', 'Interviews', 'Rehearse answers and get feedback.'],
+  ['/prepare/cv', 'CV', 'Score your CV and fix weak lines.'],
+] as const
+
+/** Prepare: online tests, interviews and the CV in one place, with progress across all three folded under the tab's content. */
+export function PrepareHub({ children }: { children: ReactNode }) {
+  const [loc] = useLocation()
+  const current = loc.startsWith('/prepare/interviews') ? '/prepare/interviews' : loc.startsWith('/prepare/cv') ? '/prepare/cv' : '/prepare'
+  return (
+    <>
+      <div className="map prepare-hub">
+        <h1 className="sr-only">{TABS.find(([href]) => href === current)?.[1]}</h1>
+        <nav className="posting-tabs" aria-label="Prepare">
+          {TABS.map(([href, label]) => (
+            <Link key={href} href={href} aria-current={current === href ? 'page' : undefined}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <p className="muted prepare-hub__purpose">{TABS.find(([href]) => href === current)?.[2]}</p>
+      </div>
+      {children}
+      <div className="map prepare-hub">
+        <details className="index-card__options">
+          <summary>
+            <span>Your progress</span>
+            <span className="index-card__options-hint">Games, interview answers and CV</span>
+          </summary>
+          <div className="index-card__options-fields">
+            <ProgressPanel />
+          </div>
+        </details>
+      </div>
+    </>
+  )
+}

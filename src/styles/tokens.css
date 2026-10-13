@@ -1,0 +1,156 @@
+/* Agisse: Apple-neutral grounds, one Agisse blue for action and selection;
+   green, amber and red are status only. Light by default, `.dark` on <html> follows the system
+   (set before paint in index.html, overridable from the account menu).
+   .light-scope pins the light set inside a dark page (the assessment games imitate vendor tests, which are light). */
+:root,
+.light-scope {
+  color-scheme: light;
+
+  --paper: #ffffff;
+  --paper-2: #f5f5f7; /* second ground, hover, sidebar */
+  --paper-3: #ebebef; /* pressed / track */
+  --ink: #1d1d1f;
+  --ink-2: #515154; /* secondary text, ≥ 7:1 on paper */
+  --ink-3: #6e6e73; /* placeholders, hints: ≥ 4.8:1 on paper */
+  --rule: #d2d2d7; /* control borders */
+  --rule-soft: #e8e8ed; /* hairlines */
+
+  --blue: #1f45e0;
+  --blue-ink: #1636b8; /* hover / pressed, link text */
+  --blue-soft: #eef1fd;
+  --blue-fill: var(--blue); /* behind white text */
+  --seg-thumb: #ffffff; /* the selected segment of a segmented control */
+
+  --green: #12723f;
+  --green-ink: #0d5c32;
+  --green-tint: #e7f5ec;
+  --amber: #a15c00;
+  --amber-tint: #fdf3e1;
+  /* Contacted: a soft blue highlight behind the name. */
+  --yellow: #dce4ff;
+  --yellow-ink: #1636b8;
+  --red: #c4251b;
+  --red-tint: #fdeeec;
+  --gold: #ffcc00; /* the wordmark's star only */
+
+  /* Bubble map: one quiet fill per industry. */
+  --bubble-1: #e1e8ff;
+  --bubble-2: #e7f5ec;
+  --bubble-3: #fdf3e1;
+  --bubble-4: #f2e9fb;
+  --bubble-5: #e2f3f6;
+  --bubble-6: #fdeaea;
+  --bubble-none: #f5f5f7;
+
+  /* Status: grey = not sent yet, blue = in play, green = offer, muted = closed. */
+  --status-saved: #c7c7cc;
+  --status-evaluated: #8e8e93;
+  --status-applied: #8aa2f5;
+  --status-responded: #5a78ec;
+  --status-assessment: #1f45e0;
+  --status-interview: #1636b8;
+  --status-offer: #12723f;
+  --status-rejected: #d2d2d7;
+
+  /* SF Pro on Apple devices, Inter (self-hosted) everywhere else. */
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter Variable', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter Variable', system-ui, sans-serif;
+
+  --fs-11: 0.6875rem;
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;
+  --fs-18: 1.125rem;
+  --fs-20: 1.25rem;
+  --fs-24: 1.5rem;
+  --fs-32: 2rem;
+  --fs-44: 2.25rem;
+  --fs-64: 3rem;
+
+  --track-caps: 0;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius: 10px; /* controls, inner tiles */
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -8px rgb(0 0 0 / 0.12);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.04), 0 24px 48px -16px rgb(0 0 0 / 0.18);
+  --shadow-btn: none;
+
+  --strip-h: 0px; /* the sidebar replaced the top bar; sticky offsets read this */
+  --legend-h: 0px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-flip: 320ms;
+
+  --max-w: 1120px;
+  --gutter: clamp(16px, 4vw, 40px);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --paper: #1c1c1e;
+  --paper-2: #232326;
+  --paper-3: #2c2c2f;
+  --ink: #f5f5f7;
+  --ink-2: #c7c7cc;
+  --ink-3: #98989d;
+  --rule: #3a3a3d;
+  --rule-soft: #2e2e31;
+
+  --blue: #4d7bff;
+  --blue-ink: #86a5ff;
+  --blue-soft: #1f2846;
+  --blue-fill: #3d6af5; /* --blue is too light for white text in dark (3.7:1); this is 4.6:1 */
+  --seg-thumb: #3a3a3d;
+
+  --green: #4cc785;
+  --green-ink: #6fd69c;
+  --green-tint: #15301f;
+  --amber: #f0a63c;
+  --amber-tint: #33270f;
+  --yellow: #263463;
+  --yellow-ink: #a9bfff;
+  --red: #ff6b5e;
+  --red-tint: #3a1b18;
+
+  --bubble-1: #232c48;
+  --bubble-2: #1b2f23;
+  --bubble-3: #33291a;
+  --bubble-4: #2d2340;
+  --bubble-5: #1b2f33;
+  --bubble-6: #3a2222;
+  --bubble-none: #232326;
+
+  --status-saved: #48484a;
+  --status-evaluated: #8e8e93;
+  --status-applied: #6f8cf0;
+  --status-responded: #5a78ec;
+  --status-assessment: #4d7bff;
+  --status-interview: #86a5ff;
+  --status-offer: #4cc785;
+  --status-rejected: #3a3a3d;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 24px 48px -16px rgb(0 0 0 / 0.6);
+}
+
+.light-scope {
+  background: var(--paper);
+  color: var(--ink);
+}

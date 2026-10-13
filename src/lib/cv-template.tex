@@ -1,0 +1,112 @@
+\documentclass[a4paper,10pt]{article}
+% Packages
+\usepackage[a4paper,top=0.35in,bottom=0.32in,left=0.72in,right=0.72in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\definecolor{portfolioaccent}{RGB}{67,101,125}
+
+
+% Disable page numbering
+\pagenumbering{gobble}
+
+% Reduce spacing
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+
+% Tighten list spacing
+\setlist[itemize]{noitemsep,leftmargin=15pt,topsep=2pt,parsep=0pt,itemsep=1pt}
+
+% Section Formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {}{0pt}{}[\vspace{-2pt}\titlerule\vspace{2pt}]
+\titleformat{\subsection}
+  {\bfseries\normalsize}
+  {}{0pt}{}
+\titlespacing*{\section}{0pt}{7pt}{2pt}
+\titlespacing*{\subsection}{0pt}{4pt}{1pt}
+
+% Document
+\begin{document}
+
+% Header
+\begin{center}
+    {\huge \textbf{Jane Doe}}\\
+    \vspace{1mm}
+    \small
+    \href{mailto:jane.doe@example.com}{jane.doe@example.com} \, | \,
+    +32 400 00 00 00 \, | \,
+    \href{https://linkedin.com/in/jane-doe/}{linkedin.com/in/jane-doe/} \, | \,
+    Brussels, Belgium\\
+    Open to relocation \, | \,
+    Portfolio: \href{https://janedoe.com}{janedoe.com}
+\end{center}
+
+% Education
+\section*{Education}
+
+\subsection*{Example Business School \hfill \normalfont\textit{Brussels, Belgium}}
+\textit{Master in Financial Management \hfill 09/2026--06/2027}
+\begin{itemize}
+    \item \textbf{Exchange:} Example University, Milan, Italy (Spring 2027)
+    \item \textbf{Selected courses:} Strategy, Negotiation, Machine Learning for Finance
+\end{itemize}
+
+\subsection*{University of Example \hfill \normalfont\textit{Ghent, Belgium}}
+\textit{Master of Science in Business Engineering (Finance) \hfill 09/2024--06/2026}
+\begin{itemize}
+    \item \textbf{Grade:} magna cum laude (80\%), ranked 10th of 70 in the programme
+    \item \textbf{Thesis:} A European bank factor (17/20): analysed bank valuation data in R
+\end{itemize}
+
+% Professional Experience
+\section*{Professional Experience}
+
+\subsection*{Example Bank \hfill \normalfont\textit{Brussels, Belgium}}
+\textit{Data Analysis Intern \hfill 01/2025--02/2025}
+\begin{itemize}
+    \item Analysed issuance and holdings data for two banking clients with SQL and Power BI
+    \item Delivered a 24-page report on funding patterns and service opportunities
+\end{itemize}
+
+\subsection*{Example Tutoring \hfill \normalfont\textit{Ghent, Belgium}}
+\textit{Economics Tutor \hfill 02/2023--05/2024}
+\begin{itemize}
+    \item Tutored university students in micro- and macroeconomics
+\end{itemize}
+
+% Leadership & Extracurriculars
+\section*{Leadership \& Extracurriculars}
+
+\subsection*{Example Rocketry Team \hfill \normalfont\textit{Belgium}}
+\textit{Board Member \hfill 07/2025--07/2026}
+\begin{itemize}
+    \item Increased sponsorship revenue from €5,000 to €20,000 by negotiating partnerships
+    \item Built an Excel tracker to coordinate a €60,000 budget
+\end{itemize}
+
+% Personal Project
+\section*{Personal Project}
+
+\subsection*{\href{https://example.com}{Example SaaS}}
+\textit{Founder \& Developer \hfill 07/2026--Present}
+\begin{itemize}
+    \item Built and operate a multi-tenant SaaS platform with Next.js, PostgreSQL and Docker
+\end{itemize}
+
+% Skills & Interests
+\section*{Skills \& Interests}
+
+\begin{itemize}
+    \item \textbf{Languages:} Dutch (native), French (bilingual), English (fluent)
+    \item \textbf{Technical:} Excel (LBO, DCF, comparable companies), Python, SQL, Power BI, R
+    \item \textbf{Interests:} Personal investing, endurance sports, chess
+\end{itemize}
+
+\end{document}

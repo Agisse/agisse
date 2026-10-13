@@ -1,0 +1,23 @@
+# Search engines and AI assistants are welcome on the public pages.
+# A crawler that matches a named group ignores the * group, so each group repeats the rules.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /mcp
+
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /mcp
+
+Sitemap: https://agisse.xyz/sitemap.xml
+Sitemap: https://agisse.xyz/docs/sitemap.xml

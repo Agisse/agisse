@@ -1,0 +1,67 @@
+/* Shared runner: pre-game screen, run bar, pause/end sheets, result. */
+.intro__facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--fs-14);
+}
+.intro__facts dt {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.intro__facts dd {
+  display: grid;
+  gap: 2px;
+}
+.result {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 60ch;
+}
+.result__headline {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-24);
+}
+.result__details summary {
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: var(--fs-14);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.runner__ctl {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+.runner__confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.runner__stage {
+  position: relative;
+  border-radius: var(--radius-card); /* light-scope: a light board even on a dark page */
+}
+.runner__stage[data-covered='true'] > .runner__board {
+  visibility: hidden;
+}
+.runner__sheet {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  background: var(--paper);
+  text-align: center;
+}

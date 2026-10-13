@@ -1,0 +1,60 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "agisse",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // Every request goes through the Worker so http → https and HSTS apply to assets too.
+    "run_worker_first": true
+  },
+  "observability": { "enabled": true },
+  // Daily: mark saved postings their public ATS board no longer lists as closed (worker/lib/closed.ts).
+  "triggers": { "crons": ["17 4 * * *"] },
+  "secrets": { "required": ["DATABASE_URL", "EXA_API_KEY", "OPENROUTER_API_KEY", "BETTER_AUTH_SECRET", "SENTRY_DSN"] },
+  // Sentry release tagging: ties each event to the deployed Worker version, no separate release step needed.
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  // Original résumé PDFs, one per user: resumes/<userId>.pdf
+  // Free on every plan. namespace_id is any account-unique integer string.
+  // AUTH: sign-in/up/reset POSTs per IP. API: non-GET /api calls per signed-in user (bursts that would hit paid models).
+  "ratelimits": [
+    { "name": "AUTH_LIMITER", "namespace_id": "1701", "simple": { "limit": 10, "period": 60 } },
+    { "name": "API_LIMITER", "namespace_id": "1702", "simple": { "limit": 60, "period": 60 } }
+  ],
+  "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "agisse-resumes" }],
+  "routes": [
+    { "pattern": "agisse.xyz", "custom_domain": true },
+    { "pattern": "www.agisse.xyz", "custom_domain": true }
+  ],
+  "vars": {
+    // Comma-separated preference list. Paid entries (Haiku: best in the 2026-10-12 eval, ~$0.002 a call) go first on Agisse's key;
+    // the ":free" ones, plus auto-discovered ":free" models, are the fallback.
+    "OPENROUTER_MODELS": "anthropic/claude-haiku-5.5,nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
+    // Paid models below run only on a seeker's own OpenRouter key.
+    // "Smart" model setting: tried first, then paid models under SMART_MAX_USD_PER_M ($ per 1M output tokens), then the free chain.
+    "OPENROUTER_CHECK_MODELS": "google/gemini-3.8-flash",
+    // deepseek-v4-pro (60-170 s) and qwen3.8-flash (burns max_tokens reasoning) dropped: they time out on every structured task; gemini does them in 1-8 s.
+    "OPENROUTER_SMART_MODELS": "google/gemini-3.8-flash",
+    "SMART_MAX_USD_PER_M": "2",
+    // Mock-interview transcription when the browser has no speech recognition (Firefox): takes audio input, cents per hour.
+    "OPENROUTER_AUDIO_MODEL": "google/gemini-3.8-flash",
+    // Default monthly allowance per user in €; the admin can override it per account.
+    "MONTHLY_BUDGET_EUR": "5",
+    // Share of what a user spends that is kept as margin: 0.5 = a €10 allowance costs us at most €5.
+    "PRICE_MARGIN": "0.5",
+    // Nominal € per million OpenRouter tokens (free models bill $0). Generous: €2 ≈ 40M tokens.
+    "TOKEN_EUR_PER_MILLION": "0.05",
+    // Provider costs arrive in USD; update when the rate drifts.
+    "USD_TO_EUR": "0.86",
+    // Kill switch: total provider spend per UTC day across every user. Past it all AI features pause until midnight.
+    "GLOBAL_DAILY_USD_CAP": "15",
+    // Local dev overrides this to "development" via .dev.vars if you add one; deployed always sends "production".
+    "SENTRY_ENVIRONMENT": "production"
+  }
+  // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
+  // DATABASE_URL, EXA_API_KEY, OPENROUTER_API_KEY, BETTER_AUTH_SECRET, SENTRY_DSN
+  // Optional (feature stays off without them): RESEND_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
+}

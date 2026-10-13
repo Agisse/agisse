@@ -1,0 +1,179 @@
+/* Sequence reasoning, spatial memory, risk & reward, attention tracking, estimation. */
+.rsn-key {
+  font-size: var(--fs-11);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.rsn-choice:disabled,
+.rsn-option:disabled,
+.rsn-dots:disabled,
+.rsn-hbar:disabled {
+  opacity: 1;
+}
+.game__choice[data-answer='true'] {
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 1px var(--green);
+}
+
+/* Sequence reasoning */
+.rsn-terms {
+  font-size: var(--fs-32);
+}
+.rsn-frames {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--ink);
+}
+.rsn-glyph {
+  width: 56px;
+  height: 56px;
+}
+.rsn-q {
+  font-family: var(--font-display);
+  font-size: var(--fs-44);
+  width: 56px;
+  text-align: center;
+}
+.rsn-choice {
+  height: auto;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--fs-20);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .rsn-glyph,
+  .rsn-q {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Spatial memory */
+.rsn-grid .game__cell {
+  width: clamp(36px, 12vw, 56px);
+  padding: 0;
+  transition: background var(--dur-fast);
+}
+.rsn-grid .game__cell:enabled {
+  cursor: pointer;
+}
+.rsn-grid .game__cell[data-wrong='true'],
+.rsn-ball[data-wrong='true'] {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 2px var(--red);
+}
+
+/* Risk & reward */
+.rsn-option {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  height: auto;
+  width: min(240px, 100%);
+  padding: var(--space-4);
+  white-space: normal;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.rsn-option__label {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: 600;
+}
+.rsn-option__row {
+  font-size: var(--fs-15);
+}
+.rsn-muted {
+  color: var(--ink-2);
+}
+.rsn-bar {
+  display: flex;
+  height: 8px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+.rsn-bar > span[data-tone='0'] {
+  background: var(--ink);
+}
+.rsn-bar > span[data-tone='1'] {
+  background: var(--ink-3);
+}
+.rsn-timer {
+  width: min(480px, 100%);
+  height: 2px;
+  background: var(--ink);
+  transform-origin: left;
+  animation: rsn-timer linear forwards;
+  animation-duration: var(--timer-ms);
+}
+@keyframes rsn-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+.rsn-tally {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Attention tracking */
+.rsn-arena {
+  position: relative;
+  width: min(480px, 100%);
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+.rsn-ball {
+  position: absolute;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+}
+.rsn-ball:enabled {
+  cursor: pointer;
+}
+.rsn-ball[data-on='true'] {
+  background: var(--ink);
+}
+
+/* Estimation */
+.rsn-dots {
+  flex-direction: column;
+  height: auto;
+  padding: var(--space-2);
+}
+.rsn-dots svg {
+  width: clamp(88px, 26vw, 140px);
+  height: auto;
+}
+.rsn-bars {
+  display: grid;
+  gap: var(--space-3);
+  width: min(480px, 100%);
+}
+.rsn-hbar {
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+}
+.rsn-hbar__track {
+  flex: 1;
+  height: 14px;
+  background: var(--paper-2);
+}
+.rsn-hbar__track > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global override snaps animation to 0.01ms; keep the countdown, but stepped. */
+  .rsn-timer {
+    animation-duration: var(--timer-ms) !important;
+    animation-timing-function: steps(8, end);
+  }
+}

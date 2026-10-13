@@ -1,0 +1,1 @@
+ALTER TABLE "search" ADD COLUMN "rounds" integer DEFAULT 1 NOT NULL;
