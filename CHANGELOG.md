@@ -11,6 +11,7 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - Issue forms for bugs, feature ideas and self-host help, and a pull request template.
 - `npm run db:seed` fills a development database with synthetic companies, roles and a test student.
 - A release workflow that attaches the browser extension zip to each GitHub release.
+- `worker/index.check.ts` boots the Worker with only the required secrets and walks the main routes; with a development `DATABASE_URL` it signs up a synthetic user and removes it again.
 
 ### Changed
 
