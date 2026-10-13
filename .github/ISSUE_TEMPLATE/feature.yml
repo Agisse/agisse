@@ -1,0 +1,25 @@
+name: Feature idea
+description: Suggest something Agisse should do, or stop doing.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Agisse is small on purpose. Ideas that remove things are as welcome as ones that add them. For bigger changes, a Discussion is a good first step.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: The smallest change that would solve it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today instead
