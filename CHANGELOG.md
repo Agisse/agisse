@@ -12,4 +12,9 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - `npm run db:seed` fills a development database with synthetic companies, roles and a test student.
 - A release workflow that attaches the browser extension zip to each GitHub release.
 
+### Changed
+
+- Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
+- Builds load the Sentry plugin only when `SENTRY_AUTH_TOKEN` is set; self-hosted builds contact no telemetry service by default.
+
 [Unreleased]: https://github.com/Agisse/agisse/commits/main
