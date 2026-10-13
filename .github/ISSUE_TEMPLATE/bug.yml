@@ -1,0 +1,45 @@
+name: Bug
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please don't paste real CVs, names or job postings. Use made-up examples.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: And what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Click …
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - agisse.xyz
+        - Self-hosted
+        - Local development
+        - Browser extension
+        - MCP server
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 131 on Android
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors or screenshots
+      description: Console errors, worker logs or a screenshot. Remove keys and personal data first.

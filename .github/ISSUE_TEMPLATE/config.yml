@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/Agisse/agisse/discussions
+    about: Ask and discuss in GitHub Discussions.
+  - name: Security issue
+    url: https://github.com/Agisse/agisse/security/policy
+    about: Never in public. Report it privately; see SECURITY.md.
+  - name: Your agisse.xyz account
+    url: mailto:hello@agisse.xyz
+    about: Account, billing or data questions about the hosted service.
