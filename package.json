@@ -18,6 +18,7 @@
     "cf-typegen": "wrangler types",
     "db:generate": "node --env-file=.env ./node_modules/.bin/drizzle-kit generate",
     "db:migrate": "node --env-file=.env ./node_modules/.bin/drizzle-kit migrate",
+    "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "db:studio": "node --env-file=.env ./node_modules/.bin/drizzle-kit studio",
     "secrets": "sh ./scripts/put-secrets.sh",
     "indexnow": "sh ./scripts/indexnow.sh",
