@@ -2,6 +2,21 @@
 
 Thanks for helping. Agisse is small on purpose: one clear action per view, AI only where it helps. Contributions that remove things are as welcome as ones that add them.
 
+## First screen in 10 minutes
+
+You need Node 24 (what CI uses) and a free [Neon](https://neon.tech) database (a new project or a branch; the app talks to Postgres through Neon's HTTP driver).
+
+```sh
+npm ci
+cp .dev.vars.example .dev.vars   # fill in DATABASE_URL, BETTER_AUTH_SECRET and an OpenRouter key
+cp .dev.vars .env                # the db:* scripts read .env
+npm run db:migrate               # creates the tables
+npm run db:seed                  # synthetic companies, open roles and a test student
+npm run dev                      # http://localhost:5173
+```
+
+`db:seed` prints a password for `student@example.com`; sign in with it to see the feed and the tracker. Re-running it keeps existing rows.
+
 ## Before you start
 
 - Bugs and small fixes: open a pull request directly.
