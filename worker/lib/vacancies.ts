@@ -81,11 +81,11 @@ export function vacancyFilters(f: VacancyQuery): SQL[] {
 /**
  * The seeker's feed, one page. Match = 60% profile fit (Jev's score from vacancy_fit, else e5 cosine of
  * profile_embedding and the posting stretched from its usual 0.72–0.92 band to 0–1), 15% chosen function,
- * 15% freshness, 10% deadline within two weeks. No model call per view: startup-radar writes the embeddings and scores.
+ * 15% freshness, 10% deadline within two weeks. No model call per view: the feed provider writes the embeddings and scores.
  */
 export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, skills: string[]): Promise<{ vacancies: Vacancy[]; more: boolean; profiled: boolean; total: number }> {
   const pe = sql`(select embedding from profile_embedding where user_id = ${userId})`
-  // Jev's judgement where startup-radar scored the pair (the seeker's top cosine matches), else the stretched cosine.
+  // Jev's judgement where the feed provider scored the pair (the seeker's top cosine matches), else the stretched cosine.
   const jev = sql`(select score from vacancy_fit where user_id = ${userId} and url = ${v.url})`
   const fit = sql<number>`coalesce(${jev}, greatest(0, least(1, ((1 - (${v.embedding} <=> ${pe})) - 0.72) / 0.2)), 0)`
   const fn = f.functions.length ? sql`(${v.functions} && ${textArray(f.functions)})::int` : sql`0`
@@ -164,10 +164,10 @@ async function similarTo(db: Db, like: { url: string; title: string }): Promise<
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const DAY = 86_400_000
 
-/** Jev's verdict as a chip, on startup-radar's FIT_SCALE (score/3): 0 wrong field, 1/3 a stretch, 2/3 worth applying, 1 strong. */
+/** Jev's verdict as a chip, on FIT_SCALE (score/3): 0 wrong field, 1/3 a stretch, 2/3 worth applying, 1 strong. */
 const jevLabel = (jev: number) => (jev >= 0.83 ? 'Strong fit' : jev >= 0.5 ? 'Worth applying' : jev >= 0.17 ? 'A stretch' : null)
 
-// Same question and scale as startup-radar's profiles step, so a pasted posting and a feed row read alike.
+// The feed provider scores vacancy_fit on this same question and scale, so a pasted posting and a feed row read alike.
 export const FIT_SCALE = ['Wrong field or level for this candidate', 'A stretch: some overlap but a different direction', 'Reasonable fit worth applying to', 'Strong fit: matches their field, skills and interests']
 export const FIT_Q: ScoreQ = { type: 'score', criteria: FIT_SCALE, instructions: "How well does this job posting fit this candidate's background, skills and interests?" }
 
@@ -183,7 +183,7 @@ export async function quickFit(env: Env, jdText: string, cv: string, meter: Mete
   return fitFrom(scoreOf(answers.fit))
 }
 
-/** Up to three plain reasons a role is in the seeker's feed, most telling first. `jev` is Jev's score where startup-radar wrote one. */
+/** Up to three plain reasons a role is in the seeker's feed, most telling first. `jev` is Jev's score where the feed provider wrote one. */
 export function reasonsFor(
   r: { title: string; description: string | null; functions: string[]; fit: number; jev?: number | null; deadline: string | null; deadlineType: string; firstSeen: string },
   chosen: string[],

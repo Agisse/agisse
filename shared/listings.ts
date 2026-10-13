@@ -1,4 +1,4 @@
-export type Provider = 'greenhouse' | 'lever' | 'ashby' | 'personio' | 'recruitee' | 'workable' | 'smartrecruiters' | 'adzuna' | 'arbeitnow' | 'radar'
+export type Provider = 'greenhouse' | 'lever' | 'ashby' | 'personio' | 'recruitee' | 'workable' | 'smartrecruiters' | 'adzuna' | 'arbeitnow' | 'feed'
 
 export type Listing = {
   provider: Provider
@@ -13,7 +13,7 @@ export type Listing = {
   salaryMax?: number | null
 }
 
-export type ListingBoard = { provider: Exclude<Provider, 'adzuna' | 'arbeitnow' | 'radar'>; url: string }
+export type ListingBoard = { provider: Exclude<Provider, 'adzuna' | 'arbeitnow' | 'feed'>; url: string }
 
 export const ADZUNA_COUNTRIES = {
   at: 'Austria',
@@ -189,7 +189,7 @@ export const EMPTY_FEED_PREFS: FeedPrefs = { query: '', countries: [], level: 'a
 /** True when the seeker hid this employer. */
 export const isBlocked = (company: string, prefs: Pick<FeedPrefs, 'blocked'>) => (prefs.blocked ?? []).some((b) => b.trim().toLowerCase() === company.trim().toLowerCase())
 
-// ---- Vacancy feed: early-career European roles scraped by startup-radar into the `vacancy` table.
+// ---- Vacancy feed: early-career European roles a feed provider writes into the `vacancy` table (docs/feed-contract.md).
 
 /** EU27 + EEA + UK + CH, as ISO codes (upper case, as stored). */
 export const VACANCY_COUNTRIES = {

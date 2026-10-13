@@ -1329,7 +1329,7 @@ const VacancyQuerySchema = z.object({
   similar: z.object({ url: z.string().max(2000), title: z.string().max(300) }).nullable(),
 })
 
-// The scraped early-career feed (startup-radar fills `vacancy`), ranked for this seeker. No model call.
+// The early-career feed (a feed provider fills `vacancy`), ranked for this seeker. No model call.
 app.get('/api/vacancies', async (c) => {
   const q = (k: string) => c.req.query(k)
   const parsed = VacancyQuerySchema.safeParse({

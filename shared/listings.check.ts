@@ -1,5 +1,5 @@
 // Run: npx tsx shared/listings.check.ts
-import { deadlineLabel, plainText, groupByCompany, EMPTY_FEED_PREFS, fromAdzuna, fromArbeitnow, fromAshby, levelOf, matchFeed, type FeedPrefs, type Listing, fromGreenhouse, fromLever, fromPersonio, fromRecruitee, fromSmartRecruiters, fromWorkable, htmlToText, postingBoard, slugGuesses } from './listings.ts'
+import { type Provider, deadlineLabel, plainText, groupByCompany, EMPTY_FEED_PREFS, fromAdzuna, fromArbeitnow, fromAshby, levelOf, matchFeed, type FeedPrefs, type Listing, fromGreenhouse, fromLever, fromPersonio, fromRecruitee, fromSmartRecruiters, fromWorkable, htmlToText, postingBoard, slugGuesses } from './listings.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -67,4 +67,9 @@ eq(dl(null, 'unknown'), { text: '', tone: 'muted' }, 'unknown')
 // The same employer folds under its first row; order is kept.
 eq(groupByCompany([{ company: 'A' }, { company: 'B' }, { company: 'a ' }]).map((g) => [g.lead.company, g.rest.length]), [['A', 1], ['B', 0]], 'grouping')
 eq(plainText('IT \\& Cyber **About us** x'), 'IT & Cyber About us x', 'plain text')
+// Feed rows come from whichever feed provider fills `vacancy`, so the listing provider has a neutral name (tsc checks this).
+const feed: Provider = 'feed'
+// @ts-expect-error the old name is gone
+const radar: Provider = 'radar'
+void [feed, radar]
 console.log('feed checks passed')
