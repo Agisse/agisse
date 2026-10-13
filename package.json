@@ -21,6 +21,7 @@
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "db:studio": "node --env-file=.env ./node_modules/.bin/drizzle-kit studio",
     "secrets": "sh ./scripts/put-secrets.sh",
+    "self-host": "sh ./scripts/self-host.sh",
     "indexnow": "sh ./scripts/indexnow.sh",
     "quality": "tsx --env-file-if-exists=.env scripts/quality.ts",
     "eval": "tsx --env-file-if-exists=.env scripts/eval.ts",

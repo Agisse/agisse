@@ -19,7 +19,13 @@ export default defineConfig({
     tailwindcss(),
     react(),
     babel({ presets: [reactCompilerPreset()] }),
-    cloudflare(),
+    // Self-hosting: SELF_HOST_DOMAIN replaces the agisse.xyz routes with your domain, or with none for `workers.dev`.
+    cloudflare({
+      config: (worker) => {
+        const domain = process.env.SELF_HOST_DOMAIN
+        if (domain) worker.routes = domain === 'workers.dev' ? [] : [{ pattern: domain, custom_domain: true }]
+      },
+    }),
     // Uploads source maps on build so production stack traces show real file/line, not minified code.
     // Needs SENTRY_AUTH_TOKEN (an org auth token with project:releases scope) as a build-time env var — not deployed.
     // Without it the plugin isn't loaded, so self-host and CI builds don't contact Sentry at all.
