@@ -70,6 +70,7 @@ Agisse runs on Cloudflare's free plan plus a free Neon Postgres database.
 | `EXA_API_KEY` | People search |
 | `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` | Job search by city, and more postings in the feed |
 | `RESEND_API_KEY` | Emails (otherwise they are logged to the console) |
+| `EMAIL_FROM` | Sender address for those emails, on a domain verified in Resend (default `hello@agisse.xyz`) |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Sign in with Google |
 | `TURNSTILE_SECRET_KEY` + `VITE_TURNSTILE_SITE_KEY` | Bot protection on sign-in |
 | `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics (off by default) |
