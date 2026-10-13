@@ -20,7 +20,7 @@ import { curatedFor, providerGame } from '../shared/assessment-catalog'
 import { ANSWER_FIELDS, EMPTY_ANSWERS, matchAnswer, type AnswerKey } from '../shared/answer-bank'
 import { STORY_TEXT_LIMIT, type Story } from '../shared/stories'
 import type { ProgressData } from '../shared/progress'
-import { NoModelAvailable, transcribe } from './lib/openrouter'
+import { NoAiKey, NoModelAvailable, transcribe } from './lib/openrouter'
 import { DEFAULT_MODEL, keyLooksValid, listKeyModels, loadUserKey, seal, verifyKey } from './lib/byok'
 import { SavedCompanyInput, scoutCompanies, similarCompanies, toSaved, upsertSavedCompany } from './lib/companies'
 import { researchSelection } from './lib/selection'
@@ -2089,7 +2089,7 @@ app.post('/api/scouts/similar', async (c) => {
     return c.json({ companies })
   } catch (err) {
     console.error('similar companies failed', err)
-    return c.json({ error: 'Could not find similar companies. Try again in a moment.' }, 502)
+    return c.json({ error: err instanceof NoAiKey ? err.message : 'Could not find similar companies. Try again in a moment.' }, 502)
   } finally {
     await charge(db, userId, 'scout', meter)
   }

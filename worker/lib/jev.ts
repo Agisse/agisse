@@ -2,7 +2,7 @@
 // Agisse's split: the text LLM writes (rewrites, headlines, keyword lists), Jev judges (does the CV show this,
 // does this version claim more than the CV, which version is strongest, how well does this posting fit).
 // Input tokens only are billed, about $0.00002 for a CV-sized call; many questions share one call.
-import type { Meter } from './openrouter'
+import { NoAiKey, type Meter } from './openrouter'
 
 export const JEV_MODEL = 'typesafe/jev-1.13'
 
@@ -23,6 +23,7 @@ export const noul = (instructions: string, yes: string, no: string): NoulQ => ({
 
 /** One Decisions call; cost is booked on `meter` like any model call. Throws on any failure: callers decide how to degrade. */
 export async function jevDecide<Q extends Record<string, JevQuestion>>(env: Env, state: Record<string, unknown>, questions: Q, meter?: Meter, signal?: AbortSignal): Promise<{ [K in keyof Q]: JevAnswer }> {
+  if (!env.OPENROUTER_API_KEY) throw new NoAiKey()
   const res = await fetch('https://openrouter.ai/api/alpha/decisions', {
     method: 'POST',
     signal: signal ?? AbortSignal.timeout(20_000),
