@@ -14,7 +14,7 @@
   "observability": { "enabled": true },
   // Daily: mark saved postings their public ATS board no longer lists as closed (worker/lib/closed.ts).
   "triggers": { "crons": ["17 4 * * *"] },
-  "secrets": { "required": ["DATABASE_URL", "EXA_API_KEY", "OPENROUTER_API_KEY", "BETTER_AUTH_SECRET", "SENTRY_DSN"] },
+  "secrets": { "required": ["DATABASE_URL", "BETTER_AUTH_SECRET"] },
   // Sentry release tagging: ties each event to the deployed Worker version, no separate release step needed.
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   // Original résumé PDFs, one per user: resumes/<userId>.pdf
@@ -55,6 +55,6 @@
     "SENTRY_ENVIRONMENT": "production"
   }
   // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
-  // DATABASE_URL, EXA_API_KEY, OPENROUTER_API_KEY, BETTER_AUTH_SECRET, SENTRY_DSN
-  // Optional (feature stays off without them): RESEND_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
+  // DATABASE_URL, BETTER_AUTH_SECRET
+  // Optional (feature stays off without them): OPENROUTER_API_KEY (else every user brings their own key), EXA_API_KEY, SENTRY_DSN, RESEND_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
 }
