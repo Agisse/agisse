@@ -73,7 +73,7 @@ function askedBefore(url: string): boolean {
 }
 
 const whereOf = (v: Vacancy) => (v.country === 'EU' ? 'Remote, Europe' : [v.city, v.country && COUNTRY_LABELS[v.country]].filter(Boolean).join(', '))
-const listingOf = (v: Vacancy): Listing => ({ provider: 'radar', company: v.company, title: v.title, location: v.location ?? whereOf(v), url: v.url, text: v.description ?? '', remote: v.remote })
+const listingOf = (v: Vacancy): Listing => ({ provider: 'feed', company: v.company, title: v.title, location: v.location ?? whereOf(v), url: v.url, text: v.description ?? '', remote: v.remote })
 // A stored description goes straight to evaluation; without one the posting is read from its link.
 const sourceOf = (v: Vacancy) => (v.description && v.description.length >= 200 ? 'board' : 'city')
 
