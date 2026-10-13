@@ -15,6 +15,7 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - An architecture page in the docs.
 - `npm run eval:feed` ranks the job feed for 12 synthetic graduate personas (nursing to logistics) and reports, per persona, how many roles pass their filters, how on-field the top 30 is and how many employers it shows. No model calls.
 - A feed contract in the docs: the columns, values and open-role rule a feed provider writes, checked against the schema.
+- A self-host page in the docs: configure, check locally, deploy with `npm run self-host`, become the admin, and what to expect from an empty job feed.
 - `npm run self-host` deploys your own copy: R2 bucket, migrations, build and deploy, with `SELF_HOST_DOMAIN` in place of the agisse.xyz routes.
 - A data-flow page in the docs: what Agisse stores, where, and which outside service sees what.
 
