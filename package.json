@@ -47,7 +47,7 @@
     "hono": "^4.13.13",
     "lucide-react": "^1.55.0",
     "maplibre-gl": "^6.13.0",
-    "motion": "^13.4.4",
+    "motion": "^14.1.0",
     "pdfjs-dist": "^6.4.299",
     "posthog-js": "^1.438.7",
     "react": "^19.2.8",
