@@ -58,7 +58,7 @@ Each piece below feeds the next:
 
 ## Self-host
 
-Agisse runs on Cloudflare's free plan plus a free Neon Postgres database.
+Agisse runs on Cloudflare's free plan plus a free Neon Postgres database. Step by step: [`/docs/self-host`](docs/self-host.md).
 
 **Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET` and `ADMIN_EMAIL` (your account becomes the admin).
 
