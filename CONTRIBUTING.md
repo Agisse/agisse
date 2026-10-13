@@ -15,7 +15,7 @@ See "Run locally" in the [README](README.md). Only `DATABASE_URL`, `BETTER_AUTH_
 ## Pull requests
 
 - Keep each PR to one change. Match the style of the code around it.
-- Run `npm run build` and the checks named in the README for the area you touched.
+- Run `npm run build && npm run lint && npm run check` (CI runs the same on every PR).
 - Schema changes: edit `worker/db/schema.ts`, then `npm run db:generate`, and commit the generated migration.
 
 ## Sign your commits (DCO)
