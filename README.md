@@ -78,7 +78,14 @@ Agisse runs on Cloudflare's free plan plus a free Neon Postgres database.
 
 **Telemetry is off by default.** A self-hosted copy sends nothing to Agisse, Sentry or PostHog unless you set `SENTRY_DSN` (Worker errors), `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` (browser analytics) or `SENTRY_AUTH_TOKEN` (source-map upload at build time). Your own keys send to your own accounts.
 
-Before deploying, edit `wrangler.jsonc`: replace the `agisse.xyz` routes with your domain (or remove them to use `*.workers.dev`), and create the R2 bucket named in `r2_buckets` (`npx wrangler r2 bucket create agisse-resumes`). Then follow [Run locally](#run-locally) and [Deploy](#deploy-to-cloudflare-free-plan).
+**Deploy:** set `SELF_HOST_DOMAIN` in `.env` to a domain on your Cloudflare account (or `workers.dev` for the free `*.workers.dev` address), then:
+
+```sh
+npx wrangler login
+npm run self-host         # R2 bucket, migrations, build for your domain, deploy with the Worker secrets from .env
+```
+
+Run it again to update. Try it locally first with [Run locally](#run-locally).
 
 **Become the admin:** sign up with your email while `ADMIN_EMAIL` is still unset (that address is reserved once it is set), then run this once in your database (for example the Neon SQL editor) and set `ADMIN_EMAIL` to the same address:
 
@@ -115,6 +122,8 @@ Users get it from the Jobs page ("Send from your browser"), which links `/agisse
 `docs/` is a small [VitePress](https://vitepress.dev) site (just the extension and MCP pages above). `npm run docs:dev` to preview; `npm run docs:build` builds it into `public/docs`, served at `/docs` by the same Worker (also run by `dev` and `build`).
 
 ## Deploy to Cloudflare (free plan)
+
+This deploys to the routes in `wrangler.jsonc` (agisse.xyz). For your own copy, use `npm run self-host` from [Self-host](#self-host).
 
 ```sh
 npx wrangler login
