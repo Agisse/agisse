@@ -4,22 +4,23 @@
 declare global {
   interface Env {
     RESEND_API_KEY?: string
+    /** Sender and reply-to address; Resend only sends from a domain verified on its account. */
+    EMAIL_FROM?: string
   }
 }
 
-const FROM = 'Agisse <hello@agisse.xyz>'
-
 export async function sendEmail(env: Env, to: string, subject: string, lines: string[], cta?: { label: string; url: string }) {
   if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', to, subject)
-  const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', '— Agisse · hello@agisse.xyz'].join('\n')
+  const from = env.EMAIL_FROM?.trim() || 'hello@agisse.xyz'
+  const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`].join('\n')
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
 ${lines.map((l) => `<p style="margin:0 0 14px">${escape(l)}</p>`).join('')}
 ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">${escape(cta.label)}</a></p>` : ''}
-<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · invite-only beta · <a href="mailto:hello@agisse.xyz" style="color:#888">hello@agisse.xyz</a></p></div>`
+<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · invite-only beta · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a></p></div>`
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to, reply_to: 'hello@agisse.xyz', subject, text, html }),
+    body: JSON.stringify({ from: `Agisse <${from}>`, to, reply_to: from, subject, text, html }),
   })
   // A lost email is not worth failing the request that triggered it; log for Sentry/observability.
   if (!res.ok) console.error('resend failed', res.status, await res.text().catch(() => ''))

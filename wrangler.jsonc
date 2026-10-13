@@ -56,5 +56,5 @@
   }
   // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
   // DATABASE_URL, BETTER_AUTH_SECRET
-  // Optional (feature stays off without them): OPENROUTER_API_KEY (else every user brings their own key), EXA_API_KEY, SENTRY_DSN, RESEND_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
+  // Optional (feature stays off without them): OPENROUTER_API_KEY (else every user brings their own key), EXA_API_KEY, SENTRY_DSN, RESEND_API_KEY, EMAIL_FROM, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
 }
