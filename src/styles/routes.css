@@ -919,6 +919,7 @@
   border: 1px dashed var(--rule-soft);
   color: var(--ink-2);
 }
+.open-roles__empty > p { max-width: 65ch; }
 .open-roles__sources,
 .open-roles__list {
   list-style: none;
