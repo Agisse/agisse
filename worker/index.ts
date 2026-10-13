@@ -62,6 +62,13 @@ import { COGNITIVE_SKILLS, BENCHMARK_MIN_USERS, GAME_IDS, REPORT_KINDS, TRAINING
 import type { HelperMessage } from '../shared/helper'
 import { COMPANY_SIZES, CONTACT_VALUES, EMAIL_KINDS, EMPTY_PROFILE, GOALS, JD_TEXT_LIMIT, JOB_STATUSES, MEMORY_KINDS, MEMORY_LIMIT, MEMORY_TEXT_LIMIT, NOTE_LANGUAGES, RATED_TASKS, REPLY_STATUSES, RESUME_PDF_LIMIT, RESUME_TEXT_LIMIT, TRIAL_RESUME_READS, normalizeDomain, type JobEvaluation, type NoteLanguage, type Person, type Profile, type Scout, type ScoutSummary, type BubbleMapSummary, type SavedBubbleMap } from '../shared/types'
 
+declare global {
+  interface Env {
+    /** Unset: Sentry stays off. */
+    SENTRY_DSN?: string
+  }
+}
+
 type Variables = {
   db: Db
   auth: Auth

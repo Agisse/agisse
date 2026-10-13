@@ -2,4 +2,5 @@
 # The other keys in .env.example are optional.
 DATABASE_URL=postgresql://user:password@host/db?sslmode=require
 BETTER_AUTH_SECRET=  # openssl rand -base64 32
+# Optional: without it, connect your own AI key under Profile → AI after signing in.
 OPENROUTER_API_KEY=

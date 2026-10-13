@@ -60,12 +60,13 @@ Each piece below feeds the next:
 
 Agisse runs on Cloudflare's free plan plus a free Neon Postgres database.
 
-**Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET`, `ADMIN_EMAIL` (your account becomes the admin) and `OPENROUTER_API_KEY` (the server's key; free models cost nothing, and users can still connect their own key under Profile → AI).
+**Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET` and `ADMIN_EMAIL` (your account becomes the admin).
 
 **Optional:** each one turns a feature on, and the app works without it.
 
 | Key | Turns on |
 |---|---|
+| `OPENROUTER_API_KEY` | The server's AI key; free models cost nothing. Without it, each user connects their own key under Profile → AI |
 | `EXA_API_KEY` | People search |
 | `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` | Job search by city, and more postings in the feed |
 | `RESEND_API_KEY` | Emails (otherwise they are logged to the console) |
@@ -89,7 +90,7 @@ The name and logo are not covered by the license. If you offer your copy to othe
 ## Run locally
 
 ```sh
-cp .env.example .env      # fill in DATABASE_URL, BETTER_AUTH_SECRET, ADMIN_EMAIL, OPENROUTER_API_KEY
+cp .env.example .env      # fill in DATABASE_URL, BETTER_AUTH_SECRET, ADMIN_EMAIL (+ OPENROUTER_API_KEY, or bring your own key)
 cp .env .dev.vars         # wrangler / the Vite plugin read secrets from .dev.vars
 npm install
 npm run db:migrate        # applies drizzle/ migrations to DATABASE_URL
