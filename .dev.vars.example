@@ -1,0 +1,5 @@
+# The minimum for `npm run dev`. Copy to both .dev.vars (read by the Worker) and .env (read by the db:* scripts).
+# The other keys in .env.example are optional.
+DATABASE_URL=postgresql://user:password@host/db?sslmode=require
+BETTER_AUTH_SECRET=  # openssl rand -base64 32
+OPENROUTER_API_KEY=
