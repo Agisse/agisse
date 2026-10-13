@@ -13,6 +13,7 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - A release workflow that attaches the browser extension zip to each GitHub release.
 - `worker/index.check.ts` boots the Worker with only the required secrets and walks the main routes; with a development `DATABASE_URL` it signs up a synthetic user and removes it again.
 - An architecture page in the docs.
+- `npm run eval:feed` ranks the job feed for 12 synthetic graduate personas (nursing to logistics) and reports, per persona, how many roles pass their filters, how on-field the top 30 is and how many employers it shows. No model calls.
 
 ### Changed
 

@@ -25,7 +25,8 @@
     "quality": "tsx --env-file-if-exists=.env scripts/quality.ts",
     "eval": "tsx --env-file-if-exists=.env scripts/eval.ts",
     "eval:export": "tsx --env-file=.env scripts/eval-export.ts",
-    "sponsors:import": "tsx --env-file=.env scripts/import-sponsors.ts"
+    "sponsors:import": "tsx --env-file=.env scripts/import-sponsors.ts",
+    "eval:feed": "tsx --env-file=.env scripts/eval-feed.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
