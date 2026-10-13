@@ -12,6 +12,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "lint": "oxlint",
+    "check": "for f in $(git ls-files '*.check.ts'); do tsx \"$f\" || exit 1; done",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
