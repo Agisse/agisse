@@ -62,6 +62,13 @@ export class NoModelAvailable extends Error {
   }
 }
 
+/** No key to call a model with: the seeker hasn't connected one and this server has no OPENROUTER_API_KEY. */
+export class NoAiKey extends Error {
+  constructor() {
+    super('Connect your AI key in Profile to use this.')
+  }
+}
+
 export type StructuredResult<T> = { data: T; model: string }
 
 /** Running spend for one request; every provider response counts, even ones that fail validation.
@@ -136,6 +143,7 @@ export async function generateStructured<T>(opts: {
   const byok = opts.meter?.byok
   if (byok && byok.provider !== 'openrouter') return generateDirect(byok, opts)
   const apiKey = byok?.key ?? opts.apiKey
+  if (!apiKey) throw new NoAiKey()
   const models = await listModels(apiKey)
   const rank = opts.meter?.rank?.[opts.schemaName]
   const isFree = (m: string) => m.endsWith(':free')
@@ -316,6 +324,7 @@ async function generateDirect<T>(
 export async function transcribe(opts: { apiKey: string; model: string; audio: string; format: 'webm' | 'ogg' | 'mp4' | 'wav'; meter?: Meter }): Promise<string> {
   // An own OpenRouter key pays for audio too; OpenAI and Anthropic keys don't, so Agisse's key does and it is booked.
   const own = opts.meter?.byok?.provider === 'openrouter' ? opts.meter.byok.key : null
+  if (!own && !opts.apiKey) throw new NoAiKey()
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${own ?? opts.apiKey}`, 'content-type': 'application/json', 'HTTP-Referer': 'https://agisse.app', 'X-Title': 'Agisse' },
