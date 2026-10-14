@@ -80,6 +80,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
+          {!user.isAdmin && <GiveCredit user={user} />}
           {!user.isAdmin && <AccountData user={user} onDeleted={() => setUsers((current) => current.filter((item) => item.id !== user.id))} />}
         </div>
       </li>)}
@@ -110,6 +111,36 @@ function AccountsGhost() {
       <div className="admin-page__actions"><span className="feed-ghost admin-page__ghost-btn" /></div>
     </li>)}
   </ul><p className="sr-only" role="status">Loading accounts</p></>
+}
+
+/** A one-time credit on top of whatever the account has left, e.g. for a pilot; logged. */
+function GiveCredit({ user }: { user: AdminUser }) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [left, setLeft] = useState<number | null>(null)
+  const n = euros(value)
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!n) return
+    setBusy(true)
+    setError(null)
+    try { const { user: saved } = await api.addCredit(user.id, n); setLeft(saved.creditEur); setOpen(false); setValue('') }
+    catch (err) { setError(err instanceof Error ? err.message : 'Could not add the credit.') }
+    finally { setBusy(false) }
+  }
+  if (!open) return <>
+    <button type="button" className="btn btn--sm btn--quiet" onClick={() => setOpen(true)}>Give credit…</button>
+    {left !== null && <small className="tnum" role="status">{eur(left)} credit left</small>}
+  </>
+  return <form className="admin-page__confirm" onSubmit={(e) => void submit(e)}>
+    <label className="sr-only" htmlFor={`add-credit-${user.id}`}>One-time credit in euros to add for {user.name}</label>
+    <input id={`add-credit-${user.id}`} className="field__input tnum" type="number" min={0.5} max={100} step={0.5} placeholder="Credit €" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+    <button className="btn btn--sm" disabled={busy || !n}>{busy ? 'Adding…' : 'Add credit'}</button>
+    <button type="button" className="btn btn--sm btn--quiet" onClick={() => setOpen(false)} disabled={busy}>Cancel</button>
+    {error && <span className="field__error" role="alert">{error}</span>}
+  </form>
 }
 
 /** A user's GDPR request by email: the same export and erasure they have in Profile, each confirmed first and logged. */

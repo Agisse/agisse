@@ -391,6 +391,10 @@ app.get('/api/admin/quality', async (c) => {
   return c.json({ report: await qualityReport(c.get('db')) })
 })
 
+// What an admin does to someone else's account (export, delete, credit) is logged in admin_action: who, what, when; no content.
+const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete' | 'credit', targetId: string) =>
+  c.get('db').insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: c.get('userId'), action, targetId })
+
 app.patch('/api/admin/users/:id', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const parsed = z
@@ -400,10 +404,12 @@ app.patch('/api/admin/users/:id', async (c) => {
       budgetEur: z.number().min(0).max(100_000).nullable().optional(),
       // One-time credit for each friend who joins with an admin's ref link; null = none.
       referralCreditEur: z.number().positive().max(100).nullable().optional(),
+      // Added to the account's one-time credit (granted and left); logged.
+      addCreditEur: z.number().positive().max(100).optional(),
     })
     .safeParse(await c.req.json().catch(() => ({})))
   if (!parsed.success) return c.json({ error: 'Choose approved, rejected, or pending, a budget between €0 and €100,000, and a credit between €0 and €100.' }, 400)
-  const { status, budgetEur, referralCreditEur } = parsed.data
+  const { status, budgetEur, referralCreditEur, addCreditEur } = parsed.data
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, c.req.param('id')) })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin && status) return c.json({ error: 'The administrator account cannot be changed here.' }, 400)
@@ -412,15 +418,17 @@ app.patch('/api/admin/users/:id', async (c) => {
   if (status) Object.assign(set, { accessStatus: status, reviewedAt: status === 'pending' ? null : new Date() })
   if (budgetEur !== undefined) set.budgetEur = budgetEur
   if (referralCreditEur !== undefined) set.referralCreditEur = referralCreditEur
-  const [user] = await c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, referralCreditEur: schema.user.referralCreditEur })
+  if (addCreditEur) Object.assign(set, { creditGrantedEur: sql`coalesce(${schema.user.creditGrantedEur}, 0) + ${addCreditEur}`, creditEur: sql`coalesce(${schema.user.creditEur}, 0) + ${addCreditEur}` })
+  const [[user]] = await Promise.all([
+    c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, referralCreditEur: schema.user.referralCreditEur, creditEur: schema.user.creditEur }),
+    addCreditEur && logAdminAction(c, 'credit', target.id),
+  ])
   if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.approved(c.env, target, new URL(c.req.url).origin))
   return c.json({ user })
 })
 
 // GDPR requests that reach the owner by email: the same export as Download my data, and the same erasure as Delete
-// account (worker/lib/retention.ts). Each is logged in admin_action: who, what, when; no content.
-const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete', targetId: string) =>
-  c.get('db').insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: c.get('userId'), action, targetId })
+// account (worker/lib/retention.ts).
 
 app.get('/api/admin/users/:id/export', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)

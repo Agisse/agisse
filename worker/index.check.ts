@@ -85,13 +85,17 @@ if (!databaseUrl) {
     files.set(`resumes/${other}.pdf`, '%PDF-1.7 other')
     const exported = await call('GET', `/api/admin/users/${other}/export`)
     check(exported.status === 200 && (exported.json?.user as { id?: string })?.id === other && !!exported.json?.resume, 'admin export', exported.status)
+    // Credit adds up, on both the grant and the balance, and is logged too.
+    for (const addCreditEur of [5, 2.5]) await call('PATCH', `/api/admin/users/${other}`, { addCreditEur })
+    const [given] = await db.select({ granted: schema.user.creditGrantedEur, left: schema.user.creditEur }).from(schema.user).where(eq(schema.user.id, other))
+    check(given?.granted === 7.5 && given?.left === 7.5, 'admin credit adds up', given)
     check((await call('DELETE', `/api/admin/users/${user!.id}`)).status === 400, 'admin cannot delete an admin account here')
     check((await call('DELETE', `/api/admin/users/${other}`)).status === 200, 'admin delete')
     check(!files.has(`resumes/${other}.pdf`), 'admin delete removes the CV PDF')
     const [left] = await db.select({ n: sql<number>`(select count(*) from "user" where id = ${other}) + (select count(*) from oauth_consent where user_id = ${other})` }).from(sql`(select 1) one`)
     check(Number(left?.n) === 0, 'admin delete leaves no user or OAuth rows', left)
     const log = await db.select({ action: schema.adminAction.action }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))
-    check(log.map((l) => l.action).sort().join() === 'delete,export', 'admin export and delete are logged', log)
+    check(log.map((l) => l.action).sort().join() === 'credit,credit,delete,export', 'admin export, credit and delete are logged', log)
     await db.delete(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.
