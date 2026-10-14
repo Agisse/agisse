@@ -53,6 +53,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
+import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
@@ -162,9 +163,14 @@ async function edgeCached<T>(c: Context<{ Bindings: Env; Variables: Variables }>
 }
 
 // The homepage's live count of open roles. Public, so it sits above the session guard; the edge cache keeps it to one query an hour.
-app.get('/api/public/stats', async (c) =>
-  c.json(await edgeCached(c, '/api/public/stats', 3600, () => openVacancyStats(c.get('db'))), 200, { 'Cache-Control': 'public, max-age=3600' }),
-)
+// With PUBLIC_LAUNCH=1 it also carries GitHub stars and the Hired Wall count, one GitHub read an hour per colo.
+app.get('/api/public/stats', async (c) => {
+  const [stats, github] = await Promise.all([
+    edgeCached(c, '/api/public/stats', 3600, () => openVacancyStats(c.get('db'))),
+    Number(c.env.PUBLIC_LAUNCH) === 1 ? edgeCached(c, '/_cache/github', 3600, () => repoNumbers()) : undefined,
+  ])
+  return c.json({ ...stats, ...github }, 200, { 'Cache-Control': 'public, max-age=3600' })
+})
 
 // Sign-up is open and every account starts on the waitlist (pending, one free search) until approved.
 // A personal invite skips the waitlist (auth.ts user.create hook); it is claimed before Better Auth runs, so one code opens one account.

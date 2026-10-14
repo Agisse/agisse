@@ -44,6 +44,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links Docs, Methodology, the legal pages and GitHub; MCP and the browser extension stay one click away in the docs.
 - With `PUBLIC_LAUNCH=1`, the homepage's questions become the ones a first-time visitor asks: how the score is made, whether it applies for you (and why not), cost and funding, where your data lives, who's behind it, AI clients, and what's open source.
 - The README opens with what Agisse is today (the feed, the apply-or-skip score, warm intros, prep) instead of People alone, and no longer mentions a paid Pro plan. Short versions in Dutch, French, German, Spanish, Italian and Polish sit next to it; `scripts/readme-translations.check.ts` says which ones to update when the English intro changes.
