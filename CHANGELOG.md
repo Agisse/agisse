@@ -19,11 +19,19 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
+- Your contact details stay out of AI requests: email addresses, phone numbers, birth dates, street addresses and national ID numbers in your CV are swapped for placeholders before a model sees it, and put back in what it writes.
+- Posting and contact links must be web links (`http` or `https`), from the app, the extension and MCP alike.
+- A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
 - Scores and drafts never lean on your age, gender, nationality, religion, health or photo, even when your CV mentions them. Every prompt that scores you or writes for you now says so, and the methodology page explains it.
+- Agisse's free AI now has a daily limit per account, so a busy day can't use it up for everyone. Past it, Agisse says so and points to connecting your own OpenRouter key, which has no Agisse limit.
+- Agisse's own AI key now runs on free models only. For stronger models, connect your own OpenRouter key in Profile → AI.
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - Today is a little quieter: no date under the greeting, no progress bar repeating "1 of 4 done", and no empty Coming up box when nothing else is due.
+- Your invite link shows on Today once you've finished Get started, so a new account sees one thing to do.
+- Setting up your account ends on your roles: after the last question, "See my roles" opens the feed your answers shaped, instead of one more screen asking where to start.
+- Creating an account asks for three things, not four: the invite code field opens from "Have an invite code?" under the form, and stays open when you arrive with an invite link.
 - The job feed loads up to four times faster, most of all with no field picked.
 - An open role in the job feed no longer names its fields twice: they stay as tags under the description.
 - The homepage and sign-in load less than half the code they used to: the rest of the app only downloads once you're signed in, alongside your account details instead of after them.
@@ -43,21 +51,25 @@ Each version lists what changes for people using Agisse first. Changes that only
 - An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
 - An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved. Add a job stays hidden until then too, instead of offering checks that can't run yet. So do a feed role's Tailor my CV and the "Applied to it?" question, which also wait for approval.
 - The job feed now has a daily limit per account: 200 pages (a page per filter change, search or Show more), and a list goes 20 pages deep. Plenty for looking; it keeps the hosted feed from being copied in bulk. The MCP server's `list_vacancies` counts against the same limit. Admins are exempt, and daily counts are deleted after 30 days.
-- The privacy policy now lists the geocoding, map-tile and logo services your browser contacts, and that your own AI key sends requests straight to that provider. Umami is gone from it; Agisse doesn't use it.
+- The privacy policy now lists the geocoding, map-tile and logo services your browser contacts, and that your own AI key sends requests straight to that provider. Umami is gone from it, and Agisse's pages no longer load its script.
 
 ### For contributors and self-hosters
 
+- CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).
 - With `PUBLIC_LAUNCH=1`, the homepage links the comparison pages: "See comparisons" under the co-pilot table, and Compare in the footer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.
+- With `PUBLIC_LAUNCH=1`, the homepage gets its launch headline and closing line, and one trust line under the button (free with your own AI key, open source, made in Europe) replaces the line above the headline and the beta line. The crawler copy of the headline in `index.html` follows.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links Docs, Methodology, the legal pages and GitHub; MCP and the browser extension stay one click away in the docs.
 - With `PUBLIC_LAUNCH=1`, the homepage's questions become the ones a first-time visitor asks: how the score is made, whether it applies for you (and why not), cost and funding, where your data lives, who's behind it, AI clients, and what's open source.
 - The README opens with what Agisse is today (the feed, the apply-or-skip score, warm intros, prep) instead of People alone, and no longer mentions a paid Pro plan. Short versions in Dutch, French, German, Spanish, Italian and Polish sit next to it; `scripts/readme-translations.check.ts` says which ones to update when the English intro changes.
 - The README and `/docs/self-host` show both ways to self-host: on your computer with `npx github:Agisse/agisse` (Node 20+ or Bun, embedded Postgres), or on Cloudflare with `npm run self-host`, and what the first one lacks.
 - Installing the `npx agisse` package takes 174 MB instead of 545 MB: front-end packages are `devDependencies` now, since Vite bundles them into the built app anyway.
+- `publish.yml` publishes the `npx agisse` package to npm on a release tag, with provenance and no npm token. It stays off until the owner turns it on (#117).
 - `npm pack` builds the `npx agisse` package: the built app, local mode as one file (`dist/agisse.mjs`) and the migrations, about 3.3 MB. Not on npm yet (#117).
 - CI installs that package in an empty folder and checks `npx agisse` on Node and Bun: it starts, an account signs up, the feed loads (`scripts/npx-smoke.sh`).
+- `npm run local -- admin you@example.com` makes that signed-up account the admin in local mode, where there's no SQL editor. Without `RESEND_API_KEY`, the console now shows each email's link too, so a password reset works on a server without mail.
 - `npm run local -- import-feed` loads public Arbeitnow roles into local mode's database. Local mode refuses to open a data folder another Agisse process is using, and says when the feed is empty.
 - `scripts/import-feed.ts` no longer fails when Arbeitnow lists the same role on two pages.
 - `npm run local` runs Agisse on Node without Cloudflare: the same app on `http://localhost:3000`, with an embedded Postgres (PGlite) in `./agisse-data/`, or your Neon database when `DATABASE_URL` is set. The first step towards `npx agisse`.
@@ -72,6 +84,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Performance baseline in the docs (`/docs/performance`) and `eval/results/perf-baseline.json`; `scripts/bundle-size.ts` measures the initial bundle, and API responses carry a `Server-Timing` header with database round trips.
 - `/api/me` reads the profile row once instead of twice (10 → 9 database round trips), and `loadProfile` no longer fetches the stored résumé text it doesn't use.
 - The feed's filter counts (`/api/vacancies/facets`) are the same for everyone, so they now come from the edge cache for 10 minutes: 7 → 2 database round trips. The route still needs a signed-in account.
+- Sentry traces one request in ten instead of every one (errors are still all reported): about 6–11 ms less per request.
+- The session guard passes on the user row it already reads: `/api/me` drops from 9 to 7 database round trips, and every route that checks the AI budget saves one.
 - `PUBLIC_LAUNCH` (Worker var, `"0"` by default): `"1"` turns on the launch-day homepage, starting with an "Open source · Free · Made in Europe" line in the hero.
 - CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
 - Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.

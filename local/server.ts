@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { PGlite } from '@electric-sql/pglite'
 import { vector } from '@electric-sql/pglite-pgvector'
+import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { migrate as migrateNeon } from 'drizzle-orm/neon-http/migrator'
@@ -16,9 +17,9 @@ import { importFeed } from '../scripts/import-feed'
 import './html-rewriter'
 import worker from '../worker/index'
 
-const command = process.argv[2]
-if (command && command !== 'import-feed') {
-  console.error(`Unknown command "${command}". Run without one to start Agisse, or with import-feed to load public roles.`)
+const [command, arg] = process.argv.slice(2)
+if (command && command !== 'import-feed' && !(command === 'admin' && arg?.includes('@'))) {
+  console.error(`Unknown command "${command}". Run without one to start Agisse, with import-feed to load public roles, or with admin <email> to make that account the admin.`)
   process.exit(1)
 }
 
@@ -57,10 +58,19 @@ if (process.env.DATABASE_URL) {
 }
 const store = db ?? createDb(process.env.DATABASE_URL!)
 
-if (command === 'import-feed') {
-  await importFeed(store)
+// The address the README's "Become the admin" sets as ADMIN_EMAIL; here a file, as there's no SQL editor for PGlite.
+const adminFile = join(data, 'admin-email')
+if (command === 'import-feed') await importFeed(store)
+if (command === 'admin') {
+  const email = arg!.trim().toLowerCase()
+  const made = await store.update(schema.user).set({ isAdmin: true, accessStatus: 'approved' }).where(sql`lower(${schema.user.email}) = ${email}`).returning({ id: schema.user.id })
+  if (made.length) writeFileSync(adminFile, email)
+  console.log(made.length ? `${email} is the admin. Start Agisse again to use /admin.` : `No account for ${email}. Sign up with it first, then run this again.`)
+  if (!made.length) process.exitCode = 1
+}
+if (command) {
   await pglite?.close()
-  process.exit(0)
+  process.exit()
 }
 
 function running(pid: number) {
@@ -132,6 +142,7 @@ const env = {
   ...process.env,
   DATABASE_URL: process.env.DATABASE_URL ?? 'pglite',
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? readFileSync(secretFile, 'utf8'),
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? (existsSync(adminFile) ? readFileSync(adminFile, 'utf8') : undefined),
   DB: db,
   ASSETS,
   RESUMES,

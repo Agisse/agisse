@@ -69,30 +69,63 @@ export function toBudget(env: Env, spend: Spend | undefined, budgetEur: number |
   return { used: cost / (1 - margin) + tokenCharge, limit: budgetEur ?? Number(env.MONTHLY_BUDGET_EUR), cost, tokens: spend?.tokens ?? 0, resetsOn: nextMonthStart().toISOString() }
 }
 
-/** Provider USD spent by everyone since UTC midnight. */
-async function spendToday(db: Db) {
+type Today = { usd: number; actions: number; mine: number; ownKey: boolean }
+
+/** Since UTC midnight: provider USD spent by everyone, and actions on this server's key (rows with tokens; own-key rows book none), by everyone and by this user. */
+async function spendToday(db: Db, userId: string): Promise<Today> {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
-  const [row] = await db.select({ usd: sql<number>`coalesce(sum(${schema.usage.costUsd}), 0)`.mapWith(Number) }).from(schema.usage).where(gte(schema.usage.createdAt, today))
-  return row?.usd ?? 0
+  const u = schema.usage
+  const [row] = await db
+    .select({
+      usd: sql<number>`coalesce(sum(${u.costUsd}), 0)`.mapWith(Number),
+      actions: sql<number>`count(*) filter (where ${u.tokens} > 0)`.mapWith(Number),
+      mine: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.userId} = ${userId})`.mapWith(Number),
+      ownKey: sql<boolean>`exists (select 1 from ${schema.aiKey} where ${schema.aiKey.userId} = ${userId})`,
+    })
+    .from(u)
+    .where(gte(u.createdAt, today))
+  return row ?? { usd: 0, actions: 0, mine: 0, ownKey: false }
 }
 
-/** The user's allowance, plus the global daily cap: past it, every account reads as spent (paused) until midnight UTC. */
-export async function loadBudget(db: Db, env: Env, userId: string): Promise<Budget> {
+/** Why AI is paused for this user until midnight UTC, if it is. The USD cap stops everyone; the free-action limits
+ *  (OpenRouter's free models allow a fixed number of requests per day per account, shared by every seeker on this key)
+ *  skip seekers with their own key. */
+export function pauseFor(env: Partial<Record<'GLOBAL_DAILY_USD_CAP' | 'FREE_DAILY_ACTIONS' | 'FREE_DAILY_ACTIONS_ALL', string>>, t: Today): Budget['paused'] {
   const cap = Number(env.GLOBAL_DAILY_USD_CAP) || 0
+  const all = Number(env.FREE_DAILY_ACTIONS_ALL) || 0
+  const mine = Number(env.FREE_DAILY_ACTIONS) || 0
+  if (cap && t.usd >= cap) return 'cap'
+  if (t.ownKey) return undefined
+  if (all && t.actions >= all) return 'free'
+  if (mine && t.mine >= mine) return 'you'
+  return undefined
+}
+
+/** The user's allowance, plus the daily limits: past one, the account reads as spent (paused) until midnight UTC.
+ *  Pass `budgetEur` when the caller already has the user row (the session guard does), to skip one query. */
+export async function loadBudget(db: Db, env: Env, userId: string, budgetEur?: number | null): Promise<Budget> {
+  const limited = [env.GLOBAL_DAILY_USD_CAP, env.FREE_DAILY_ACTIONS, env.FREE_DAILY_ACTIONS_ALL].some((v) => Number(v) > 0)
   const [spend, u, today] = await Promise.all([
     spendThisMonth(db, userId),
-    db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
-    cap ? spendToday(db) : 0,
+    budgetEur !== undefined ? { budgetEur } : db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
+    limited ? spendToday(db, userId) : null,
   ])
   const budget = toBudget(env, spend.get(userId), u?.budgetEur)
-  return cap && today >= cap ? { ...budget, used: Math.max(budget.used, budget.limit), paused: true } : budget
+  const paused = today ? pauseFor(env, today) : undefined
+  return paused ? { ...budget, used: Math.max(budget.used, budget.limit), paused } : budget
 }
 
+const ownKey = 'Connect your own OpenRouter key in Profile to keep going, or come back after midnight UTC.'
+
 export const budgetSpent = (b: Budget) =>
-  b.paused
+  b.paused === 'cap'
     ? 'Agisse has hit its AI limit for today while the beta grows. It reopens at midnight UTC.'
-    : `You have used your €${b.limit.toFixed(2)} budget for this month. It resets on the 1st, or ask the administrator for more.`
+    : b.paused === 'free'
+      ? `Agisse's free AI is used up for today. ${ownKey}`
+      : b.paused === 'you'
+        ? `Free limit reached for today. ${ownKey}`
+        : `You have used your €${b.limit.toFixed(2)} budget for this month. It resets on the 1st, or ask the administrator for more.`
 
 /** Fresh spend meter; carries the user's Smart model choice (trial accounts stay on Standard). */
 export async function newMeter(db: Db, env: Env, userId: string, trial: boolean): Promise<Meter> {

@@ -45,9 +45,12 @@ export function Landing() {
 
       <main>
         <section aria-labelledby="home-title" className={cn(WRAP, 'pt-16 pb-12 text-center sm:pt-28 sm:pb-16')}>
-          {LAUNCH && <p className="mb-5 text-sm font-medium text-muted-foreground">Open source · Free · Made in Europe</p>}
           <h1 id="home-title" className="mx-auto max-w-[22ch] text-[2.5rem] leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
-            Land your first job in Europe. <span className="text-muted-foreground sm:block">With AI on your side.</span>
+            {LAUNCH ? (
+              <>Stop applying everywhere. <span className="text-muted-foreground sm:block">Act where you fit.</span></>
+            ) : (
+              <>Land your first job in Europe. <span className="text-muted-foreground sm:block">With AI on your side.</span></>
+            )}
           </h1>
           <p className="mx-auto mt-6 max-w-[34rem] text-lg text-pretty text-muted-foreground sm:text-xl">
             Agisse ranks the roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare.
@@ -56,7 +59,7 @@ export function Landing() {
             <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
               Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </Button>
-            <p className="text-sm text-muted-foreground">Invite-only beta, free while it lasts.</p>
+            <p className="text-sm text-balance text-muted-foreground">{LAUNCH ? 'Free with your own AI key · Open source · Made in Europe' : 'Invite-only beta, free while it lasts.'}</p>
           </div>
         </section>
 
@@ -158,9 +161,9 @@ export function Landing() {
         <section aria-labelledby="close-title" className={cn(WRAP, 'mt-28 mb-24 text-center sm:mt-40 sm:mb-32')}>
           <BoothSignMark className="mx-auto size-12!" />
           <h2 id="close-title" className="mt-6 text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Your next job, on your terms.
+            {LAUNCH ? 'Apply less. Act more.' : 'Your next job, on your terms.'}
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">Free during the beta. Your first search works while you wait.</p>
+          {!LAUNCH && <p className="mt-4 text-lg text-muted-foreground">Free during the beta. Your first search works while you wait.</p>}
           <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('close')} />}>
             Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>

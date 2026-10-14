@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { COMPAT, type UserKey } from './byok'
+import { redactor } from './redact'
 
 declare global {
   interface Env {
@@ -147,6 +148,10 @@ export async function generateStructured<T>(opts: {
   /** Paid models tried first with room to reason, whatever the user's Smart setting: for tasks free models do badly. */
   strong?: { models: string[]; effort: 'low' | 'medium' | 'high' }
 }): Promise<StructuredResult<T>> {
+  // Contact details never reach a model, on any key; the answer gets them back before it is validated.
+  const { hide, show } = redactor()
+  const validate = opts.validate
+  opts = { ...opts, system: hide(opts.system), user: hide(opts.user), validate: (raw) => validate(show(raw)) }
   const byok = opts.meter?.byok
   if (byok && byok.provider !== 'openrouter') return generateDirect(byok, opts)
   const apiKey = byok?.key ?? opts.apiKey
@@ -155,7 +160,7 @@ export async function generateStructured<T>(opts: {
   const rank = opts.meter?.rank?.[opts.schemaName]
   const isFree = (m: string) => m.endsWith(':free')
   const free = byRank([...new Set([...opts.preferredModels.filter(isFree), ...freeModels(models)])].slice(0, 5), rank)
-  // Agisse's key: the cheap paid default in OPENROUTER_MODELS (Haiku), free chain as fallback. Smart's pricier models only on the seeker's own key.
+  // Agisse's key: any paid entries in OPENROUTER_MODELS first (none on agisse.xyz), then the free chain. Smart's pricier models only on the seeker's own key.
   const smart = byok ? opts.meter?.smart : undefined
   const paid = smart
     ? byRank([...new Set([...smart.preferred, ...smartModels(models, smart.maxUsdPerM)])].slice(0, 3), rank)

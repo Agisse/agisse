@@ -45,6 +45,8 @@ Deleting an account removes the user's own rows (foreign keys cascade) and their
 | Google | Sign in with Google (`GOOGLE_CLIENT_ID`) | The standard OAuth exchange |
 | Sentry | Worker errors (`SENTRY_DSN`) | Error details, without request bodies or cookies |
 
+Before any model call, on any key, email addresses, phone numbers, labelled birth dates, addresses and photo lines, and national ID numbers in the prompt are swapped for placeholders such as `[email 1]` (`worker/lib/redact.ts`). The real values go back into the model's answer, so a tailored CV keeps its header. Names stay: a cover letter needs one.
+
 ### From the browser
 
 | Service | When | What it receives |

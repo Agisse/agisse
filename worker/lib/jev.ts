@@ -3,6 +3,7 @@
 // does this version claim more than the CV, which version is strongest, how well does this posting fit).
 // Input tokens only are billed, about $0.00002 for a CV-sized call; many questions share one call.
 import { NoAiKey, type Meter } from './openrouter'
+import { redactor } from './redact'
 
 export const JEV_MODEL = 'typesafe/jev-1.13'
 
@@ -24,6 +25,9 @@ export const noul = (instructions: string, yes: string, no: string): NoulQ => ({
 /** One Decisions call; cost is booked on `meter` like any model call. Throws on any failure: callers decide how to degrade. */
 export async function jevDecide<Q extends Record<string, JevQuestion>>(env: Env, state: Record<string, unknown>, questions: Q, meter?: Meter, signal?: AbortSignal): Promise<{ [K in keyof Q]: JevAnswer }> {
   if (!env.OPENROUTER_API_KEY) throw new NoAiKey()
+  // Answers are numbers, so contact details are only hidden, never put back.
+  const { hide } = redactor()
+  state = Object.fromEntries(Object.entries(state).map(([k, v]) => [k, typeof v === 'string' ? hide(v) : v]))
   const res = await fetch('https://openrouter.ai/api/alpha/decisions', {
     method: 'POST',
     signal: signal ?? AbortSignal.timeout(20_000),

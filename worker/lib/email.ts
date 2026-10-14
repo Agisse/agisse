@@ -10,7 +10,8 @@ declare global {
 }
 
 export async function sendEmail(env: Env, to: string, subject: string, lines: string[], cta?: { label: string; url: string }) {
-  if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', to, subject)
+  // The link too, so a password reset works on a server without mail (npx agisse, npm run dev).
+  if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', to, subject, cta?.url ?? '')
   const from = env.EMAIL_FROM?.trim() || 'hello@agisse.xyz'
   const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`].join('\n')
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">

@@ -72,5 +72,6 @@ Three, all for local mode and none in the Worker bundle:
 - Rate limits count per process and reset on restart.
 - One process per data folder: PGlite takes no lock of its own, so Agisse keeps a pid in `agisse-data/db.pid` and refuses to start a second one. Stop Agisse before `import-feed` or a backup.
 - Backups are copies of `agisse-data/` taken while Agisse is stopped.
-- No email without `RESEND_API_KEY`: verification and password-reset links print to the console (I3).
+- No email without `RESEND_API_KEY`: each email's link (a password reset, say) prints to the console instead.
+- No SQL editor for the first admin: sign up, then run `npx agisse admin you@example.com` (for now `npm run local -- admin you@example.com`) with Agisse stopped. It approves that account, makes it the admin, and keeps the address in `agisse-data/admin-email` as `ADMIN_EMAIL`.
 - The feed starts empty. `npx agisse import-feed` (for now `npm run local -- import-feed`) loads public Arbeitnow roles (see the [feed contract](/feed-contract)). Run it again to refresh: a role leaves the feed 3 days after its last import.

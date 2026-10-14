@@ -1,0 +1,35 @@
+name: Publish to npm
+
+# `npx agisse`: publishes the package when the owner pushes a release tag (the same tag release.yml uses).
+# Inactive until the owner sets the repository variable NPM_PUBLISH to 1, after the first manual publish
+# and trusted publishing on npmjs.com (#117). No npm token: npm trusts this workflow through OIDC.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: ${{ vars.NPM_PUBLISH == '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+    env:
+      WRANGLER_SEND_METRICS: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Tag matches package.json
+        run: test "$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME#v}"
+      - run: npm ci
+      # package.json stays private so nothing else can publish it by accident.
+      - run: npm pkg delete private
+      - run: npm publish --provenance --access public
