@@ -310,7 +310,7 @@ function OwnKey({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
   )
 }
 
-/** GDPR erasure: the account, everything saved under it and the CV PDF (worker/auth.ts deleteUser). */
+/** GDPR export (worker/lib/export.ts) and erasure: the account, everything saved under it and the CV PDF (worker/auth.ts deleteUser). */
 function DeleteAccount() {
   const [armed, setArmed] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -327,7 +327,10 @@ function DeleteAccount() {
   return (
     <section className="profile__danger" aria-label="Your data">
       {!armed ? (
-        <button type="button" className="btn btn--quiet" onClick={() => setArmed(true)}>Delete account…</button>
+        <>
+          <a className="btn btn--quiet" href="/api/me/export" download>Download my data</a>
+          <button type="button" className="btn btn--quiet" onClick={() => setArmed(true)}>Delete account…</button>
+        </>
       ) : (
         <>
           <span>This erases your profile, CV and everything you saved. It cannot be undone.</span>
