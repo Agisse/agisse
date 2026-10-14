@@ -8,7 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
-- Agisse next to career-ops, Simplify and Jobright, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
+- Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
 - How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
 - How Agisse scores a job, in the docs (`/docs/methodology`): what the 1–5 score weighs, why below 4.0 means a long shot, how the feed is ordered, and what the scores can't know.
 - The Hired Wall: got the job with Agisse's help? Share your story on GitHub, and choose whether your name, only the role, or only the count shows. A job at Offer links to it once, until you open or hide the link.
@@ -45,6 +45,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- With `PUBLIC_LAUNCH=1`, the homepage links the comparison pages: "See comparisons" under the co-pilot table, and Compare in the footer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links Docs, Methodology, the legal pages and GitHub; MCP and the browser extension stay one click away in the docs.
 - With `PUBLIC_LAUNCH=1`, the homepage's questions become the ones a first-time visitor asks: how the score is made, whether it applies for you (and why not), cost and funding, where your data lives, who's behind it, AI clients, and what's open source.

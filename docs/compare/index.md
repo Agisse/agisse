@@ -12,3 +12,7 @@ What Agisse is, for the comparison: a free, open-source (AGPL-3.0) job search co
 - [career-ops](/compare/career-ops): open-source agent that runs in an AI coding CLI
 - [Simplify](/compare/simplify): job platform with autofill and auto-apply
 - [Jobright](/compare/jobright): AI job search copilot with autofill
+- [Teal](/compare/teal): resume builder and job tracker
+- [Huntr](/compare/huntr): job tracker with autofill
+- [Jobscan](/compare/jobscan): resume checks against applicant tracking systems
+- [LinkedIn Easy Apply](/compare/linkedin-easy-apply): applying from inside LinkedIn
