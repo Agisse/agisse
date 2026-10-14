@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
 - Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
 - Past the daily free limit, Profile says so and when it lifts, instead of showing this month's budget as used up.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
