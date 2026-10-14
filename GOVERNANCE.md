@@ -16,7 +16,7 @@ Generous with credit, careful with access.
 
 - **Participant:** everyone who opens an issue, answers in Discussions, reviews a translation or reports a bug.
 - **Contributor:** anyone with three merged pull requests. It's automatic: the project lead invites you to the `contributors` team on GitHub.
-- **Reviewer or area owner:** by invitation, for contributors who review well in one area. You're listed in [`MAINTAINERS.md`](MAINTAINERS.md) and in `CODEOWNERS` for that area, and your review counts there. Agisse holds people's career data, so the project lead confirms who you are before giving you review or merge rights.
+- **Reviewer or area owner:** by invitation, for contributors who review well in one area. You're listed in [`MAINTAINERS.md`](MAINTAINERS.md) and in `CODEOWNERS` for that area, and your review counts there. Agisse holds people's career data, so the project lead confirms who you are in a short video call before giving you review or merge rights.
 
 ## Big changes
 
