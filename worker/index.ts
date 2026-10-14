@@ -2275,7 +2275,13 @@ app.notFound(async (c) => {
   if (asset.status === 404) asset = await c.env.ASSETS.fetch(new URL('/', c.req.url))
   if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
   // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
-  const res = Number(c.env.PUBLIC_LAUNCH) === 1 ? new HTMLRewriter().on('html', { element: (el) => void el.setAttribute('data-launch', '') }).transform(asset) : asset
+  // The crawler copy of the headline follows Landing's launch headline.
+  const res = Number(c.env.PUBLIC_LAUNCH) === 1
+    ? new HTMLRewriter()
+        .on('html', { element: (el) => void el.setAttribute('data-launch', '') })
+        .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. Act where you fit.') })
+        .transform(asset)
+    : asset
   const home = c.req.path === '/'
   // index.html carries the homepage as plain HTML for crawlers; anyone else would see it flash before the app.
   const out = home && !/session_token=/.test(c.req.header('Cookie') ?? '') ? res : new HTMLRewriter().on('#root', { element: (el) => void el.setInnerContent('') }).transform(res)
