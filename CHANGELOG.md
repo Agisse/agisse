@@ -19,7 +19,10 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
+- Download my data now includes the CV PDF you uploaded, inside the same file.
+- Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
 - Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
+- Past the daily free limit, Profile says so and when it lifts, instead of showing this month's budget as used up.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
 - Deleting your account also clears what Agisse kept in that browser for it: your assistant chats, weekly goal and layout hints.
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
@@ -60,6 +63,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
+- In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
 - The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy.
 - The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
