@@ -3,6 +3,7 @@
 // With a DATABASE_URL it signs up a synthetic user on that (development) database and deletes it afterwards.
 import { readFileSync } from 'node:fs'
 import { eq, sql } from 'drizzle-orm'
+import { getTableConfig, PgTable } from 'drizzle-orm/pg-core'
 import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
 import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, feedCapDays, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
@@ -12,7 +13,11 @@ const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new
 
 const vars = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\s*\/\/.*$/gm, '')).vars as Record<string, string>
 const databaseUrl = process.env.DATABASE_URL
-const env = { ...vars, DATABASE_URL: databaseUrl ?? 'postgresql://user:password@db.example.com/none', BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'index-check-secret-index-check-secret', ASSETS: { fetch: () => new Response('app shell') } } as unknown as Env
+const files = new Map<string, unknown>()
+const RESUMES = { put: async (key: string, body: unknown) => void files.set(key, body), delete: async (key: string) => void files.delete(key) }
+const env = { ...vars, DATABASE_URL: databaseUrl ?? 'postgresql://user:password@db.example.com/none', BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'index-check-secret-index-check-secret', ASSETS: { fetch: () => new Response('app shell') }, RESUMES } as unknown as Env
+// Node has no Cache API; edgeCached() then always misses.
+Object.assign(globalThis, { caches: { default: { match: async () => undefined, put: async () => {} } } })
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext
 
 let cookie = ''
@@ -23,6 +28,15 @@ async function call(method: string, path: string, body?: unknown) {
   const setCookie = res.headers.getSetCookie().map((c) => c.split(';')[0]).join('; ')
   if (setCookie) cookie = setCookie
   return { status: res.status, json: (await res.json().catch(() => null)) as Record<string, unknown> | null }
+}
+
+// GDPR erasure: every table with a user_id goes with the user row (foreign key, on delete cascade), except Better Auth's
+// OAuth tables, which have no foreign key; the database part below deletes an account that has rows in them.
+const userTables = Object.values(schema).filter((t: unknown): t is PgTable => t instanceof PgTable).map(getTableConfig).filter((t) => t.columns.some((c) => c.name === 'user_id'))
+const NO_FOREIGN_KEY = ['oauth_access_token', 'oauth_consent', 'oauth_refresh_token']
+for (const t of userTables) {
+  const cascades = t.foreignKeys.some((f) => f.reference().columns[0]?.name === 'user_id' && getTableConfig(f.reference().foreignTable).name === 'user' && f.onDelete === 'cascade')
+  check(cascades !== NO_FOREIGN_KEY.includes(t.name), `${t.name}: cascade from user, or list it in NO_FOREIGN_KEY`)
 }
 
 // The app shell needs no database; /api routes all set up auth, which does.
@@ -80,8 +94,25 @@ if (!databaseUrl) {
     // No EXA_API_KEY: people search says it is off.
     const linkedin = await call('POST', '/api/profile/extract', { linkedin: 'https://www.linkedin.com/in/index-check-example' })
     check(String(linkedin.json?.error).includes('EXA_API_KEY'), 'LinkedIn read without EXA_API_KEY', linkedin)
+
+    // Delete account: no row with the user's id in any table, and no CV PDF.
+    const pdf = await worker.fetch(new Request('http://localhost/api/profile/resume', { method: 'PUT', headers: { origin: 'http://localhost', cookie, 'content-type': 'application/pdf', 'content-length': '13' }, body: '%PDF-1.7 test' }) as never, env, ctx)
+    check(pdf.status === 200 && files.has(`resumes/${user!.id}.pdf`), 'CV upload', pdf.status)
+    const token = { clientId: 'index-check', userId: user!.id, expiresAt: new Date(Date.now() + 3600_000), scopes: ['openid'] }
+    await db.insert(schema.oauthConsent).values({ id: crypto.randomUUID(), clientId: 'index-check', userId: user!.id, scopes: ['openid'] })
+    await db.insert(schema.oauthAccessToken).values({ id: crypto.randomUUID(), token: crypto.randomUUID(), ...token })
+    await db.insert(schema.oauthRefreshToken).values({ id: crypto.randomUUID(), token: crypto.randomUUID(), ...token })
+    const deleted = await call('POST', '/api/auth/delete-user', {})
+    check(deleted.status === 200, 'delete account', deleted)
+    check(!files.has(`resumes/${user!.id}.pdf`), 'CV PDF deleted with the account')
+    for (const t of [{ name: 'user', column: 'id' }, ...userTables.map((t) => ({ name: t.name, column: 'user_id' }))]) {
+      const { rows } = await db.execute<{ n: number }>(sql`select count(*)::int as n from ${sql.identifier(t.name)} where ${sql.identifier(t.column)} = ${user!.id}`)
+      check(rows[0]?.n === 0, `${t.name} rows left after delete account`, rows[0]?.n)
+    }
     console.log('index ok')
   } finally {
     await db.delete(schema.user).where(eq(schema.user.email, email))
+    // The OAuth rows have no foreign key, so a failed run would leave the check's fake client tokens behind.
+    for (const t of [schema.oauthConsent, schema.oauthAccessToken, schema.oauthRefreshToken]) await db.delete(t).where(eq(t.clientId, 'index-check'))
   }
 }

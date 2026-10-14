@@ -1,6 +1,6 @@
 // Helpers shared between the HTTP API (worker/index.ts) and the MCP server (worker/lib/mcp.ts).
 // Moved out of index.ts verbatim so both can reuse the same budget/query/mapping logic.
-import { and, desc, eq, gte, ilike, isNotNull, lt, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, gte, ilike, isNotNull, lt, sql } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import type { Db } from '../db'
 import { schema } from '../db'
@@ -65,9 +65,22 @@ export async function spendThisMonth(db: Db, userId?: string) {
  *  Free OpenRouter models bill $0, so tokens also carry a small nominal price (TOKEN_EUR_PER_MILLION). */
 export function toBudget(env: Env, spend: Spend | undefined, budgetEur: number | null | undefined): Budget {
   const cost = (spend?.costUsd ?? 0) * Number(env.USD_TO_EUR)
-  const margin = Math.min(0.95, Math.max(0, Number(env.PRICE_MARGIN)))
   const tokenCharge = ((spend?.tokens ?? 0) / 1e6) * (Number(env.TOKEN_EUR_PER_MILLION) || 0)
-  return { used: cost / (1 - margin) + tokenCharge, limit: budgetEur ?? Number(env.MONTHLY_BUDGET_EUR), cost, tokens: spend?.tokens ?? 0, resetsOn: nextMonthStart().toISOString() }
+  return { used: (spend?.costUsd ?? 0) * eurPerUsd(env) + tokenCharge, limit: budgetEur ?? Number(env.MONTHLY_BUDGET_EUR), cost, tokens: spend?.tokens ?? 0, resetsOn: nextMonthStart().toISOString() }
+}
+
+/** What one provider dollar costs the seeker in €, margin included. */
+type Money = Partial<Record<'USD_TO_EUR' | 'PRICE_MARGIN' | 'OPENROUTER_CREDIT_MODELS', string>>
+
+export function eurPerUsd(env: Money) {
+  const margin = Math.min(0.95, Math.max(0, Number(env.PRICE_MARGIN)))
+  return Number(env.USD_TO_EUR) / (1 - margin)
+}
+
+/** A one-time credit puts OPENROUTER_CREDIT_MODELS first on Agisse's key until it's spent. Own keys and trial accounts never touch it. */
+export function creditFor(env: Money, creditEur: number | null | undefined, ownKey: boolean, trial: boolean): Meter['credit'] {
+  const models = (env.OPENROUTER_CREDIT_MODELS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  return !ownKey && !trial && (creditEur ?? 0) > 0 && models.length ? { models, eurPerUsd: eurPerUsd(env) } : undefined
 }
 
 type Today = { usd: number; actions: number; mine: number; ownKey: boolean }
@@ -145,8 +158,12 @@ export const budgetSpent = (b: Budget) =>
 
 /** Fresh spend meter; carries the user's Smart model choice (trial accounts stay on Standard). */
 export async function newMeter(db: Db, env: Env, userId: string, trial: boolean): Promise<Meter> {
-  const [rank, byok] = await Promise.all([modelRanking(db), trial ? null : loadUserKey(db, env, userId)])
-  const meter: Meter = { tokens: 0, costUsd: 0, rank, byok: byok ?? undefined }
+  const [rank, byok, u] = await Promise.all([
+    modelRanking(db),
+    trial ? null : loadUserKey(db, env, userId),
+    trial ? null : db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { creditEur: true } }),
+  ])
+  const meter: Meter = { tokens: 0, costUsd: 0, rank, byok: byok ?? undefined, credit: creditFor(env, u?.creditEur, !!byok, trial) }
   if (trial || (await loadProfile(db, userId))?.smartModel === false) return meter
   const preferred = (env.OPENROUTER_SMART_MODELS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
   return { ...meter, smart: { preferred, maxUsdPerM: Number(env.SMART_MAX_USD_PER_M) || 2 } }
@@ -157,20 +174,25 @@ export async function newMeter(db: Db, env: Env, userId: string, trial: boolean)
 export async function charge(db: Db, userId: string, kind: typeof schema.usage.$inferInsert.kind, meter: Meter) {
   if (meter.tokens <= 0 && meter.costUsd <= 0 && !meter.gen) return
   const g = meter.gen
-  await db.insert(schema.usage).values({
-    id: crypto.randomUUID(),
-    userId,
-    kind,
-    tokens: meter.tokens,
-    costUsd: meter.costUsd,
-    task: g?.task,
-    model: g?.model,
-    prompt: g?.prompt,
-    failed: g?.failed,
-    refId: meter.ref,
-    output: g?.output,
-    flags: meter.flags,
-  })
+  // Paid calls draw the one-time credit; free models bill $0, so they don't. It stops at 0 and never resets.
+  const draw = meter.credit && meter.costUsd > 0 ? meter.costUsd * meter.credit.eurPerUsd : 0
+  await Promise.all([
+    draw && db.update(schema.user).set({ creditEur: sql`greatest(0, ${schema.user.creditEur} - ${draw})` }).where(and(eq(schema.user.id, userId), gt(schema.user.creditEur, 0))),
+    db.insert(schema.usage).values({
+      id: crypto.randomUUID(),
+      userId,
+      kind,
+      tokens: meter.tokens,
+      costUsd: meter.costUsd,
+      task: g?.task,
+      model: g?.model,
+      prompt: g?.prompt,
+      failed: g?.failed,
+      refId: meter.ref,
+      output: g?.output,
+      flags: meter.flags,
+    }),
+  ])
 }
 
 /** The seeker's own style and objections as a prompt block: notes or letters they edited or thumbed up (outreach, cover),

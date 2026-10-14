@@ -482,7 +482,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
           {more && <button type="button" className="btn open-roles__more" disabled={loading} onClick={() => void load(items!.length)}>{loading ? 'Loading…' : 'Show more roles'}</button>}
           {exhausted && (
             <div className="open-roles__allowance" role="status">
-              <p>Tailoring is paused while a posting is read, or until your monthly allowance resets. <Link href="/profile">See usage</Link>.</p>
+              <p>Tailoring is paused while a posting is read, or until your AI limit lifts. <Link href="/profile">See when</Link>.</p>
             </div>
           )}
         </section>

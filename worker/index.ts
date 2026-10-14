@@ -342,11 +342,13 @@ app.post('/api/me/invite', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const { code } = parsed.data
-  const claimed = isGroupInvite(c.env, code) || (await db.update(schema.invite).set({ usedAt: new Date(), usedBy: userId }).where(openInvite(code)).returning({ code: schema.invite.code })).length > 0
-  if (!claimed) return c.json({ error: 'This invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.' }, 403)
+  const [personal] = isGroupInvite(c.env, code) ? [] : await db.update(schema.invite).set({ usedAt: new Date(), usedBy: userId }).where(openInvite(code)).returning({ creditEur: schema.invite.creditEur })
+  if (!personal && !isGroupInvite(c.env, code)) return c.json({ error: 'This invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.' }, 403)
+  // Pending accounts never hold a credit (only invites and admins' links give one, and both approve), so this grants it once.
+  const credit = personal?.creditEur ? { creditGrantedEur: personal.creditEur, creditEur: personal.creditEur } : {}
   const [user] = await db
     .update(schema.user)
-    .set({ accessStatus: 'approved', reviewedAt: new Date(), updatedAt: new Date() })
+    .set({ accessStatus: 'approved', reviewedAt: new Date(), updatedAt: new Date(), ...credit })
     .where(and(eq(schema.user.id, userId), eq(schema.user.accessStatus, 'pending')))
     .returning({ email: schema.user.email, name: schema.user.name })
   if (user) c.executionCtx.waitUntil(mails.approved(c.env, user, new URL(c.req.url).origin))
@@ -360,7 +362,7 @@ app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
   const [users, used, capped, freeCapped] = await Promise.all([
-    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true } }),
+    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
@@ -391,17 +393,21 @@ app.patch('/api/admin/users/:id', async (c) => {
       status: z.enum(['approved', 'rejected', 'pending']).optional(),
       // null = back to the default monthly budget.
       budgetEur: z.number().min(0).max(100_000).nullable().optional(),
+      // One-time credit for each friend who joins with an admin's ref link; null = none.
+      referralCreditEur: z.number().positive().max(100).nullable().optional(),
     })
     .safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Choose approved, rejected, or pending, and a budget between €0 and €100,000.' }, 400)
-  const { status, budgetEur } = parsed.data
+  if (!parsed.success) return c.json({ error: 'Choose approved, rejected, or pending, a budget between €0 and €100,000, and a credit between €0 and €100.' }, 400)
+  const { status, budgetEur, referralCreditEur } = parsed.data
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, c.req.param('id')) })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin && status) return c.json({ error: 'The administrator account cannot be changed here.' }, 400)
+  if (!target.isAdmin && referralCreditEur) return c.json({ error: 'Only an administrator\'s link can carry a credit.' }, 400)
   const set: Partial<typeof schema.user.$inferInsert> = { updatedAt: new Date() }
   if (status) Object.assign(set, { accessStatus: status, reviewedAt: status === 'pending' ? null : new Date() })
   if (budgetEur !== undefined) set.budgetEur = budgetEur
-  const [user] = await c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur })
+  if (referralCreditEur !== undefined) set.referralCreditEur = referralCreditEur
+  const [user] = await c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, referralCreditEur: schema.user.referralCreditEur })
   if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.approved(c.env, target, new URL(c.req.url).origin))
   return c.json({ user })
 })
@@ -409,7 +415,7 @@ app.patch('/api/admin/users/:id', async (c) => {
 app.get('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email })
+    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email })
     .from(schema.invite)
     .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
     .orderBy(desc(schema.invite.createdAt))
@@ -418,12 +424,12 @@ app.get('/api/admin/invites', async (c) => {
 
 app.post('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
-  const parsed = z.object({ note: z.string().trim().min(1).max(120) }).safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Say who the invite is for, in 120 characters or fewer.' }, 400)
+  const parsed = z.object({ note: z.string().trim().min(1).max(120), creditEur: z.number().positive().max(100).nullable().optional() }).safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Say who the invite is for, in 120 characters or fewer, and a credit between €0 and €100.' }, 400)
   // 9 random bytes = 12 URL-safe characters.
   const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
-  const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null } })
+  const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null }).returning()
+  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null } })
 })
 
 app.delete('/api/admin/invites/:code', async (c) => {

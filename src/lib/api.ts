@@ -52,16 +52,16 @@ export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
-export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
+export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
 
-export type Invite = { code: string; note: string; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
+export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
 
 export const api = {
   checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),
   redeemInvite: (code: string) => request<{ ok: true }>('/api/me/invite', { method: 'POST', body: JSON.stringify({ code }) }),
   referral: () => request<{ code: string; referrals: number; invitesLeft: number | null; waitlist: { position: number; total: number } | null }>('/api/referral'),
   invites: () => request<{ invites: Invite[] }>('/api/admin/invites'),
-  createInvite: (note: string) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note }) }),
+  createInvite: (note: string, creditEur: number | null) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note, creditEur }) }),
   revokeInvite: (code: string) => request<{ ok: true }>(`/api/admin/invites/${encodeURIComponent(code)}`, { method: 'DELETE' }),
   me: () => request<Me>('/api/me'),
   saveAiKey: (body: { provider: AiProvider; key: string; model: string }) => request<{ aiKey: AiKeyInfo }>('/api/ai-key', { method: 'PUT', body: JSON.stringify(body) }),
@@ -74,6 +74,7 @@ export const api = {
   setAccess: (id: string, status: AccessStatus) => request<{ user: { id: string; accessStatus: AccessStatus } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   /** null = back to the default monthly budget. */
   setBudget: (id: string, budgetEur: number | null) => request<{ user: { id: string; budgetEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ budgetEur }) }),
+  setReferralCredit: (id: string, referralCreditEur: number | null) => request<{ user: { id: string; referralCreditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ referralCreditEur }) }),
   saveProfile: (profile: Profile) => request<{ profile: Profile }>('/api/profile', { method: 'PUT', body: JSON.stringify(profile) }),
   uploadResume: (file: File) =>
     request<{ ok: true }>('/api/profile/resume', { method: 'PUT', body: file, headers: { 'content-type': 'application/pdf', 'x-filename': encodeURIComponent(file.name) } }),
