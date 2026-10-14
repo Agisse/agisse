@@ -67,7 +67,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
 - `/admin` says under its heading what everyone used today on the server's AI key: dollars spent against `GLOBAL_DAILY_USD_CAP` and free actions against `FREE_DAILY_ACTIONS_ALL`.
 - A GDPR article 30 record of processing for agisse.xyz in the docs (`/docs/records-of-processing`), which self-hosters can use as a starting point for their own.
-- The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy.
+- The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy and record of processing.
 - The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
