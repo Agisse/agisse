@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
 - Deleting your account also clears what Agisse kept in that browser for it: your assistant chats, weekly goal and layout hints.
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
