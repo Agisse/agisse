@@ -87,7 +87,8 @@ type Variables = {
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Sentry wraps everything else, so it must be the first middleware registered.
-app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 1.0, enableLogs: true })))
+// Errors are always sent; a trace costs ~6–11 ms and 5–20 kB per request (docs/performance.md), so one in ten is traced.
+app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1, enableLogs: true })))
 
 // agisse.xyz's zone redirects http → https and www → apex itself; this stays for self-hosted zones without
 // those rules (hashed build files skip the Worker, see wrangler.jsonc). Local dev stays on http.
