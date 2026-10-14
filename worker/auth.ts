@@ -76,9 +76,11 @@ export function createAuth(env: Env, db: Db, origin: string) {
             const invite = inviteCode(ctx)
             const group = !!invite && !!env.GROUP_INVITE?.trim() && invite === env.GROUP_INVITE.trim()
             // A personal invite from the admin skips the waitlist. The email route has already claimed it (usedAt set, usedBy not yet).
-            const personal = !!invite && !group && !!(await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt)), columns: { code: true } }))
-            const approved = ref?.admits || group || personal
-            return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}) } }
+            const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt)), columns: { creditEur: true } }) : undefined
+            const approved = ref?.admits || group || !!personal
+            // One-time credit: the invite's, else the admin's ref link's.
+            const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || null
+            return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}), ...(credit ? { creditGrantedEur: credit, creditEur: credit } : {}) } }
           },
           after: async (user, ctx) => {
             const u = user as typeof user & { accessStatus?: string; referralCode?: string; referredBy?: string | null }
@@ -116,11 +118,19 @@ export function createAuth(env: Env, db: Db, origin: string) {
     account: { accountLinking: { enabled: true, trustedProviders: ['google'] } },
     user: {
       // Profile › Your data. Rows cascade from user; the CV PDF lives in R2 and goes here.
-      deleteUser: { enabled: true, beforeDelete: async (user) => { await env.RESUMES.delete(`resumes/${user.id}.pdf`) } },
+      deleteUser: {
+        enabled: true,
+        // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here.
+        beforeDelete: async (user) => {
+          await Promise.all([env.RESUMES.delete(`resumes/${user.id}.pdf`), ...[schema.oauthAccessToken, schema.oauthRefreshToken, schema.oauthConsent].map((t) => db.delete(t).where(eq(t.userId, user.id)))])
+        },
+      },
       additionalFields: {
       accessStatus: { type: 'string', required: false, input: false },
       referralCode: { type: 'string', required: false, input: false },
       referredBy: { type: 'string', required: false, input: false },
+      creditGrantedEur: { type: 'number', required: false, input: false },
+      creditEur: { type: 'number', required: false, input: false },
       reviewedAt: { type: 'date', required: false, input: false },
       },
     },
