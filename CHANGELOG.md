@@ -70,6 +70,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - A GDPR article 30 record of processing for agisse.xyz in the docs (`/docs/records-of-processing`), which self-hosters can use as a starting point for their own.
 - The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy and record of processing.
 - The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
+- `/admin` shows per account how many AI actions it used this month, and how many of the last 30 days it reached the free daily limit (`FREE_DAILY_ACTIONS`). Counts only.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).
