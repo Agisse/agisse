@@ -32,9 +32,9 @@
     { "pattern": "www.agisse.xyz", "custom_domain": true }
   ],
   "vars": {
-    // Comma-separated preference list. Paid entries (Haiku: best in the 2026-10-12 eval, ~$0.002 a call) go first on Agisse's key;
-    // the ":free" ones, plus auto-discovered ":free" models, are the fallback.
-    "OPENROUTER_MODELS": "anthropic/claude-haiku-5.5,nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
+    // Comma-separated preference list for Agisse's key: free models only (owner, 2026-10-14), then auto-discovered ":free" ones.
+    // If Agisse's key ever pays for a model again, put Haiku first ("anthropic/claude-haiku-5.5"), never "openrouter/auto".
+    "OPENROUTER_MODELS": "nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
     // Paid models below run only on a seeker's own OpenRouter key.
     // "Smart" model setting: tried first, then paid models under SMART_MAX_USD_PER_M ($ per 1M output tokens), then the free chain.
     "OPENROUTER_CHECK_MODELS": "google/gemini-3.8-flash",
