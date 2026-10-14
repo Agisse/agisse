@@ -57,6 +57,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Installing the `npx agisse` package takes 174 MB instead of 545 MB: front-end packages are `devDependencies` now, since Vite bundles them into the built app anyway.
 - `npm pack` builds the `npx agisse` package: the built app, local mode as one file (`dist/agisse.mjs`) and the migrations, about 3.3 MB. Not on npm yet (#117).
 - CI installs that package in an empty folder and checks `npx agisse` on Node and Bun: it starts, an account signs up, the feed loads (`scripts/npx-smoke.sh`).
+- `npm run local -- admin you@example.com` makes that signed-up account the admin in local mode, where there's no SQL editor. Without `RESEND_API_KEY`, the console now shows each email's link too, so a password reset works on a server without mail.
 - `npm run local -- import-feed` loads public Arbeitnow roles into local mode's database. Local mode refuses to open a data folder another Agisse process is using, and says when the feed is empty.
 - `scripts/import-feed.ts` no longer fails when Arbeitnow lists the same role on two pages.
 - `npm run local` runs Agisse on Node without Cloudflare: the same app on `http://localhost:3000`, with an embedded Postgres (PGlite) in `./agisse-data/`, or your Neon database when `DATABASE_URL` is set. The first step towards `npx agisse`.
