@@ -44,15 +44,16 @@ function nextMonthStart() {
   return new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1))
 }
 
-type Spend = { tokens: number; costUsd: number }
+type Spend = { tokens: number; costUsd: number; actions: number }
 
-/** Provider spend since the 1st, per user (one user, or everyone). */
+/** Provider spend and AI actions since the 1st, per user (one user, or everyone). */
 export async function spendThisMonth(db: Db, userId?: string) {
   const rows = await db
     .select({
       userId: schema.usage.userId,
       tokens: sql<number>`sum(${schema.usage.tokens})`.mapWith(Number),
       costUsd: sql<number>`sum(${schema.usage.costUsd})`.mapWith(Number),
+      actions: sql<number>`count(*)`.mapWith(Number),
     })
     .from(schema.usage)
     .where(and(gte(schema.usage.createdAt, monthStart()), userId ? eq(schema.usage.userId, userId) : undefined))
@@ -86,6 +87,21 @@ async function spendToday(db: Db, userId: string): Promise<Today> {
     .from(u)
     .where(gte(u.createdAt, today))
   return row ?? { usd: 0, actions: 0, mine: 0, ownKey: false }
+}
+
+/** Per account, the days in the last 30 on which it reached the free daily actions on this server's key (a count only, for /admin). */
+export async function freeLimitDays(db: Db, limit: number) {
+  if (!limit) return new Map<string, number>()
+  const u = schema.usage
+  const days = db
+    .select({ userId: u.userId })
+    .from(u)
+    .where(and(sql`${u.tokens} > 0`, sql`${u.createdAt} >= current_date - 29`))
+    .groupBy(u.userId, sql`${u.createdAt}::date`)
+    .having(sql`count(*) >= ${limit}`)
+    .as('days')
+  const rows = await db.select({ userId: days.userId, days: sql<number>`count(*)::int` }).from(days).groupBy(days.userId)
+  return new Map(rows.map((r) => [r.userId, r.days]))
 }
 
 /** Why AI is paused for this user until midnight UTC, if it is. The USD cap stops everyone; the free-action limits

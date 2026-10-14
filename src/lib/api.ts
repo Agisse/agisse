@@ -52,7 +52,7 @@ export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
-export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; budget: Budget; feedCapDays: number }
+export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
 
 export type Invite = { code: string; note: string; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
 

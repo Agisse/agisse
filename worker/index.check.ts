@@ -6,6 +6,7 @@ import { eq, sql } from 'drizzle-orm'
 import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
 import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, feedCapDays, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
+import { freeLimitDays, spendThisMonth } from './lib/shared.ts'
 
 const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new Error(`${what}${got === undefined ? '' : `: got ${JSON.stringify(got)}`}`) }
 
@@ -65,6 +66,13 @@ if (!databaseUrl) {
     await pruneFeedDays(db)
     const kept = await db.select({ day: schema.feedDay.day }).from(schema.feedDay).where(eq(schema.feedDay.userId, user!.id))
     check(kept.length === 2, 'pruneFeedDays keeps 30 days', kept)
+    // A day counts toward the free AI limit only with enough actions on this server's key (own-key rows book no tokens).
+    const row = (tokens: number) => ({ id: crypto.randomUUID(), userId: user!.id, kind: 'job' as const, tokens, costUsd: 0 })
+    await db.insert(schema.usage).values([row(100), row(0), row(0)])
+    check(!(await freeLimitDays(db, 2)).has(user!.id), 'own-key actions are not free-limit hits')
+    await db.insert(schema.usage).values(row(100))
+    check((await freeLimitDays(db, 2)).get(user!.id) === 1, 'a day at the free limit counts once for /admin')
+    check((await spendThisMonth(db, user!.id)).get(user!.id)?.actions === 4, 'actions this month')
 
     // No OPENROUTER_API_KEY and no own key: the model route explains itself instead of crashing.
     const extract = await call('POST', '/api/profile/extract', { text: 'Synthetic résumé for the boot check. '.repeat(8) })
