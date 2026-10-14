@@ -22,7 +22,7 @@ This page describes what the code does: what is stored, where, and which outside
 | AI usage | Postgres: `usage` | Feature, model, tokens and cost, for the monthly allowance |
 | Feed pages per day | Postgres: `feed_day` | A count per day, for the feed's daily limit; deleted after 30 days |
 | Admin actions | Postgres: `admin_action` | Which admin exported, deleted, gave credit to or reset the free AI limit of which account id, and when; no content. Kept 2 years, also after the account is deleted |
-| Live switches | Postgres: `setting` | Limits an admin changed in `/admin` (daily caps, the monthly allowance), with the account id of who changed each last; set to null when that account is deleted |
+| Live switches | Postgres: `setting` | Limits an admin changed in `/admin` (daily caps, the feed's page cap, the monthly allowance), with the account id of who changed each last; set to null when that account is deleted |
 | Web search cache | Postgres: `exa_cache` | About a week |
 | Company facts | Postgres: `company` | From Wikidata, refreshed after 30 days |
 | Job feed | Postgres: `vacancy`, `profile_embedding`, `vacancy_fit` | Written by a feed provider outside this repo, see below |
