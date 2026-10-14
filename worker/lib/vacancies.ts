@@ -31,6 +31,25 @@ export type VacancyQuery = {
 }
 
 export const PAGE = 30
+// The hosted feed is for people, not for copying (hard rule 10 in the maintainer brief).
+// Every filter change, typed search and "Show more" is one page, so a long day of looking is a few dozen; 200 pages is
+// 6,000 roles a day at most, and a list goes no deeper than 20 pages.
+export const MAX_OFFSET = 600
+export const FEED_DAILY_PAGES = 200
+export const FEED_CAP_MESSAGE = "That's a lot of roles for one day. The feed opens again tomorrow."
+
+/** Counts one feed page for today; false once the account is past today's cap. */
+export async function countFeedPage(db: Db, userId: string) {
+  const [row] = await db
+    .insert(schema.feedDay)
+    .values({ userId, day: sql`current_date`, pages: 1 })
+    .onConflictDoUpdate({ target: [schema.feedDay.userId, schema.feedDay.day], set: { pages: sql`${schema.feedDay.pages} + 1` } })
+    .returning({ pages: schema.feedDay.pages })
+  return row!.pages <= FEED_DAILY_PAGES
+}
+
+/** Daily counts are kept 30 days, for the admin's "hit the feed limit" line; run by the daily cron. */
+export const pruneFeedDays = (db: Db) => db.delete(schema.feedDay).where(sql`${schema.feedDay.day} < current_date - 30`)
 const v = schema.vacancy
 const textArray = (xs: string[]) => sql`ARRAY[${sql.join(xs.map((x) => sql`${x}`), sql`, `)}]::text[]`
 
@@ -136,7 +155,7 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
     sponsors: r.sponsors ?? [],
     reasons: reasonsFor({ ...r, fit: Number(fit), jev: jev == null ? null : Number(jev) }, f.functions, skills),
   }))
-  return { vacancies, more: rows.length > PAGE, profiled: (profiled?.n ?? 0) > 0, total: rows.length ? Number(rows[0]!.total) : f.offset }
+  return { vacancies, more: rows.length > PAGE && f.offset + PAGE <= MAX_OFFSET, profiled: (profiled?.n ?? 0) > 0, total: rows.length ? Number(rows[0]!.total) : f.offset }
 }
 
 /** Title words worth matching on: no short words, numbers or generic programme words. */

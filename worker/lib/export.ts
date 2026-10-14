@@ -30,6 +30,7 @@ export const SKIPPED: Record<string, string> = {
   oauth_consent: 'MCP consents',
   vacancy_fit: 'scores the feed provider derives from the profile',
   profile_embedding: 'vector the feed provider derives from the profile',
+  feed_day: 'a daily count of feed pages, for the cap; no content',
 }
 
 // What we paid the provider is billing, not the seeker's data.

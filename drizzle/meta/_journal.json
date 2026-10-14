@@ -232,6 +232,13 @@
       "when": 1791755201100,
       "tag": "0032_furry_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791964417755,
+      "tag": "0033_feed_day",
+      "breakpoints": true
     }
   ]
 }

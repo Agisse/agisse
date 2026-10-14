@@ -2,9 +2,10 @@
 // Boots the Worker with only the required secrets, so every optional key is missing, and hits the main routes.
 // With a DATABASE_URL it signs up a synthetic user on that (development) database and deletes it afterwards.
 import { readFileSync } from 'node:fs'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
+import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
 
 const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new Error(`${what}${got === undefined ? '' : `: got ${JSON.stringify(got)}`}`) }
 
@@ -46,6 +47,23 @@ if (!databaseUrl) {
       const r = await call('GET', path)
       check(r.status === 200, path, r.status)
     }
+
+    // The hosted feed is capped per account per day, and a list goes no deeper than MAX_OFFSET.
+    check((await call('GET', `/api/vacancies?offset=${MAX_OFFSET + 30}`)).status === 400, 'offset past MAX_OFFSET is 400')
+    const [user] = await db.select({ id: schema.user.id }).from(schema.user).where(eq(schema.user.email, email))
+    await db.update(schema.feedDay).set({ pages: FEED_DAILY_PAGES }).where(eq(schema.feedDay.userId, user!.id))
+    const capped = await call('GET', '/api/vacancies')
+    check(capped.status === 429 && capped.json?.error === FEED_CAP_MESSAGE, 'feed page past the daily cap', capped)
+    // Admins are exempt.
+    await db.update(schema.user).set({ isAdmin: true }).where(eq(schema.user.id, user!.id))
+    ;(env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL = email
+    check((await call('GET', '/api/vacancies')).status === 200, 'admin past the daily cap')
+    delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
+    // The daily cron keeps 30 days of counts.
+    await db.insert(schema.feedDay).values([{ userId: user!.id, day: sql`current_date - 30`, pages: 1 }, { userId: user!.id, day: sql`current_date - 31`, pages: 1 }])
+    await pruneFeedDays(db)
+    const kept = await db.select({ day: schema.feedDay.day }).from(schema.feedDay).where(eq(schema.feedDay.userId, user!.id))
+    check(kept.length === 2, 'pruneFeedDays keeps 30 days', kept)
 
     // No OPENROUTER_API_KEY and no own key: the model route explains itself instead of crashing.
     const extract = await call('POST', '/api/profile/extract', { text: 'Synthetic résumé for the boot check. '.repeat(8) })

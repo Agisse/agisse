@@ -366,6 +366,19 @@ export const usage = pgTable(
   (t) => [index('usage_user_created_idx').on(t.userId, t.createdAt), index('usage_task_ref_idx').on(t.task, t.refId)],
 )
 
+// Feed pages (and MCP list_vacancies calls) served per account per day, for the daily cap in worker/lib/vacancies.ts. Counts only.
+export const feedDay = pgTable(
+  'feed_day',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    day: date('day').notNull(),
+    pages: integer('pages').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day] })],
+)
+
 // Every Exa response (people, web, contents, company), keyed by `${kind}:${request body}`. Rows older than 7 days are
 // refetched but never deleted: the table doubles as the corpus of everything Exa ever returned.
 // The seeker's story bank (shared/stories.ts): STAR stories reused across applications and interviews.
