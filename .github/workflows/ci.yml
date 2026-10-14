@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       WRANGLER_SEND_METRICS: false
     steps:
@@ -35,6 +35,13 @@ jobs:
         run: npm run check
       - name: Initial JS within 10% of scripts/bundle-budget.json
         run: npx tsx scripts/bundle-size.ts 0 --check
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: npx agisse from the packed tarball, on Node and Bun
+        run: |
+          npm run build:local
+          npm pack --ignore-scripts
+          sh scripts/npx-smoke.sh agisse-0.0.0.tgz node
+          sh scripts/npx-smoke.sh agisse-0.0.0.tgz bun
 
   gitleaks:
     runs-on: ubuntu-latest
