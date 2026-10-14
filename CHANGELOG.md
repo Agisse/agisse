@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
 - Your contact details stay out of AI requests: email addresses, phone numbers, birth dates, street addresses and national ID numbers in your CV are swapped for placeholders before a model sees it, and put back in what it writes.
 - Posting and contact links must be web links (`http` or `https`), from the app, the extension and MCP alike.
 - A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
