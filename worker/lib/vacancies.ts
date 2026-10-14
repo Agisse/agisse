@@ -117,7 +117,9 @@ export function vacancyFilters(f: VacancyQuery): SQL[] {
 export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, skills: string[], degree = ''): Promise<{ vacancies: Vacancy[]; more: boolean; profiled: boolean; total: number }> {
   const pe = sql`(select embedding from profile_embedding where user_id = ${userId})`
   // Jev's judgement where the feed provider scored the pair (the seeker's top cosine matches), else the stretched cosine.
-  const jev = sql`(select score from vacancy_fit where user_id = ${userId} and url = ${v.url})`
+  // A join, not a per-row subquery: the subquery ran once per open role for every place `fit` appears.
+  const vf = schema.vacancyFit
+  const jev = vf.score
   // Cold start (no embedding yet): the degree's words against the posting's text, rank/(rank+1) so it stays in 0–1.
   // Target industries ("Tech", "Research") are left out: they match employer names and pulled the feed off-field (npm run eval:feed).
   const words = degreeQuery(degree)
@@ -140,24 +142,24 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
     where.push(...like.where)
     order = [like.order, desc(score)]
   }
-  const [rows, [profiled]] = await Promise.all([
+  const [rows, [count], [profiled]] = await Promise.all([
     db
       .select({
         url: v.url, title: v.title, company: v.company, domain: v.domain, location: v.location, country: v.country, city: v.city,
         remote: v.remote, level: v.level, program: v.program, functions: v.functions, industry: v.industry, deadline: v.deadline,
         deadlineType: v.deadlineType, firstSeen: v.firstSeen, lastSeen: v.lastSeen, description: v.description, fit, jev: sql<number | null>`${jev}`, score, sponsors: sponsorsOf,
-        // Every match before the limit, counted in the same scan the ranking already does.
-        total: sql<number>`count(*) over ()::int`,
       })
       .from(v)
+      .leftJoin(vf, and(eq(vf.userId, userId), eq(vf.url, v.url)))
       .where(and(...where))
       .orderBy(...order, asc(v.url))
       .limit(PAGE + 1)
       .offset(f.offset),
+    // Its own query: `count(*) over ()` held every matching row, description included, until the sort, and spilled to disk.
+    db.select({ n: sql<number>`count(*)::int` }).from(v).where(and(...where)),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.profileEmbedding).where(eq(schema.profileEmbedding.userId, userId)),
   ])
-  // eslint-disable-next-line no-unused-vars -- total is page metadata, not a row field
-  const vacancies = rows.slice(0, PAGE).map(({ fit, jev, total: _, ...r }) => ({
+  const vacancies = rows.slice(0, PAGE).map(({ fit, jev, ...r }) => ({
     ...r,
     title: plainText(r.title),
     description: r.description && plainText(r.description),
@@ -166,7 +168,7 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
     sponsors: r.sponsors ?? [],
     reasons: reasonsFor({ ...r, fit: Number(fit), jev: jev == null ? null : Number(jev) }, f.functions, skills),
   }))
-  return { vacancies, more: rows.length > PAGE && f.offset + PAGE <= MAX_OFFSET, profiled: (profiled?.n ?? 0) > 0, total: rows.length ? Number(rows[0]!.total) : f.offset }
+  return { vacancies, more: rows.length > PAGE && f.offset + PAGE <= MAX_OFFSET, profiled: (profiled?.n ?? 0) > 0, total: count?.n ?? 0 }
 }
 
 /** Title words worth matching on: no short words, numbers or generic programme words. */
