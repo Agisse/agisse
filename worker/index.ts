@@ -698,14 +698,17 @@ app.post('/api/profile/extract', async (c) => {
   }
 })
 
-// The original PDF, kept in R2 (one per user, replaced on re-upload). The body is streamed straight
-// through, never parsed, so the Worker stays inside its CPU budget.
+// The original PDF, kept in R2 (one per user, replaced on re-upload) and never served back. Only its
+// signature is checked, never parsed, so the Worker stays inside its CPU budget.
 app.put('/api/profile/resume', async (c) => {
   const size = Number(c.req.header('content-length') ?? 0)
   if (c.req.header('content-type') !== 'application/pdf' || !size || !c.req.raw.body) return c.json({ error: 'Upload the résumé as a PDF.' }, 400)
   if (size > RESUME_PDF_LIMIT) return c.json({ error: 'That PDF is over 10 MB. Export a smaller version and try again.' }, 413)
+  const body = await c.req.arrayBuffer()
+  // PDF readers accept the "%PDF-" header anywhere in the first 1024 bytes.
+  if (!String.fromCharCode(...new Uint8Array(body, 0, Math.min(1024, body.byteLength))).includes('%PDF-')) return c.json({ error: 'Upload the résumé as a PDF.' }, 400)
   const filename = decodeURIComponent(c.req.header('x-filename') ?? 'resume.pdf').slice(0, 200)
-  await c.env.RESUMES.put(`resumes/${c.get('userId')}.pdf`, c.req.raw.body, {
+  await c.env.RESUMES.put(`resumes/${c.get('userId')}.pdf`, body, {
     httpMetadata: { contentType: 'application/pdf' },
     customMetadata: { filename, uploadedAt: new Date().toISOString() },
   })
