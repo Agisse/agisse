@@ -19,6 +19,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Your contact details stay out of AI requests: email addresses, phone numbers, birth dates, street addresses and national ID numbers in your CV are swapped for placeholders before a model sees it, and put back in what it writes.
+- Agisse's pages now tell your browser which scripts may run (a Content Security Policy), so a script slipped into a page doesn't run.
 - Posting and contact links must be web links (`http` or `https`), from the app, the extension and MCP alike.
 - A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
 - Scores and drafts never lean on your age, gender, nationality, religion, health or photo, even when your CV mentions them. Every prompt that scores you or writes for you now says so, and the methodology page explains it.

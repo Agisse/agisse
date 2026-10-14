@@ -11,6 +11,7 @@ import { isAdminEmail, createAuth, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
 import { qualityReport } from './lib/quality'
+import { APP_CSP, DOCS_CSP } from './lib/csp'
 import { draftOutreach, draftPrep, extractProfileFromResume, runSearch } from './lib/pipeline'
 import { answerQuestion, checkApplication, cvPlain, cvText, draftCover, draftEmail, evaluateJob, findPosting, insertJob, missingKeywords, postingKey, pushStatus, saveJob, sharedPosting, tailorCv } from './lib/jobs'
 import { answerFeedback, interviewQuestions, offerBrief, payCheck, roleKey } from './lib/interview'
@@ -107,6 +108,8 @@ app.use('*', async (c, next) => {
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   c.header('X-Frame-Options', 'SAMEORIGIN')
   c.header('Permissions-Policy', 'camera=(self), geolocation=(), microphone=(self)')
+  // Vite's dev server injects inline scripts of its own, so dev pages go without.
+  if (!(import.meta as { env?: { DEV?: boolean } }).env?.DEV && c.res.headers.get('Content-Type')?.startsWith('text/html')) c.header('Content-Security-Policy', c.req.path.startsWith('/docs') ? DOCS_CSP : APP_CSP)
 })
 
 // Cloudflare's free Workers rate limiter (per colo, approximate): credential endpoints per IP, everything else per signed-in user below.
