@@ -115,6 +115,10 @@ const RESUMES = {
     await mkdir(dirname(file), { recursive: true })
     await writeFile(file, body instanceof ReadableStream ? Buffer.from(await new Response(body).arrayBuffer()) : typeof body === 'string' ? body : Buffer.from(body))
   },
+  async get(key: string) {
+    const body = await readFile(fileOf(key)).catch(() => null)
+    return body && { customMetadata: {}, arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) }
+  },
   async delete(key: string) {
     await rm(fileOf(key), { force: true })
   },
