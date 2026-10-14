@@ -54,6 +54,8 @@ export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: str
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
 export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
 
+/** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
+export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
 export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
 
 export const api = {
@@ -69,7 +71,7 @@ export const api = {
   aiModels: () => request<{ models: string[] }>('/api/ai-key/models'),
   removeAiKey: () => request<{ ok: true }>('/api/ai-key', { method: 'DELETE' }),
   feedback: (body: { task: RatedTask; refId: string; good: boolean; note?: string }) => request<{ ok: true }>('/api/feedback', { method: 'POST', body: JSON.stringify(body) }),
-  adminUsers: () => request<{ users: AdminUser[] }>('/api/admin/users'),
+  adminUsers: () => request<{ users: AdminUser[]; today: AdminToday }>('/api/admin/users'),
   quality: () => request<{ report: QualityReport }>('/api/admin/quality'),
   setAccess: (id: string, status: AccessStatus) => request<{ user: { id: string; accessStatus: AccessStatus } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   /** null = back to the default monthly budget. */

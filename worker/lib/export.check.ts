@@ -1,7 +1,7 @@
 // Run: npx tsx worker/lib/export.check.ts
 import { getTableConfig, PgTable } from 'drizzle-orm/pg-core'
 import * as schema from '../db/schema.ts'
-import { EXPORTED, SKIPPED, withoutCost } from './export.ts'
+import { base64, EXPORTED, SKIPPED, withoutCost } from './export.ts'
 
 const exported = new Set(Object.values(EXPORTED).map((t) => getTableConfig(t).name))
 const withUser = Object.values(schema)
@@ -18,4 +18,7 @@ for (const name of [...exported, ...Object.keys(SKIPPED)]) if (!withUser.include
 if (EXPORTED.usage !== schema.usage) throw new Error('usage belongs in the export')
 const row = { costUsd: 0.01 } as typeof schema.usage.$inferSelect
 if ('costUsd' in withoutCost([row])[0]) throw new Error('costUsd must stay out of the export')
+// The CV PDF goes in as base64; 100 kB spans several chunks.
+const pdf = Uint8Array.from({ length: 100_000 }, (_, i) => (i * 7) % 256)
+if (base64(pdf.buffer) !== Buffer.from(pdf).toString('base64')) throw new Error('base64 differs from Node')
 console.log('export ok')

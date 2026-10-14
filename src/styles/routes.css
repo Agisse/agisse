@@ -4,6 +4,7 @@
 .admin-page { width: 100%; max-width: var(--max-w); margin: 0 auto; padding: 40px 40px 96px; }
 @media (max-width: 767px) { .admin-page { padding: 24px 16px 88px; } }
 .admin-page__head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-5); }
+.admin-page__today { margin-top: var(--space-1); color: var(--ink-2); font-size: 14px; }
 .admin-page__filters { display: flex; width: fit-content; margin: var(--space-6) 0 var(--space-5); }
 .admin-page__filter { text-transform: capitalize; }
 .admin-page__filter span { margin-left: 2px; color: var(--ink-3); font-variant-numeric: tabular-nums; }

@@ -47,6 +47,7 @@ import {
   userStyle,
   spendThisMonth,
   freeLimitDays,
+  spendToday,
   toBudget,
   toJob,
   toMemory,
@@ -55,6 +56,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
+import { deleteStaleWaitlist } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
@@ -361,13 +363,16 @@ app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
-  const [users, used, capped, freeCapped] = await Promise.all([
+  const [users, used, capped, freeCapped, today] = await Promise.all([
     db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
+    spendToday(db, c.get('userId')),
   ])
   return c.json({
+    // Since midnight UTC, against the daily limits (0 = no limit).
+    today: { usd: today.usd, usdCap: Number(c.env.GLOBAL_DAILY_USD_CAP) || 0, actions: today.actions, actionsCap: Number(c.env.FREE_DAILY_ACTIONS_ALL) || 0 },
     users: users.map((u) => ({
       ...u,
       createdAt: u.createdAt.toISOString(),
@@ -556,7 +561,7 @@ app.get('/api/me', async (c) => {
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
 app.get('/api/me/export', async (c) => {
-  const data = await exportUserData(c.get('db'), c.get('userId'))
+  const data = await exportUserData(c.get('db'), c.env.RESUMES, c.get('userId'))
   return c.json(data, 200, { 'content-disposition': `attachment; filename="agisse-data-${data.exportedAt.slice(0, 10)}.json"` })
 })
 
@@ -719,7 +724,7 @@ app.post('/api/profile/extract', async (c) => {
   }
 })
 
-// The original PDF, kept in R2 (one per user, replaced on re-upload) and never served back. Only its
+// The original PDF, kept in R2 (one per user, replaced on re-upload); it leaves only inside the seeker's own export. Only its
 // signature is checked, never parsed, so the Worker stays inside its CPU budget.
 app.put('/api/profile/resume', async (c) => {
   const size = Number(c.req.header('content-length') ?? 0)
@@ -2327,10 +2332,11 @@ app.onError((err, c) => {
 
 export default {
   fetch: app.fetch,
-  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed.
+  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, and apply retention.
   async scheduled(_event: ScheduledController, env: Env) {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
+    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(db, env.RESUMES))
   },
 } satisfies ExportedHandler<Env>
