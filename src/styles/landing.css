@@ -4,3 +4,11 @@
 .home :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 html:has(.home) { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html:has(.home) { scroll-behavior: auto; } }
+
+/* The hero shot rises in once; the outreach demo's swap fades. CSS, so the landing ships without motion. */
+@keyframes home-rise { from { opacity: 0; transform: translateY(24px); } }
+@keyframes home-lift { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: no-preference) {
+  .home-rise { animation: home-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--rise-delay, 0s) both; }
+  .home-lift { animation: home-lift 0.2s ease-out both; }
+}
