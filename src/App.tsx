@@ -20,6 +20,7 @@ import { PracticeRunner } from './features/assessments/components/PracticeRunner
 import { PracticeRoute } from './features/assessments/components/TrainingHub'
 import { AccessWaiting } from './routes/AccessWaiting'
 import { ExtensionRoute } from './routes/Extension'
+import { ChangelogRoute } from './routes/Changelog'
 import { ChatRoute } from './routes/Chat'
 import { Consent } from './routes/Consent'
 import { Welcome } from './routes/Welcome'
@@ -141,6 +142,7 @@ export default function App() {
         <Route path="/profile/review/:tab?">{(params) => <Redirect to={params.tab ? `/prepare/cv/${params.tab}` : '/prepare/cv'} replace />}</Route>
         <Route path="/badge">{() => <Redirect to="/profile" replace />}</Route>
         <Route path="/extension">{() => <ExtensionRoute />}</Route>
+        <Route path="/changelog">{() => <ChangelogRoute />}</Route>
         <Route path="/consent">{() => <Consent />}</Route>
         <Route path="/admin">{() => me.user.isAdmin ? <Admin onBudgetChange={load} /> : <main className="center">Admin access required.</main>}</Route>
         <Route>
