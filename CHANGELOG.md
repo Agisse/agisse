@@ -9,6 +9,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Added
 
 - What's new, in the account menu: the changes that matter to you, newest first. A blue dot on your avatar says when there's something you haven't seen.
+- Download my data, in Profile next to Delete account: everything you saved in Agisse as one JSON file, also while your account is on the waitlist.
 
 ### Changed
 
