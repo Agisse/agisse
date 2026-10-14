@@ -99,7 +99,9 @@ export function ResumeImport({ onExtracted, autosave }: { onExtracted: (p: Profi
           <strong className="text-[0.9375rem] font-semibold text-foreground">{phase.kind === 'linkedin' ? 'Reading your LinkedIn profile' : busy ? 'Reading your résumé' : 'Fill this in from your résumé'}</strong>
           <span className="text-sm text-pretty text-muted-foreground" aria-live="polite">
             {phase.kind === 'reading' && (phase.pages ? `Reading page ${phase.page} of ${phase.pages}…` : 'Opening the PDF…')}
-            {!busy && (autosave ? 'Drop a PDF or choose one. It is read on this device and kept with your account for tailored CVs.' : 'Drop a PDF or choose one. It is kept with your account for tailored CVs; fields save only when you press Save.')}
+            {!busy && (autosave ? 'Read on this device and kept with your account for tailored CVs.' : 'Kept with your account for tailored CVs; fields save only when you press Save.')}
+            {/* GDPR art. 9: Agisse never asks for these, so say so before the file is stored. */}
+            {!busy && " Leave out your photo, date of birth and anything you wouldn't tell an employer. Agisse doesn't need it."}
           </span>
         </span>
         {busy ? (
