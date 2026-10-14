@@ -53,10 +53,10 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     <Invites />
     <h2 className="admin-page__section">Accounts</h2>
     <div className="admin-page__filters" role="group" aria-label="Filter accounts">
-      {(['pending', 'approved', 'rejected', 'all'] as const).map((item) => <button key={item} type="button" className="admin-page__filter" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === 'all' ? 'All' : item[0].toUpperCase() + item.slice(1)} <span>{item === 'all' ? users.length : count(item)}</span></button>)}
+      {(['pending', 'approved', 'rejected', 'all'] as const).map((item) => <button key={item} type="button" className="admin-page__filter" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === 'all' ? 'All' : item[0].toUpperCase() + item.slice(1)} <span>{loading ? null : item === 'all' ? users.length : count(item)}</span></button>)}
     </div>
     {error && <p className="field__error" role="alert">{error}</p>}
-    {loading ? <p role="status">Loading accounts…</p> : visible.length === 0 ? <p className="admin-page__empty">{filter === 'pending' ? 'No requests are waiting for approval.' : 'No accounts in this view.'}</p> : <ul className="admin-page__list">
+    {loading ? <AccountsGhost /> : visible.length === 0 ? <p className="admin-page__empty">{filter === 'pending' ? 'No requests are waiting for approval.' : 'No accounts in this view.'}</p> : <ul className="admin-page__list">
       {visible.map((user) => <li className="admin-page__row" key={user.id}>
         <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small></div>
         <span className={`admin-page__status admin-page__status--${user.accessStatus}`}>{user.isAdmin ? 'Administrator' : user.accessStatus}</span>
@@ -70,6 +70,22 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     </ul>}
     <Quality />
   </main>
+}
+
+/** Account rows while the list loads, each placeholder the height of the line it stands for. */
+function AccountsGhost() {
+  return <><ul className="admin-page__list" aria-busy="true">
+    {[0, 1, 2].map((i) => <li key={i} className="admin-page__row admin-page__ghost" aria-hidden="true">
+      <div className="admin-page__identity"><span className="feed-ghost admin-page__ghost-name" /><span className="feed-ghost admin-page__ghost-email" /><span className="feed-ghost admin-page__ghost-date" /></div>
+      <span className="feed-ghost admin-page__ghost-status" />
+      <div className="admin-page__budget">
+        <div className="meter"><span className="feed-ghost admin-page__ghost-label" /><span className="feed-ghost admin-page__ghost-bar" /></div>
+        <span className="feed-ghost admin-page__ghost-date" />
+        <span className="feed-ghost admin-page__ghost-btn" />
+      </div>
+      <div className="admin-page__actions"><span className="feed-ghost admin-page__ghost-btn" /></div>
+    </li>)}
+  </ul><p className="sr-only" role="status">Loading accounts</p></>
 }
 
 function BudgetForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; onSave: (budgetEur: number | null) => void }) {
