@@ -71,6 +71,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Performance baseline in the docs (`/docs/performance`) and `eval/results/perf-baseline.json`; `scripts/bundle-size.ts` measures the initial bundle, and API responses carry a `Server-Timing` header with database round trips.
 - `/api/me` reads the profile row once instead of twice (10 → 9 database round trips), and `loadProfile` no longer fetches the stored résumé text it doesn't use.
 - The feed's filter counts (`/api/vacancies/facets`) are the same for everyone, so they now come from the edge cache for 10 minutes: 7 → 2 database round trips. The route still needs a signed-in account.
+- The session guard passes on the user row it already reads: `/api/me` drops from 9 to 7 database round trips, and every route that checks the AI budget saves one.
 - `PUBLIC_LAUNCH` (Worker var, `"0"` by default): `"1"` turns on the launch-day homepage, starting with an "Open source · Free · Made in Europe" line in the hero.
 - CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
 - Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.
