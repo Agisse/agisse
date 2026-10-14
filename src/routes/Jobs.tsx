@@ -728,6 +728,11 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
           <Rate task="agisse_job_evaluation" refId={job.id} />
           <AskAssistant question="Should I apply to this job, and what would make my application stronger?">Should I apply?</AskAssistant>
           <a className="btn btn--sm btn--quiet verdict__how" href="/docs/methodology">How it’s scored</a>
+          {!me.aiKey && !me.trial && (
+            <p className="verdict__note">
+              Runs on free models. <Link href="/profile#ai-heading">Your own OpenRouter key gives sharper results</Link>.
+            </p>
+          )}
         </div>
       </div>
 
