@@ -552,7 +552,7 @@ app.get('/api/me', async (c) => {
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
 app.get('/api/me/export', async (c) => {
-  const data = await exportUserData(c.get('db'), c.get('userId'))
+  const data = await exportUserData(c.get('db'), c.env.RESUMES, c.get('userId'))
   return c.json(data, 200, { 'content-disposition': `attachment; filename="agisse-data-${data.exportedAt.slice(0, 10)}.json"` })
 })
 
@@ -715,7 +715,7 @@ app.post('/api/profile/extract', async (c) => {
   }
 })
 
-// The original PDF, kept in R2 (one per user, replaced on re-upload) and never served back. Only its
+// The original PDF, kept in R2 (one per user, replaced on re-upload); it leaves only inside the seeker's own export. Only its
 // signature is checked, never parsed, so the Worker stays inside its CPU budget.
 app.put('/api/profile/resume', async (c) => {
   const size = Number(c.req.header('content-length') ?? 0)
