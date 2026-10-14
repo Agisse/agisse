@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Copy, Check } from 'lucide-react'
-import { api, type AccessStatus, type AdminUser, type Invite } from '../lib/api'
+import { api, type AccessStatus, type AdminToday, type AdminUser, type Invite } from '../lib/api'
 import { BudgetMeter } from '../components/BudgetMeter'
 import { MIN_N, type Bucket, type QualityReport } from '../../shared/quality'
 
@@ -8,13 +8,14 @@ const order: Record<AccessStatus, number> = { pending: 0, approved: 1, rejected:
 
 export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> }) {
   const [users, setUsers] = useState<AdminUser[]>([])
+  const [today, setToday] = useState<AdminToday | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [filter, setFilter] = useState<AccessStatus | 'all'>('all')
 
   const load = async () => {
-    try { setUsers((await api.adminUsers()).users); setError(null) }
+    try { const r = await api.adminUsers(); setUsers(r.users); setToday(r.today); setError(null) }
     catch (e) { setError(e instanceof Error ? e.message : 'Could not load accounts.') }
     finally { setLoading(false) }
   }
@@ -57,7 +58,10 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
 
   return <main className="admin-page">
     <header className="admin-page__head">
-      <h1 className="display">Guest list</h1>
+      <div>
+        <h1 className="display">Guest list</h1>
+        <p className="admin-page__today tnum">{today ? todayLine(today) : '\u00a0'}</p>
+      </div>
       <button type="button" className="btn btn--quiet" onClick={() => void load()} disabled={loading}>Refresh</button>
     </header>
     <Invites />
@@ -82,6 +86,12 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     <Quality />
   </main>
 }
+
+const usd = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/** Everyone's AI use today on the server's key, against the daily limits that pause it. */
+const todayLine = (t: AdminToday) =>
+  `Today: ${usd(t.usd)}${t.usdCap ? ` of ${usd(t.usdCap)}` : ''} spent · ${t.actions.toLocaleString()}${t.actionsCap ? ` of ${t.actionsCap.toLocaleString()}` : ''} free actions`
 
 /** Account rows while the list loads, each placeholder the height of the line it stands for. */
 function AccountsGhost() {

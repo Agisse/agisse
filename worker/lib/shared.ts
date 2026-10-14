@@ -85,7 +85,7 @@ export function creditFor(env: Money, creditEur: number | null | undefined, ownK
 type Today = { usd: number; actions: number; mine: number; ownKey: boolean }
 
 /** Since UTC midnight: provider USD spent by everyone, and actions on this server's key (rows with tokens; own-key rows book none), by everyone and by this user. */
-async function spendToday(db: Db, userId: string): Promise<Today> {
+export async function spendToday(db: Db, userId: string): Promise<Today> {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
   const u = schema.usage

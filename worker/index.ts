@@ -46,6 +46,7 @@ import {
   newMeter,
   userStyle,
   spendThisMonth,
+  spendToday,
   toBudget,
   toJob,
   toMemory,
@@ -361,12 +362,15 @@ app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
-  const [users, used, capped] = await Promise.all([
+  const [users, used, capped, today] = await Promise.all([
     db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db),
+    spendToday(db, c.get('userId')),
   ])
   return c.json({
+    // Since midnight UTC, against the daily limits (0 = no limit).
+    today: { usd: today.usd, usdCap: Number(c.env.GLOBAL_DAILY_USD_CAP) || 0, actions: today.actions, actionsCap: Number(c.env.FREE_DAILY_ACTIONS_ALL) || 0 },
     users: users.map((u) => ({
       ...u,
       createdAt: u.createdAt.toISOString(),
