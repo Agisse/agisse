@@ -37,6 +37,16 @@ Data subjects are Agisse's users (students and early-career job seekers, minimum
 
 Agisse doesn't ask for special categories of data (GDPR article 9) and doesn't score on them. Users are told at upload to leave out their photo, date of birth and anything they wouldn't tell an employer. Scores are advice; the user decides and acts, so there is no automated decision under article 22.
 
+## AI processing of CVs (impact note)
+
+A short assessment in the spirit of a DPIA (article 35). [owner: decide whether a full DPIA is required.]
+
+- **What's processed:** the CV and profile text a feature needs, and the posting, sent to a language model when the user asks for an evaluation, a tailored CV, a draft or prep. Contact details are removed before the call and put back afterwards. Nothing is sent without the user's action.
+- **Risks:** the model states something about the user that isn't true; it weighs age, gender, nationality, health or a photo; the text leaks through a provider that keeps or trains on it; a posting carries instructions that steer the model.
+- **Mitigations:** prompts tell the model to use only the facts it's given and never those personal traits (the second is checked in code); contact details are removed first; on agisse.xyz's key, OpenRouter's account setting refuses providers that train on prompts; model output is shown as text, never run as code, and its links must be http(s); a user's AI requests can only read that user's data.
+- **No automated decision:** a score is advice. The user reads it, decides and acts themselves; Agisse never applies or sends a message for them (article 22 doesn't apply).
+- **Residual risk:** a wrong or unfair statement can still slip through. Users can rate an answer and say why; the ratings show on the admin's quality page.
+
 ## Security measures (article 32)
 
 - TLS everywhere, with HSTS; a Content Security Policy on the app's pages.
