@@ -42,6 +42,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - Installing the `npx agisse` package takes 174 MB instead of 545 MB: front-end packages are `devDependencies` now, since Vite bundles them into the built app anyway.
+- `publish.yml` publishes the `npx agisse` package to npm on a release tag, with provenance and no npm token. It stays off until the owner turns it on (#117).
 - `npm pack` builds the `npx agisse` package: the built app, local mode as one file (`dist/agisse.mjs`) and the migrations, about 3.3 MB. Not on npm yet (#117).
 - CI installs that package in an empty folder and checks `npx agisse` on Node and Bun: it starts, an account signs up, the feed loads (`scripts/npx-smoke.sh`).
 - `npm run local -- import-feed` loads public Arbeitnow roles into local mode's database. Local mode refuses to open a data folder another Agisse process is using, and says when the feed is empty.
