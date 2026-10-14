@@ -54,6 +54,6 @@ A short assessment in the spirit of a DPIA (article 35). [owner: decide whether 
 - Own AI keys are sealed with AES-GCM and never sent back to the browser.
 - Contact details are removed from CV text before it reaches a model.
 - The CV PDF is checked to be a PDF and kept privately; no URL serves it.
-- Delete account removes the account's rows (by foreign-key cascade) and the CV file [owner: plus the MCP tokens and a deletion check, once #161 ships].
+- Delete account removes the account's rows (by foreign-key cascade), the CV file, and the MCP sign-in tokens and consents; `worker/index.check.ts` checks that nothing with the account's id is left.
 - Admin views show account-level facts, not CVs or messages [owner: the quality page shows the start of users' rating notes, #148].
 - A breach runbook is in [`SECURITY.md`](https://github.com/Agisse/agisse/blob/main/SECURITY.md).
