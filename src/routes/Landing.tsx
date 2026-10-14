@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowRight, Check, Copy, ExternalLink, Plus, Send, X } from 'lucide-react'
 import '../styles/landing.css'
 import posthog from '../lib/posthog'
@@ -242,12 +241,10 @@ function JobRow({ job }: { job: (typeof FEED)[number] }) {
 
 /** The one authored moment: the feed and a person card rise in once. */
 function HeroShot({ stats }: { stats: Stats | null }) {
-  const reduce = useReducedMotion()
-  const rise = (delay: number) => (reduce ? {} : { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0 }, transition: { delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] as const } })
   return (
     <figure aria-label="Agisse with example data" className={WRAP}>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-[28px] bg-muted p-3 sm:p-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:gap-6 lg:p-12">
-        <motion.div className={cn(CARD, 'px-4 pt-4 pb-1 sm:px-5')} {...rise(0.1)}>
+        <div className={cn(CARD, 'home-rise px-4 pt-4 pb-1 [--rise-delay:100ms] sm:px-5')}>
           <div className="flex items-baseline justify-between gap-3">
             <p className="font-semibold tracking-tight">Jobs for you</p>
             <p className="text-sm text-muted-foreground tabular-nums">{stats ? `${stats.open.toLocaleString('en')} open in Europe` : 'Best match'}</p>
@@ -257,8 +254,8 @@ function HeroShot({ stats }: { stats: Stats | null }) {
               <JobRow key={f.title} job={f} />
             ))}
           </ol>
-        </motion.div>
-        <motion.div className={cn(CARD, 'flex flex-col p-4 sm:p-5')} {...rise(0.3)}>
+        </div>
+        <div className={cn(CARD, 'home-rise flex flex-col p-4 [--rise-delay:300ms] sm:p-5')}>
           <PersonHead />
           <p className="mt-4 text-sm font-medium text-muted-foreground">Your note to Sam</p>
           <div className="mt-1.5 rounded-xl bg-muted p-3 text-sm leading-relaxed"><p className="line-clamp-3">{NOTE}</p></div>
@@ -268,7 +265,7 @@ function HeroShot({ stats }: { stats: Stats | null }) {
               <Copy className="size-3" /> Copy
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
       <figcaption className="mt-3 text-center text-xs text-muted-foreground">Example data{stats ? ' · live role count' : ''}</figcaption>
     </figure>
@@ -344,38 +341,38 @@ function VerdictShot() {
 /** Works like the real thing, minus the real account: the visitor presses Send themselves. */
 function OutreachDemo() {
   const [sent, setSent] = useState(false)
-  const lift = useReducedMotion() ? {} : { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 }, transition: { duration: 0.2 } }
+  const [pressed, setPressed] = useState(false) // no fade on first render
+  const lift = pressed ? 'home-lift' : ''
   return (
     <div className={cn(CARD, 'p-4 sm:p-5')}>
       <PersonHead />
       <p className="mt-4 text-sm font-medium text-muted-foreground">Your note to Sam</p>
       <p className="mt-1.5 rounded-xl bg-muted p-3 text-sm leading-relaxed">{NOTE}</p>
       <div className="mt-4 flex min-h-11 items-center">
-        <AnimatePresence mode="wait" initial={false}>
-          {sent ? (
-            <motion.p key="sent" role="status" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" {...lift}>
-              <Check className="size-4 text-[var(--green)]" aria-hidden="true" /> Marked contacted. Follow-up reminder in 7 days.
-              <button type="button" className="min-h-11 rounded-md px-1 font-medium text-primary hover:underline" onClick={() => setSent(false)}>
-                Undo
-              </button>
-            </motion.p>
-          ) : (
-            <motion.div key="send" className="flex flex-wrap gap-2" {...lift}>
-              <Button
-                className="h-11 px-4 sm:h-9"
-                onClick={() => {
-                  setSent(true)
-                  posthog.capture('landing_demo_sent')
-                }}
-              >
-                <Send data-icon="inline-start" aria-hidden="true" /> I sent it
-              </Button>
-              <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
-                <ExternalLink className="size-3.5" aria-hidden="true" /> Open profile
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {sent ? (
+          <p role="status" className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-sm', lift)}>
+            <Check className="size-4 text-[var(--green)]" aria-hidden="true" /> Marked contacted. Follow-up reminder in 7 days.
+            <button type="button" className="min-h-11 rounded-md px-1 font-medium text-primary hover:underline" onClick={() => setSent(false)}>
+              Undo
+            </button>
+          </p>
+        ) : (
+          <div className={cn('flex flex-wrap gap-2', lift)}>
+            <Button
+              className="h-11 px-4 sm:h-9"
+              onClick={() => {
+                setSent(true)
+                setPressed(true)
+                posthog.capture('landing_demo_sent')
+              }}
+            >
+              <Send data-icon="inline-start" aria-hidden="true" /> I sent it
+            </Button>
+            <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
+              <ExternalLink className="size-3.5" aria-hidden="true" /> Open profile
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
