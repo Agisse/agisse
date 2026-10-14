@@ -40,6 +40,7 @@ const VIEWS: Record<View, { label: string; sort: VacancySort; deadlineWithin: nu
 const PRIMARY_VIEWS: View[] = ['match', 'soon']
 const LEVELS = { any: 'All levels', internship: 'Internships', entry: 'Graduate & junior' } as const
 const FIT_LABELS = ['Strong fit', 'Worth applying', 'Close to your profile', 'A stretch']
+const FUNCTION_NAMES = new Set<string>(Object.values(VACANCY_FUNCTIONS))
 const LAST_VISIT = 'agisse.vacancies.lastVisit'
 const ASKED = 'agisse.feed.askedApplied'
 const cleanUrl = (value: string) => value.replace(/\/$/, '')
@@ -387,7 +388,8 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
               <X aria-hidden="true" className="feed-chosen__x" />
             </button>
           ))}
-          {chosen.length > 0 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
+          {/* One chip: its own × already clears it. */}
+          {chosen.length > 1 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
           {current !== saved && <button type="button" className="btn btn--sm feed-chosen__save" onClick={saveDefaults}>Save as my defaults</button>}
         </div>
       )}
@@ -527,8 +529,8 @@ function FeedRow({ v, sub, jobId, isNew, open, exhausted, onToggle, onSave, onTa
   const where = whereOf(v)
   const due = deadlineLabel(v)
   const fit = v.reasons.find((r) => FIT_LABELS.includes(r))
-  // The deadline has its own column, so it is not repeated among the reasons.
-  const why = v.reasons.filter((r) => r !== fit && !/^Closes /.test(r))
+  // The deadline has its own column and the functions are tags below, so neither is repeated among the reasons.
+  const why = v.reasons.filter((r) => r !== fit && !/^Closes /.test(r) && !r.split(' · ').every((l) => FUNCTION_NAMES.has(l)))
   const process = open ? curatedFor(v.company)[0] : undefined
   const save = async () => {
     setSaving('busy')
