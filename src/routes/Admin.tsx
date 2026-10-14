@@ -256,7 +256,7 @@ function Invites() {
           <span className={`admin-page__status admin-page__status--${state === 'used' ? 'approved' : state === 'withdrawn' ? 'rejected' : 'pending'}`}>
             {state === 'used' ? `Joined ${shortDate(invite.usedAt!)}` : state === 'withdrawn' ? 'Withdrawn' : 'Open'}
           </span>
-          <span className="invites__detail">{state === 'used' ? (invite.usedByEmail ?? 'Account deleted') : null}</span>
+          <span className="invites__detail">{state === 'used' ? `${invite.usedByEmail ?? 'Account deleted'}${invite.creditEur && invite.creditUsedEur !== null ? ` · ${eur(invite.creditUsedEur)} of credit used` : ''}` : null}</span>
           <div className="admin-page__actions">
             {state === 'open' && <>
               <button type="button" className="btn btn--sm" onClick={() => void copy(invite.code)}>{copied === invite.code ? 'Copied' : 'Copy link'}</button>
