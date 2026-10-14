@@ -267,6 +267,13 @@
       "when": 1792015609994,
       "tag": "0037_live_switches",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792019191534,
+      "tag": "0038_invite_expiry",
+      "breakpoints": true
     }
   ]
 }

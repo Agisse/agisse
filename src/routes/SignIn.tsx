@@ -119,7 +119,7 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
       const code = res.error.code
       setError(
         code === 'INVITE_INVALID'
-          ? 'That invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.'
+          ? 'That invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.'
           : code === 'USER_ALREADY_EXISTS'
           ? 'That email already has an account. Sign in instead.'
           : code === 'INVALID_EMAIL_OR_PASSWORD'
@@ -148,7 +148,7 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
       )}
       {mode === 'sign-up' && linkState === 'invalid' && (
         <p className="flex items-start gap-2 rounded-lg bg-(--red-tint) px-3 py-2.5 text-sm text-(--red)" role="alert">
-          <TicketX aria-hidden="true" className="mt-0.5 size-4 shrink-0" /> This invite link is used or withdrawn. Ask for a new one, or paste another code below.
+          <TicketX aria-hidden="true" className="mt-0.5 size-4 shrink-0" /> This invite link is used, expired or withdrawn. Ask for a new one, or paste another code below.
         </p>
       )}
       <Button type="button" variant="outline" className="h-11 w-full gap-2.5 text-[0.9375rem]" onClick={google} disabled={busy}>
