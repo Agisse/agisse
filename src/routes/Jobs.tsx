@@ -179,7 +179,7 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
 
   return (
     <main className="map map--stack">
-      <section aria-live="polite" aria-busy={!!pending} hidden={!pending && !jobId}>
+      <section aria-live="polite" aria-busy={!!pending || (!!jobId && !shown && !error)} hidden={!pending && !jobId}>
         {pending ? (
           <Evaluating startedAt={pending} onCancel={abort.cancel} />
         ) : shown ? (
@@ -189,7 +189,7 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
             <AlertCircle aria-hidden="true" /> <span>{error}</span>
           </p>
         ) : (
-          <p className="label label--muted">Loading the posting…</p>
+          jobId && <PostingGhost id={jobId} tab={tab} />
         )}
       </section>
       {/* Stays mounted while a posting is read, so a cancel comes back to the same filters or pasted text. */}
@@ -353,6 +353,52 @@ function Evaluating({ startedAt, onCancel }: { startedAt: number; onCancel: () =
 }
 
 /* ---------- One posting: the evaluation and what to do with it ---------- */
+
+function PostingTabs({ id, tab }: { id: string; tab: PostingTab }) {
+  return (
+    <nav className="posting-tabs" aria-label="Application">
+      <Link href={`/jobs/${id}`} aria-current={tab === 'overview' ? 'page' : undefined}>
+        Overview
+      </Link>
+      <Link href={`/jobs/${id}/apply`} aria-current={tab === 'apply' ? 'page' : undefined}>
+        Apply
+      </Link>
+      <Link href={`/jobs/${id}/prepare`} aria-current={tab === 'prepare' ? 'page' : undefined}>
+        Prepare
+      </Link>
+      <Link href={`/jobs/${id}/offer`} aria-current={tab === 'offer' ? 'page' : undefined}>
+        Offer
+      </Link>
+    </nav>
+  )
+}
+
+/** The posting's frame while it loads: the real Back link and tabs, placeholders where the company and role go. */
+function PostingGhost({ id, tab }: { id: string; tab: PostingTab }) {
+  return (
+    <div className="booth posting">
+      <Link href={cameFrom ?? `/jobs${boardQuery}`} className="booth__back">
+        <ArrowLeft aria-hidden="true" /> Back
+      </Link>
+      <header className="booth__head" aria-hidden="true">
+        <div className="booth__sign">
+          <span className="feed-ghost feed-ghost--logo booth__ghost-logo" />
+          <div className="booth__ghost-text">
+            <span className="feed-ghost booth__ghost-company" />
+            <span className="feed-ghost booth__ghost-role" />
+            <span className="feed-ghost feed-ghost--sm booth__ghost-meta" />
+            <span className="feed-ghost feed-ghost--sm booth__ghost-meta" />
+          </div>
+        </div>
+        <div className="booth__aside">
+          <span className="feed-ghost booth__ghost-more" />
+        </div>
+      </header>
+      <p className="sr-only" role="status">Loading the posting…</p>
+      <PostingTabs id={id} tab={tab} />
+    </div>
+  )
+}
 
 function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: { job: Job; tab: PostingTab; me: Me; offers: number; error: string | null; onChange: (j: Job) => void; onSpend: () => Promise<void>; onDelete: () => void }) {
   const ev = job.evaluation
@@ -534,20 +580,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         </p>
       )}
 
-      <nav className="posting-tabs" aria-label="Application">
-        <Link href={`/jobs/${job.id}`} aria-current={tab === 'overview' ? 'page' : undefined}>
-          Overview
-        </Link>
-        <Link href={`/jobs/${job.id}/apply`} aria-current={tab === 'apply' ? 'page' : undefined}>
-          Apply
-        </Link>
-        <Link href={`/jobs/${job.id}/prepare`} aria-current={tab === 'prepare' ? 'page' : undefined}>
-          Prepare
-        </Link>
-        <Link href={`/jobs/${job.id}/offer`} aria-current={tab === 'offer' ? 'page' : undefined}>
-          Offer
-        </Link>
-      </nav>
+      <PostingTabs id={job.id} tab={tab} />
 
       {tab === 'prepare' ? (
         <>
