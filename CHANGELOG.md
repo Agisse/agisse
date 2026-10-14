@@ -9,6 +9,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Added
 
 - What's new, in the account menu: the changes that matter to you, newest first. A blue dot on your avatar says when there's something you haven't seen.
+- Plans, in the account menu: a preview of Free, Pro and Supporter. Paid plans aren't open yet, so nothing there takes payment.
 
 ### Changed
 

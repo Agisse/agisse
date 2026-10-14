@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter'
-import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Shield, Sun, UserRound, Users } from 'lucide-react'
+import { BadgeEuro, Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Shield, Sun, UserRound, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { useCopy } from '../lib/hooks'
@@ -220,6 +220,9 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
           <DropdownMenuItem onClick={() => navigate('/changelog')}>
             <ScrollText aria-hidden="true" /> What's new
             {news && <span className="ml-auto size-2 rounded-full bg-primary"><span className="sr-only">, new</span></span>}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/pricing')}>
+            <BadgeEuro aria-hidden="true" /> Plans
           </DropdownMenuItem>
           {!trial && (
             <DropdownMenuItem
