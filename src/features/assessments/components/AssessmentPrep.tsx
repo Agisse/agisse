@@ -15,6 +15,7 @@ import { Sparkline } from './Sparkline'
 import { MODE_HINT, MODE_LABEL, practiceHref } from './modes'
 import { PROVIDER_GAMES, providerGames, type ProviderGame } from '../../../../shared/assessment-catalog'
 import { MockInterview } from '../../../components/MockInterview'
+import { PrepGhost } from '../../../components/PrepGhost'
 import '../assessments.css'
 
 const SOURCE_ORDER: AssessmentSource['kind'][] = ['official', 'provider', 'university', 'candidate report', 'forum']
@@ -50,7 +51,7 @@ export function AssessmentPrep({ job, me, onSpend }: { job: Job; me: Me; onSpend
     }
   }
 
-  if (res.loading && !res.data) return <p className="label label--muted">Looking up the assessment…</p>
+  if (res.loading && !res.data) return <PrepGhost title="Online test" lines={1} status="Looking up the assessment…" />
   if (res.error) return <ErrorNote text={res.error} />
 
   const assessment = res.data?.assessment ?? null
