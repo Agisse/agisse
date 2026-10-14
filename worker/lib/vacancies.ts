@@ -2,6 +2,7 @@ import { and, asc, desc, gte, isNull, lte, or, sql, eq, type SQL } from 'drizzle
 import type { Db } from '../db'
 import type { Meter } from './openrouter'
 import { jevDecide, scoreOf, type ScoreQ } from './jev'
+import { FAIRNESS } from './pipeline'
 import { schema } from '../db'
 import { plainText, VACANCY_FUNCTIONS, type Vacancy, type VacancyFacets, type VacancySort } from '../../shared/listings'
 import { SPONSOR_DROP, type SponsorCountry } from '../../shared/sponsors'
@@ -220,7 +221,7 @@ const jevLabel = (jev: number) => (jev >= 0.83 ? 'Strong fit' : jev >= 0.5 ? 'Wo
 
 // The feed provider scores vacancy_fit on this same question and scale, so a pasted posting and a feed row read alike.
 export const FIT_SCALE = ['Wrong field or level for this candidate', 'A stretch: some overlap but a different direction', 'Reasonable fit worth applying to', 'Strong fit: matches their field, skills and interests']
-export const FIT_Q: ScoreQ = { type: 'score', criteria: FIT_SCALE, instructions: "How well does this job posting fit this candidate's background, skills and interests?" }
+export const FIT_Q: ScoreQ = { type: 'score', criteria: FIT_SCALE, instructions: `How well does this job posting fit this candidate's background, skills and interests? ${FAIRNESS}` }
 
 /** Jev's 0..3 fit score as 0..1 with its chip label. */
 export const fitFrom = (score: number) => {

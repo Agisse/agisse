@@ -1,5 +1,7 @@
 // Run: npx tsx worker/lib/jobs.check.ts
-import { coverProblem, finalizeCheck, fitToLimit, shortTextProblem, finalizeEvaluation, postingFacts, postingKey, recommendationFor, verifyCv } from './jobs.ts'
+import { readFileSync } from 'node:fs'
+import { FAIRNESS } from './pipeline.ts'
+import { coverProblem, evaluationBrief, finalizeCheck, fitToLimit, shortTextProblem, finalizeEvaluation, postingFacts, postingKey, recommendationFor, verifyCv } from './jobs.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -150,3 +152,8 @@ const cv4 = verifyCv(
 eq(cv4.contact, ['ada@example.com', 'Ghent'], 'contact cleaned')
 eq(cv4.contactLine2, ['Open to relocation'], 'line 2 deduped')
 eq(cv4.changes?.map((c) => c.change), ['Reworded the KBC bullet'], 'change for dropped skill removed')
+
+// Scoring and writing never lean on age, gender, nationality, health or a photo (S3): the evaluation, CV tailoring and cover letter prompts all say so.
+if (!evaluationBrief('posting', null, 'cv').system.includes(FAIRNESS)) throw new Error('evaluation prompt lacks FAIRNESS')
+eq(readFileSync('worker/lib/jobs.ts', 'utf8').split('${FAIRNESS}').length - 1, 3, 'prompts with FAIRNESS in jobs.ts')
+console.log('fairness check passed')

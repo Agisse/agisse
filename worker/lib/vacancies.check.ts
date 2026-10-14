@@ -1,7 +1,8 @@
 // Run: npx tsx worker/lib/vacancies.check.ts
 import { and } from 'drizzle-orm'
 import { PgDialect } from 'drizzle-orm/pg-core'
-import { degreeQuery, reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
+import { FAIRNESS } from './pipeline.ts'
+import { degreeQuery, FIT_Q, reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -52,4 +53,6 @@ eq(degreeQuery('BA Marketing and Communication'), 'marketing:* | communication:*
 eq(degreeQuery('LLB Law'), 'law', 'short word: exact')
 eq(degreeQuery("Bachelor of Arts (Hons) 2024 & l'été"), 'été', 'only letters reach to_tsquery')
 eq(degreeQuery('MSc'), null, 'no field words')
+// The feed's fit question carries the same rule as the evaluation prompt.
+if (!FIT_Q.instructions.includes(FAIRNESS)) throw new Error('FIT_Q lacks FAIRNESS')
 console.log('vacancies ok')

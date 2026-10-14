@@ -28,6 +28,8 @@ It then rates five things from 1 to 5:
 
 The overall score is a judgement over the five, not an average. Without an imported résumé, it uses your profile fields only, so it is rougher.
 
+The score never uses your age, gender, nationality, ethnicity, religion, health, disability, family situation or photo, even when your CV mentions them. The prompts for the score, the feed's match, CV tailoring and cover letters all say so (`FAIRNESS` in `worker/lib/pipeline.ts`). It's an instruction to the model, so a model can still slip; tell us if you see it happen.
+
 ## The 4.0 line
 
 The verdict comes from the score, in code (`recommendationFor`), not from the model:
