@@ -35,7 +35,8 @@ jar=$dir/cookies
 [ "$(code -c "$jar" -H "origin: $url" -H 'content-type: application/json' \
   -d '{"email":"npx-smoke@example.com","password":"npx-smoke-password","name":"Smoke"}' "$url/api/auth/sign-up/email")" = 200 ] ||
   { cat server.log; echo "Sign-up failed"; exit 1; }
-[ "$(code -b "$jar" "$url/api/me")" = 200 ] || { cat server.log; echo "/api/me after sign-up is not 200"; exit 1; }
+# A number, not null: without wrangler.jsonc's vars every AI button reads "budget used up".
+curl -sf -b "$jar" "$url/api/me" | grep -q '"limit":[0-9]' || { cat server.log; echo "/api/me has no budget limit"; exit 1; }
 curl -sf -b "$jar" "$url/api/vacancies" | grep -q '"vacancies"' || { cat server.log; echo "/api/vacancies failed"; exit 1; }
 [ "$(code "$url/")" = 200 ] || { echo "The app shell is not 200"; exit 1; }
 

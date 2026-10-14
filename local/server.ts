@@ -142,7 +142,10 @@ const limiter = (limit: number) => {
 Object.assign(globalThis, { caches: { default: { match: async () => undefined, put: async () => {} } } })
 
 const version = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version as string
+// The same model lists and budget numbers as on Cloudflare; the environment overrides any of them.
+const { vars } = JSON.parse(readFileSync(join(root, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, '')) as { vars: Record<string, string> }
 const env = {
+  ...vars,
   ...process.env,
   DATABASE_URL: process.env.DATABASE_URL ?? 'pglite',
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? readFileSync(secretFile, 'utf8'),

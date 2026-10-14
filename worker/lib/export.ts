@@ -56,7 +56,7 @@ export async function exportUserData(db: Db, files: Pick<R2Bucket, 'get'>, userI
   const [user, aiKey, resume, ...rows] = await Promise.all([
     db.query.user.findFirst({
       where: eq(schema.user.id, userId),
-      columns: { id: true, name: true, email: true, emailVerified: true, accessStatus: true, referralCode: true, image: true, createdAt: true },
+      columns: { id: true, name: true, email: true, emailVerified: true, accessStatus: true, referralCode: true, creditGrantedEur: true, creditEur: true, image: true, createdAt: true },
     }),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true, createdAt: true } }),
     resumePdf(files, userId),

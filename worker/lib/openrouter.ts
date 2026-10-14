@@ -95,6 +95,8 @@ export type Meter = {
   rank?: Record<string, Record<string, number>>
   /** The seeker's own key: their provider bills these calls, so nothing is booked against the Agisse budget. */
   byok?: UserKey
+  /** One-time credit left on Agisse's key: these paid models go first, and charge() draws what they cost (× eurPerUsd) from it. */
+  credit?: { models: string[]; eurPerUsd: number }
 }
 
 export type Generation = { task: string; model: string; prompt: string; failed: string[]; output: unknown }
@@ -160,11 +162,11 @@ export async function generateStructured<T>(opts: {
   const rank = opts.meter?.rank?.[opts.schemaName]
   const isFree = (m: string) => m.endsWith(':free')
   const free = byRank([...new Set([...opts.preferredModels.filter(isFree), ...freeModels(models)])].slice(0, 5), rank)
-  // Agisse's key: any paid entries in OPENROUTER_MODELS first (none on agisse.xyz), then the free chain. Smart's pricier models only on the seeker's own key.
+  // Agisse's key: the credit's paid models while it lasts, any paid entries in OPENROUTER_MODELS (none on agisse.xyz), then the free chain. Smart's pricier models only on the seeker's own key.
   const smart = byok ? opts.meter?.smart : undefined
   const paid = smart
     ? byRank([...new Set([...smart.preferred, ...smartModels(models, smart.maxUsdPerM)])].slice(0, 3), rank)
-    : byok ? [] : opts.preferredModels.filter((m) => !isFree(m))
+    : byok ? [] : [...(opts.meter?.credit?.models ?? []), ...opts.preferredModels.filter((m) => !isFree(m))]
   const strong = byok ? (opts.strong?.models ?? []) : []
   // The model the seeker picked for their own OpenRouter key goes first, ahead of Agisse's choices.
   const own = byok?.model ? [byok.model] : []
