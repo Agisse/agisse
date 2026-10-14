@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { useCopy } from '../lib/hooks'
 import { setTheme, useTheme, type Theme } from '../lib/theme'
+import { hasNews } from '../lib/whats-new'
 import posthog from '../lib/posthog'
 import { cn } from '@/lib/utils'
 import {
@@ -169,21 +170,31 @@ const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
 
 /** The account behind the email: profile, the extras, appearance, sign out. */
 function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: string; trial: boolean; isAdmin: boolean; onSignOut: () => void; compact?: boolean }) {
-  const [, navigate] = useLocation()
+  const [loc, navigate] = useLocation()
   const theme = useTheme()
   const { copied, copy } = useCopy()
+  // Re-read on every page change, so the dot goes once What's new has been opened.
+  const news = loc !== '/changelog' && hasNews()
+  const label = `Account, ${email}${news ? ", something new in What's new" : ''}`
+  const dot = <span aria-hidden="true" className="absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
   const initial = <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{email[0]?.toUpperCase()}</AvatarFallback>
   return (
     <DropdownMenu>
       {compact ? (
-        <DropdownMenuTrigger className="-mr-1.5 grid size-11 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`Account, ${email}`}>
-          <Avatar className="size-8">{initial}</Avatar>
+        <DropdownMenuTrigger className="-mr-1.5 grid size-11 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={label}>
+          <span className="relative">
+            <Avatar className="size-8">{initial}</Avatar>
+            {news && dot}
+          </span>
         </DropdownMenuTrigger>
       ) : (
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenuTrigger render={<SidebarMenuButton size="lg" aria-label={`Account, ${email}`} />}>
-              <Avatar className="size-8">{initial}</Avatar>
+            <DropdownMenuTrigger render={<SidebarMenuButton size="lg" aria-label={label} />}>
+              <span className="relative shrink-0">
+                <Avatar className="size-8">{initial}</Avatar>
+                {news && dot}
+              </span>
               <span className="min-w-0 flex-1 truncate text-sm">{email}</span>
               <ChevronsUpDown className="ml-auto size-4 text-muted-foreground" aria-hidden="true" />
             </DropdownMenuTrigger>
@@ -208,6 +219,7 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate('/changelog')}>
             <ScrollText aria-hidden="true" /> What's new
+            {news && <span className="ml-auto size-2 rounded-full bg-primary"><span className="sr-only">, new</span></span>}
           </DropdownMenuItem>
           {!trial && (
             <DropdownMenuItem
