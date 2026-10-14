@@ -164,4 +164,6 @@ setInterval(daily, 24 * 60 * 60 * 1000).unref()
 
 console.log(`Agisse is running on http://localhost:${port} (data in ${data})`)
 const feed = await store.select({ url: schema.vacancy.url }).from(schema.vacancy).limit(1)
-if (!feed.length) console.log('The job feed is empty. To load public roles from Arbeitnow, stop Agisse and run: npm run local -- import-feed')
+// The bundle (dist/agisse.mjs) is what `npx agisse` runs; local/server.ts is `npm run local` in a clone.
+const cli = import.meta.url.endsWith('.mjs') ? 'npx agisse' : 'npm run local --'
+if (!feed.length) console.log(`The job feed is empty. To load public roles from Arbeitnow, stop Agisse and run: ${cli} import-feed`)
