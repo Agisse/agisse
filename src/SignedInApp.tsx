@@ -70,7 +70,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
         <Route path="/extension">{() => <ExtensionRoute />}</Route>
         <Route path="/changelog">{() => <ChangelogRoute />}</Route>
         <Route path="/consent">{() => <Consent />}</Route>
-        <Route path="/admin">{() => me.user.isAdmin ? <Admin onBudgetChange={load} /> : <main className="center">Admin access required.</main>}</Route>
+        <Route path="/admin">{() => me.user.isAdmin ? <Admin myId={me.user.id} onBudgetChange={load} /> : <main className="center">Admin access required.</main>}</Route>
         <Route>
           {() => (
             <main className="center">

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useCopy, useResource } from '../lib/hooks'
 import { Copy, Check } from 'lucide-react'
 import { api, type AccessStatus, type AdminToday, type AdminUser, type Invite } from '../lib/api'
 import { BudgetMeter } from '../components/BudgetMeter'
@@ -6,7 +7,7 @@ import { MIN_N, type Bucket, type QualityReport } from '../../shared/quality'
 
 const order: Record<AccessStatus, number> = { pending: 0, approved: 1, rejected: 2 }
 
-export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> }) {
+export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: () => Promise<void> }) {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [today, setToday] = useState<AdminToday | null>(null)
   const [loading, setLoading] = useState(true)
@@ -77,6 +78,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
         <BudgetForm key={user.budget.limit} user={user} busy={busyId === user.id} onSave={(n) => void setBudget(user, n)} />
         <div className="admin-page__actions">
           {user.isAdmin && <CreditForm key={user.referralCreditEur} user={user} busy={busyId === user.id} onSave={(n) => void setReferralCredit(user, n)} />}
+          {user.id === myId && <MyLink />}
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
@@ -141,6 +143,14 @@ function CreditForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; on
     <input id={`ref-credit-${user.id}`} className="field__input tnum" type="number" min={0} max={100} step={0.5} placeholder="Credit €" value={value} onChange={(e) => setValue(e.target.value)} />
     <button className="btn btn--sm" disabled={busy || n === undefined || n === user.referralCreditEur}>Set friend credit</button>
   </form>
+}
+
+/** The admin's own share link, the one the friend credit rides on. Loaded first, so the click copies at once. */
+function MyLink() {
+  const r = useResource(() => api.referral(), [])
+  const { copied, copy } = useCopy()
+  if (!r.data) return null
+  return <button type="button" className="btn btn--sm" onClick={() => void copy(`${window.location.origin}/?ref=${r.data!.code}`)}>{copied ? <><Check aria-hidden="true" /> Copied</> : <><Copy aria-hidden="true" /> Copy my link</>}</button>
 }
 
 /** Euros from an optional field: null when empty or 0, undefined when not a valid amount (over €100 included). */
