@@ -14,6 +14,8 @@ const track = (position: string) => () => posthog.capture('landing_cta_clicked',
 type Stats = { open: number; companies: number; countries: number }
 
 const WRAP = 'mx-auto w-full max-w-[1080px] px-4 sm:px-8'
+/** The Worker sets it when PUBLIC_LAUNCH=1; known before the first paint, so nothing shifts. */
+const LAUNCH = document.documentElement.hasAttribute('data-launch')
 
 /** Marketing homepage for signed-out visitors. The open-role count is live; every person, company and score is an example. */
 export function Landing() {
@@ -44,6 +46,7 @@ export function Landing() {
 
       <main>
         <section aria-labelledby="home-title" className={cn(WRAP, 'pt-16 pb-12 text-center sm:pt-28 sm:pb-16')}>
+          {LAUNCH && <p className="mb-5 text-sm font-medium text-muted-foreground">Open source · Non-profit · Made in Europe</p>}
           <h1 id="home-title" className="mx-auto max-w-[22ch] text-[2.5rem] leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
             Land your first job in Europe. <span className="text-muted-foreground sm:block">With AI on your side.</span>
           </h1>

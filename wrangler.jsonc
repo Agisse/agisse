@@ -52,7 +52,9 @@
     // Kill switch: total provider spend per UTC day across every user. Past it all AI features pause until midnight.
     "GLOBAL_DAILY_USD_CAP": "15",
     // Local dev overrides this to "development" via .dev.vars if you add one; deployed always sends "production".
-    "SENTRY_ENVIRONMENT": "production"
+    "SENTRY_ENVIRONMENT": "production",
+    // "1" turns on the launch-day homepage. The owner flips it; until then the launch sections ship dark.
+    "PUBLIC_LAUNCH": "0"
   }
   // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
   // DATABASE_URL, BETTER_AUTH_SECRET
