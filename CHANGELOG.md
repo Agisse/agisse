@@ -19,6 +19,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
+- Past the daily free limit, Profile says so and when it lifts, instead of showing this month's budget as used up.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
 - Deleting your account also clears what Agisse kept in that browser for it: your assistant chats, weekly goal and layout hints.
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
