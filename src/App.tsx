@@ -25,7 +25,8 @@ import { ChatRoute } from './routes/Chat'
 import { Consent } from './routes/Consent'
 import { Welcome } from './routes/Welcome'
 import posthog from './lib/posthog'
-import { NoteLimit } from './lib/hooks'
+import { NoteLimit, sessionHint } from './lib/hooks'
+import { Skeleton } from '@/components/ui/skeleton'
 import { AssistantProvider } from './lib/assistant'
 import { AssistantDock } from './components/AssistantDock'
 import { noteLimit } from '../shared/types'
@@ -41,6 +42,24 @@ for (const key of ['ref', 'invite']) {
 const OLD_TAB: Record<string, string> = { write: 'apply', selection: 'prepare', assessment: 'prepare', pay: 'offer' }
 
 type Auth = { state: 'loading' } | { state: 'out' } | { state: 'waiting'; status: 'pending' | 'rejected' } | { state: 'in'; me: Me }
+
+/** Today's header and first card, shaped like the real ones, while /api/me answers. */
+function PageSkeleton() {
+  return (
+    <main className="mx-auto flex w-full max-w-[960px] flex-col gap-8 px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-16" aria-busy="true">
+      <span className="sr-only" role="status">Loading</span>
+      <div className="flex flex-col gap-1 px-1">
+        <Skeleton className="my-1 h-7 w-56 md:h-8" />
+        <Skeleton className="my-1 h-4 w-32" />
+      </div>
+      <div className="flex flex-col gap-3 rounded-2xl border border-border p-5">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-6 w-2/3" />
+        <Skeleton className="h-4 w-1/3" />
+      </div>
+    </main>
+  )
+}
 
 export default function App() {
   const [auth, setAuth] = useState<Auth>({ state: 'loading' })
@@ -62,11 +81,16 @@ export default function App() {
     try {
       const me = await api.me()
       identifyUser(me.user)
+      sessionHint(me.trial ? 'trial' : 'in')
       setAuth({ state: 'in', me })
     } catch (e) {
-      if (e instanceof ApiError && e.status === 403 && (e.body as { status?: string } | null)?.status === 'pending') setAuth({ state: 'waiting', status: 'pending' })
-      else if (e instanceof ApiError && e.status === 403 && (e.body as { status?: string } | null)?.status === 'rejected') setAuth({ state: 'waiting', status: 'rejected' })
-      else {
+      const status = e instanceof ApiError && e.status === 403 ? (e.body as { status?: string } | null)?.status : undefined
+      if (status === 'pending' || status === 'rejected') {
+        sessionHint(status)
+        setAuth({ state: 'waiting', status })
+      } else {
+        // A server or network error keeps the hint: the session may well be fine.
+        if (e instanceof ApiError && e.status === 401) sessionHint('out')
         if (e instanceof ApiError && e.status === 401 && typeof posthog.get_property('$user_id') === 'string') posthog.reset()
         identifiedUserId.current = null
         setAuth({ state: 'out' })
@@ -82,24 +106,28 @@ export default function App() {
     await authClient.signOut()
     posthog.reset()
     identifiedUserId.current = null
+    sessionHint('out')
     setAuth({ state: 'out' })
     navigate('/')
   }
 
-  if (auth.state === 'loading') {
-    return (
-      <div className="center" role="status">
-        <span className="label label--muted">Loading…</span>
-      </div>
-    )
-  }
-  if (auth.state === 'out') {
+  // Until /api/me answers, draw the layout it gave last time instead of a loading screen.
+  const hint = auth.state === 'loading' ? sessionHint() : null
+  if (auth.state === 'out' || hint === 'out') {
     // Invite links point at /?invite=…, so they skip the homepage and open the form.
     if (location === '/' && !new URLSearchParams(window.location.search).has('invite')) return <Landing />
     if (location === '/reset-password') return <ResetPassword />
     return <SignIn onSignedIn={load} />
   }
   if (auth.state === 'waiting') return <AccessWaiting status={auth.status} onRefresh={load} onSignOut={signOut} />
+  if (hint === 'pending' || hint === 'rejected') return <AccessWaiting status={hint} onRefresh={load} onSignOut={signOut} />
+  if (auth.state === 'loading') {
+    return location === '/welcome' ? <PageSkeleton /> : (
+      <Shell email="" trial={hint === 'trial'} isAdmin={false} onSignOut={signOut}>
+        <PageSkeleton />
+      </Shell>
+    )
+  }
 
   const { me } = auth
   // Onboarding is a focused page of its own, without the section bar.

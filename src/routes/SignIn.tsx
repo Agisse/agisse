@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ComponentProps, type FormEvent, type 
 import { CircleAlert, TicketCheck, TicketX } from 'lucide-react'
 import { api } from '../lib/api'
 import { authClient } from '../lib/auth-client'
+import { sessionHint } from '../lib/hooks'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel, FieldSeparator } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -82,6 +83,8 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     setError(null)
     setBusy(true)
     posthog.capture('google_sign_in_started', { mode })
+    // Coming back from Google, draw the app rather than the homepage while /api/me answers.
+    sessionHint('in')
     const res = await authClient.signIn.social({ provider: 'google', callbackURL: '/', newUserCallbackURL: '/welcome', errorCallbackURL: '/sign-in' })
     if (res.error) {
       setBusy(false)
