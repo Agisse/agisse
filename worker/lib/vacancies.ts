@@ -80,14 +80,21 @@ export function vacancyFilters(f: VacancyQuery): SQL[] {
 
 /**
  * The seeker's feed, one page. Match = 60% profile fit (Jev's score from vacancy_fit, else e5 cosine of
- * profile_embedding and the posting stretched from its usual 0.72–0.92 band to 0–1), 15% chosen function,
- * 15% freshness, 10% deadline within two weeks. No model call per view: the feed provider writes the embeddings and scores.
+ * profile_embedding and the posting stretched from its usual 0.72–0.92 band to 0–1, else a text match of the
+ * seeker's degree), 15% chosen function, 15% freshness, 10% deadline within two weeks.
+ * No model call per view: the feed provider writes the embeddings and scores.
  */
-export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, skills: string[]): Promise<{ vacancies: Vacancy[]; more: boolean; profiled: boolean; total: number }> {
+export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, skills: string[], degree = ''): Promise<{ vacancies: Vacancy[]; more: boolean; profiled: boolean; total: number }> {
   const pe = sql`(select embedding from profile_embedding where user_id = ${userId})`
   // Jev's judgement where the feed provider scored the pair (the seeker's top cosine matches), else the stretched cosine.
   const jev = sql`(select score from vacancy_fit where user_id = ${userId} and url = ${v.url})`
-  const fit = sql<number>`coalesce(${jev}, greatest(0, least(1, ((1 - (${v.embedding} <=> ${pe})) - 0.72) / 0.2)), 0)`
+  // Cold start (no embedding yet): the degree's words against the posting's text, rank/(rank+1) so it stays in 0–1.
+  // Target industries ("Tech", "Research") are left out: they match employer names and pulled the feed off-field (npm run eval:feed).
+  const words = degreeQuery(degree)
+  const text = words ? sql`ts_rank_cd(${v.search}, to_tsquery('simple', ${words}), 32)` : sql`0`
+  // greatest/least skip nulls, so the cosine needs its own guard or a missing embedding reads as a perfect fit.
+  const cosine = sql`case when ${v.embedding} is not null and ${pe} is not null then greatest(0, least(1, ((1 - (${v.embedding} <=> ${pe})) - 0.72) / 0.2)) end`
+  const fit = sql<number>`coalesce(${jev}, ${cosine}, ${text})`
   const fn = f.functions.length ? sql`(${v.functions} && ${textArray(f.functions)})::int` : sql`0`
   const fresh = sql`greatest(0, 1 - (current_date - ${v.firstSeen}) / 30.0)`
   const soon = sql`coalesce((${v.deadline} <= current_date + 14)::int, 0)`
@@ -139,6 +146,15 @@ export const titleWords = (title: string) =>
 const SIMILAR_STOP = new Set(['the', 'and', 'for', 'with', 'm/f/d', 'f/m/d', 'w/m/d', 'h/f', 'all', 'genders', 'gn', 'job', 'jobs', 'position', 'role', 'team', 'new', 'our',
   'program', 'programme', 'programm', 'internship', 'intern', 'interns', 'summer', 'winter', 'spring', 'autumn', 'graduate', 'graduates', 'trainee', 'traineeship', 'junior', 'entry', 'level', 'student', 'students', 'working',
   'london', 'paris', 'brussels', 'amsterdam', 'berlin', 'munich', 'frankfurt', 'madrid', 'milan', 'dublin', 'zurich', 'luxembourg', 'europe', 'emea', 'remote', 'hybrid'])
+
+// Degree words that say nothing about the field ("MSc", "Sciences", "Bachelor of Arts").
+const DEGREE_STOP = new Set(['bsc', 'msc', 'llb', 'llm', 'mba', 'phd', 'beng', 'meng', 'march', 'mphil', 'bachelor', 'bachelors', 'master', 'masters', 'degree', 'science', 'sciences', 'arts', 'studies', 'hons', 'honours'])
+
+/** The degree's field words as an OR for to_tsquery('simple', …), or null when none are left. No stemming there, so longer words match as prefixes ("pharmaceutical" also finds "pharmaceuticals"). */
+export function degreeQuery(degree: string): string | null {
+  const words = [...new Set(degree.toLowerCase().split(/[^\p{L}\p{N}]+/u))].filter((w) => w.length > 2 && !/^\d+$/.test(w) && !SIMILAR_STOP.has(w) && !DEGREE_STOP.has(w))
+  return words.length ? words.slice(0, 12).map((w) => (w.length > 4 ? `${w}:*` : w)).join(' | ') : null
+}
 
 /**
  * "More like this": nearest neighbours of the vacancy's e5 embedding when the feed holds it (no model call),

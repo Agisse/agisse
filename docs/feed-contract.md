@@ -17,7 +17,7 @@ This page is the interface a provider has to meet. The column lists are checked 
 
 ## `vacancy`
 
-Upsert on `url`. A provider that only fills the required columns gets a working feed, filtered and ranked on function, freshness and deadline.
+Upsert on `url`. A provider that only fills the required columns gets a working feed, filtered and ranked on the seeker's degree, function, freshness and deadline.
 
 | Column | Type | Required | Meaning |
 |---|---|---|---|
@@ -67,7 +67,11 @@ So a provider closes a role by setting `closed_at`, or simply by no longer refre
 
 Both embedding columns use **multilingual-e5-small**: 384 dimensions, stored as pgvector `halfvec(384)`. `vacancy.embedding` is the posting side (e5's passage role), `profile_embedding.embedding` the seeker side (e5's query role). The `vector` extension is created by migration `0020`.
 
-The feed compares them by cosine distance and stretches the similarity from its usual 0.72–0.92 band to 0–1. Without embeddings that fit term is 0, so ranking falls back to function, freshness and deadline.
+The feed compares them by cosine distance and stretches the similarity from its usual 0.72–0.92 band to 0–1.
+
+### Cold start
+
+A new seeker has no `profile_embedding` yet, and a role may have no `embedding`. Then the fit term (60% of the match) is a text match instead: the words of the seeker's degree ("MSc Supply Chain Management" becomes `supply:* | chain:* | management:*`) against the role's `search` column, as `ts_rank_cd` normalised to 0–1. A degree that names no field ("MSc") gives 0, so ranking falls back to function, freshness and deadline. `npm run eval:feed` measures this path: its personas have no embeddings.
 
 ## `profile_embedding`
 

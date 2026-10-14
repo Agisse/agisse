@@ -1342,7 +1342,7 @@ app.get('/api/vacancies', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const profile = await loadProfile(db, userId)
-  return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])]))
+  return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])], profile?.degree))
 })
 
 app.get('/api/vacancies/facets', async (c) => {

@@ -24,7 +24,7 @@ for (const p of PERSONAS) {
   await db.insert(schema.profile).values({ userId: id, data }).onConflictDoUpdate({ target: schema.profile.userId, set: { data, updatedAt: sql`now()` } })
 
   const f: VacancyQuery = { q: '', countries: p.countries, level: 'any', functions: p.fields, industries: [], languages: [], remoteOnly: false, deadlineWithin: null, sort: 'match', offset: 0 }
-  const { vacancies, total } = await searchVacancies(db, id, f, p.targetIndustries)
+  const { vacancies, total } = await searchVacancies(db, id, f, p.targetIndustries, p.degree)
   results.push({ persona: p.slug, countries: p.countries, fields: p.fields, ...feedMetrics(total, vacancies, p.fields) })
 }
 
