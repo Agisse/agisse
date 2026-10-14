@@ -13,6 +13,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - No more Loading screen when Agisse opens: the homepage, the waitlist card or the app's layout shows at once, and your page fills in when your account answers.
 - Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
