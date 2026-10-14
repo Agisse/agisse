@@ -46,6 +46,7 @@ import {
   newMeter,
   userStyle,
   spendThisMonth,
+  freeLimitDays,
   spendToday,
   toBudget,
   toJob,
@@ -362,10 +363,11 @@ app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
-  const [users, used, capped, today] = await Promise.all([
-    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true } }),
+  const [users, used, capped, freeCapped, today] = await Promise.all([
+    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db),
+    freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
   ])
   return c.json({
@@ -376,7 +378,9 @@ app.get('/api/admin/users', async (c) => {
       createdAt: u.createdAt.toISOString(),
       reviewedAt: u.reviewedAt?.toISOString() ?? null,
       budget: toBudget(c.env, used.get(u.id), u.budgetEur),
+      actions: used.get(u.id)?.actions ?? 0,
       feedCapDays: capped.get(u.id) ?? 0,
+      freeLimitDays: freeCapped.get(u.id) ?? 0,
     })),
   })
 })
@@ -440,11 +444,11 @@ app.delete('/api/admin/users/:id', async (c) => {
 app.get('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email })
+    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
     .from(schema.invite)
     .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
     .orderBy(desc(schema.invite.createdAt))
-  return c.json({ invites: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
+  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
 })
 
 app.post('/api/admin/invites', async (c) => {
@@ -454,7 +458,7 @@ app.post('/api/admin/invites', async (c) => {
   // 9 random bytes = 12 URL-safe characters.
   const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
   const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null } })
+  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
 })
 
 app.delete('/api/admin/invites/:code', async (c) => {

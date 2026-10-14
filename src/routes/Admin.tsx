@@ -72,7 +72,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     {error && <p className="field__error" role="alert">{error}</p>}
     {loading ? <AccountsGhost /> : visible.length === 0 ? <p className="admin-page__empty">{filter === 'pending' ? 'No requests are waiting for approval.' : 'No accounts in this view.'}</p> : <ul className="admin-page__list">
       {visible.map((user) => <li className="admin-page__row" key={user.id}>
-        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small>{user.feedCapDays > 0 && <small>Hit the feed limit {user.feedCapDays === 1 ? 'once' : `${user.feedCapDays} times`} in 30 days</small>}</div>
+        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small>{user.feedCapDays > 0 && <small>Hit the feed limit {times(user.feedCapDays)} in 30 days</small>}{user.freeLimitDays > 0 && <small>Hit the free AI limit {times(user.freeLimitDays)} in 30 days</small>}</div>
         <span className={`admin-page__status admin-page__status--${user.accessStatus}`}>{user.isAdmin ? 'Administrator' : user.accessStatus}</span>
         <BudgetForm key={user.budget.limit} user={user} busy={busyId === user.id} onSave={(n) => void setBudget(user, n)} />
         <div className="admin-page__actions">
@@ -87,6 +87,8 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     <Quality />
   </main>
 }
+
+const times = (n: number) => (n === 1 ? 'once' : `${n} times`)
 
 const usd = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -144,7 +146,7 @@ function BudgetForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; on
   }
   return <form className="admin-page__budget" onSubmit={submit}>
     <BudgetMeter budget={user.budget} />
-    <small className="admin-page__cost tnum">Our cost {user.budget.cost.toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 })} · {user.budget.tokens.toLocaleString()} tokens</small>
+    <small className="admin-page__cost tnum">Our cost {user.budget.cost.toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 })} · {user.actions === 1 ? '1 action' : `${user.actions.toLocaleString()} actions`} · {user.budget.tokens.toLocaleString()} tokens{user.creditGrantedEur !== null && ` · ${eur(user.creditEur ?? 0)} of ${eur(user.creditGrantedEur)} credit left`}</small>
     <div className="admin-page__budget-edit">
       <label className="sr-only" htmlFor={`budget-${user.id}`}>Monthly budget in euros for {user.name}</label>
       <input id={`budget-${user.id}`} className="field__input tnum" type="number" min={0} step={0.5} value={value} onChange={(e) => setValue(e.target.value)} />
@@ -254,7 +256,7 @@ function Invites() {
           <span className={`admin-page__status admin-page__status--${state === 'used' ? 'approved' : state === 'withdrawn' ? 'rejected' : 'pending'}`}>
             {state === 'used' ? `Joined ${shortDate(invite.usedAt!)}` : state === 'withdrawn' ? 'Withdrawn' : 'Open'}
           </span>
-          <span className="invites__detail">{state === 'used' ? (invite.usedByEmail ?? 'Account deleted') : null}</span>
+          <span className="invites__detail">{state === 'used' ? `${invite.usedByEmail ?? 'Account deleted'}${invite.creditEur && invite.creditUsedEur !== null ? ` · ${eur(invite.creditUsedEur)} of credit used` : ''}` : null}</span>
           <div className="admin-page__actions">
             {state === 'open' && <>
               <button type="button" className="btn btn--sm" onClick={() => void copy(invite.code)}>{copied === invite.code ? 'Copied' : 'Copy link'}</button>
