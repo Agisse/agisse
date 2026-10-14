@@ -20,6 +20,11 @@ eq(text({ id: 1 }), { content: [{ type: 'text', text: '{"id":1}' }] }, 'text(obj
 eq(structured({ a: 1 }), { content: [{ type: 'text', text: '{"a":1}' }], structuredContent: { a: 1 } }, 'structured carries both')
 eq(errorText('nope'), { content: [{ type: 'text', text: 'nope' }], isError: true }, 'errorText carries isError')
 
+// Links end up as hrefs on the board, so only web links get in, whatever a model or a pasted page says.
+const addJobUrl = z.object(AddJobInput).shape.url
+ok(addJobUrl.safeParse('https://example.com/jobs/1').success, 'add_job: accepts an https link')
+ok(!addJobUrl.safeParse('javascript:alert(1)').success, 'add_job: rejects a javascript: link')
+
 const updateSchema = z.object(UpdateContactStatusInput)
 ok(updateSchema.safeParse({ personId: 'p1' }).success, 'update_contact_status: personId alone is enough')
 ok(updateSchema.safeParse({ personId: 'p1', status: 'replied', followedUp: true }).success, 'update_contact_status: valid status + followedUp')

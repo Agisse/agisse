@@ -1161,7 +1161,7 @@ const ManualContact = z.object({
   name: z.string().trim().min(1).max(200),
   title: z.string().trim().max(200).default(''),
   company: z.string().trim().min(1).max(200),
-  profileUrl: z.string().trim().url().max(500).optional().or(z.literal('')),
+  profileUrl: z.string().trim().url({ protocol: /^https?$/ }).max(500).optional().or(z.literal('')),
   notes: z.string().max(2000).optional(),
   status: z.enum(REPLY_STATUSES).optional(),
 })
@@ -1309,7 +1309,7 @@ app.delete('/api/memory/:id', async (c) => {
 const JobInputSchema = z
   .object({
     jdText: z.string().trim().max(JD_TEXT_LIMIT, 'That posting is too long. Paste the job description itself, without the rest of the page.').default(''),
-    url: z.string().trim().url('That link is not a valid URL.').max(500).optional().nullable().or(z.literal('')),
+    url: z.string().trim().url({ protocol: /^https?$/, message: 'That link is not a valid URL.' }).max(500).optional().nullable().or(z.literal('')),
     // Save without evaluating: what the listing already says.
     save: z.object({ company: z.string().max(200), role: z.string().max(200), location: z.string().max(200).nullable().optional(), deadline: z.string().date().nullable().optional() }).optional(),
   })
