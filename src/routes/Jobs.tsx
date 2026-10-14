@@ -94,8 +94,9 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
   // "Open roles" from a Scout stop: ?careers=<name>&domain=<domain> opens the careers-page check for that company.
   const careers = q.get('careers') ? { name: q.get('careers')!, domain: q.get('domain') ?? '' } : null
   // ?view=feed|track|add; the old ?feed link, Scout's ?careers and the extension's ?import still land in the right view.
+  // A waitlisted account opens on the feed: checking a posting waits for approval (evaluateInto).
   const asked = q.get('view')
-  const view: View = scoutId || (asked === 'companies' && !me.trial) ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.profile?.skills?.length ? 'feed' : 'add'
+  const view: View = scoutId || (asked === 'companies' && !me.trial) ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.trial || me.profile?.skills?.length ? 'feed' : 'add'
   const abort = useAbortable()
   const shown = jobId && job?.id === jobId ? job : null
   useEffect(() => {
