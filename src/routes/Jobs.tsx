@@ -727,6 +727,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
           )}
           <Rate task="agisse_job_evaluation" refId={job.id} />
           <AskAssistant question="Should I apply to this job, and what would make my application stronger?">Should I apply?</AskAssistant>
+          <a className="btn btn--sm btn--quiet verdict__how" href="/docs/methodology">How it’s scored</a>
         </div>
       </div>
 

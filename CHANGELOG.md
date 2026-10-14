@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
 - How Agisse scores a job, in the docs (`/docs/methodology`): what the 1–5 score weighs, why below 4.0 means a long shot, how the feed is ordered, and what the scores can't know.
 - The Hired Wall: got the job with Agisse's help? Share your story on GitHub, and choose whether your name, only the role, or only the count shows. A job at Offer links to it once, until you open or hide the link.
 - What's new, in the account menu: the changes that matter to you, newest first. A blue dot on your avatar says when there's something you haven't seen.
