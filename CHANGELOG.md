@@ -6,6 +6,10 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+### Added
+
+- What's new, in the account menu: the changes that matter to you, newest first.
+
 ### Changed
 
 - Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
