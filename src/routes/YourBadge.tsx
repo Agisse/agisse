@@ -24,6 +24,10 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
   const [unsaved, setUnsaved] = useState(false)
   // Saved from a blank profile: point on to the next first-run step.
   const [firstSave, setFirstSave] = useState(false)
+  // Links such as the verdict's "Your own OpenRouter key" land on their section; an SPA navigation doesn't scroll to a hash.
+  useEffect(() => {
+    document.getElementById(location.hash.slice(1))?.scrollIntoView()
+  }, [])
   const [more, setMore] = useState(() => moreCount(p) > 0)
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => {
     setSaved(false)
@@ -156,7 +160,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : 'Runs on Claude Haiku. Smarter models with a subscription are not available yet.'}</p>
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
         {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
       </section>
 
@@ -322,6 +326,12 @@ function DeleteAccount() {
     if (res.error) return setError(res.error.code === 'SESSION_EXPIRED' ? 'For safety, sign out and back in, then delete within a day.' : (res.error.message ?? 'Could not delete the account.'))
     posthog.capture('account_deleted')
     posthog.reset()
+    // What this browser kept for the account goes too: assistant chats, the weekly goal, layout hints. The theme belongs to the device.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith('agisse') && k !== 'agisse.theme').forEach((k) => localStorage.removeItem(k))
+    } catch {
+      /* storage blocked: nothing was kept */
+    }
     window.location.href = '/'
   }
   return (

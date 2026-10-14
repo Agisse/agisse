@@ -18,6 +18,8 @@ if (posthogKey && posthogHost) {
         defaults: '2026-05-30',
         // No cookies or browser storage, so no consent banner: IDs live for the page load only. App re-identifies signed-in users on every load.
         persistence: 'memory',
+        // Whatever the project settings say: a recording would show CVs, notes and drafts.
+        disable_session_recording: true,
         capture_exceptions: {
           capture_unhandled_errors: true,
           capture_unhandled_rejections: true,

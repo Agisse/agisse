@@ -8,8 +8,20 @@ The code is open source (AGPL). The job data on agisse.xyz is not: it's collecte
 
 ## Today
 
-The project is led by its founder, Lennart Steen, who has the final say on what gets merged and released. There's no company or association behind it. Decisions on larger changes happen in public GitHub Discussions.
+The project is led by its founder, Lennart Steen, who has the final say on what gets merged and released. There's no company or association behind it.
 
-## Becoming a maintainer
+## Roles
 
-Contributors with a track record of good reviews and merged work can be invited as maintainers with merge rights.
+Generous with credit, careful with access.
+
+- **Participant:** everyone who opens an issue, answers in Discussions, reviews a translation or reports a bug.
+- **Contributor:** anyone with three merged pull requests. It's automatic: the project lead invites you to the `contributors` team on GitHub.
+- **Reviewer or area owner:** by invitation, for contributors who review well in one area. You're listed in [`MAINTAINERS.md`](MAINTAINERS.md) and in `CODEOWNERS` for that area, and your review counts there. Agisse holds people's career data, so the project lead confirms who you are in a short video call before giving you review or merge rights.
+
+## Big changes
+
+A change that alters how Agisse works for everyone (a new data flow, a new dependency on an outside service, a change to the score) starts as a post in the RFC category of GitHub Discussions, before any code. Smaller changes go straight to a pull request.
+
+## Sponsors
+
+Sponsors, such as a provider's free-credits program, get thanked in public. Sponsorship never buys a say in the roadmap, the feed or the score.

@@ -4,12 +4,12 @@ import { authClient } from './lib/auth-client'
 import { api, ApiError, type Me } from './lib/api'
 import { ResetPassword, SignIn } from './routes/SignIn'
 import { Landing } from './routes/Landing'
-import { AccessWaiting } from './routes/AccessWaiting'
+import { AccessDeclined } from './routes/AccessDeclined'
 import posthog from './lib/posthog'
 import { sessionHint } from './lib/hooks'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// The signed-in app and its shell are their own chunks, so the homepage, sign-in and waitlist don't download them.
+// The signed-in app and its shell are their own chunks, so the homepage, sign-in and the declined screen don't download them.
 // A signed-in hint starts both downloads at once, next to /api/me instead of after it. The shell is small, so it
 // usually arrives first and frames the page while the rest loads.
 const loadSignedIn = () => import('./SignedInApp')
@@ -28,7 +28,7 @@ for (const key of ['ref', 'invite']) {
   if (v && /^[\w-]{4,40}$/.test(v)) document.cookie = `agisse_${key}=${v}; Max-Age=2592000; Path=/; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`
 }
 
-type Auth = { state: 'loading' } | { state: 'out' } | { state: 'waiting'; status: 'pending' | 'rejected' } | { state: 'in'; me: Me }
+type Auth = { state: 'loading' } | { state: 'out' } | { state: 'declined' } | { state: 'in'; me: Me }
 
 /** Today's header and first card, shaped like the real ones, while /api/me answers. */
 function PageSkeleton() {
@@ -53,18 +53,19 @@ export default function App() {
   const [location, navigate] = useLocation()
   const identifiedUserId = useRef<string | null>(null)
 
-  const identifyUser = useCallback((user: Pick<Me['user'], 'id' | 'name' | 'email'>) => {
+  const identifyUser = useCallback((user: Pick<Me['user'], 'id'>) => {
     if (identifiedUserId.current === user.id) return
 
     const persistedUserId = posthog.get_property('$user_id')
     if (typeof persistedUserId === 'string' && persistedUserId !== user.id) posthog.reset()
 
-    posthog.identify(user.id, { email: user.email, name: user.name })
+    // The id only: PostHog never gets a seeker's name or email.
+    posthog.identify(user.id)
     identifiedUserId.current = user.id
   }, [])
 
   const load = useCallback(async () => {
-    // /api/me alone decides signed in, waitlisted or out; a getSession call first only added a round trip.
+    // /api/me alone decides signed in (waitlisted accounts are trial), declined or out; a getSession call first only added a round trip.
     try {
       const me = await api.me()
       identifyUser(me.user)
@@ -72,9 +73,9 @@ export default function App() {
       setAuth({ state: 'in', me })
     } catch (e) {
       const status = e instanceof ApiError && e.status === 403 ? (e.body as { status?: string } | null)?.status : undefined
-      if (status === 'pending' || status === 'rejected') {
-        sessionHint(status)
-        setAuth({ state: 'waiting', status })
+      if (status === 'rejected') {
+        sessionHint('rejected')
+        setAuth({ state: 'declined' })
       } else {
         // A server or network error keeps the hint: the session may well be fine.
         if (e instanceof ApiError && e.status === 401) sessionHint('out')
@@ -106,8 +107,7 @@ export default function App() {
     if (location === '/reset-password') return <ResetPassword />
     return <SignIn onSignedIn={load} />
   }
-  if (auth.state === 'waiting') return <AccessWaiting status={auth.status} onRefresh={load} onSignOut={signOut} />
-  if (hint === 'pending' || hint === 'rejected') return <AccessWaiting status={hint} onRefresh={load} onSignOut={signOut} />
+  if (auth.state === 'declined' || hint === 'rejected') return <AccessDeclined onSignOut={signOut} />
   if (auth.state === 'loading') {
     return location === '/welcome' ? <PageSkeleton /> : (
       <Suspense>

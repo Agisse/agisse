@@ -53,6 +53,8 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
   const linkedInvite = query.get('invite')?.trim() || ''
   const [mode, setMode] = useState<Mode>(linkedInvite || query.get('mode') === 'sign-up' ? 'sign-up' : 'sign-in')
   const [invite, setInvite] = useState(linkedInvite)
+  // Most people sign up without a code, so the field waits behind a link; a code from the link keeps it open.
+  const [inviteOpen, setInviteOpen] = useState(!!linkedInvite)
   // Only a code that arrived in the link is checked up front; a typed one is checked on submit.
   const [linkState, setLinkState] = useState<'checking' | 'valid' | 'invalid' | null>(linkedInvite ? 'checking' : null)
   useEffect(() => {
@@ -154,9 +156,6 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
       </Button>
       <FieldSeparator className="my-0 *:data-[slot=field-separator-content]:bg-card">or</FieldSeparator>
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-        {mode === 'sign-up' && linkState !== 'valid' && linkState !== 'checking' && (
-          <AuthField id="invite" label="Invite code" hint="Optional" value={invite} onChange={(e) => setInvite(e.target.value)} autoComplete="off" spellCheck={false} />
-        )}
         {mode === 'sign-up' && <AuthField id="name" label="Name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />}
         <AuthField id="email" label="Email" type="email" placeholder="you@school.edu" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />
         <AuthField
@@ -173,6 +172,9 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
         />
+        {mode === 'sign-up' && inviteOpen && linkState !== 'valid' && linkState !== 'checking' && (
+          <AuthField id="invite" label="Invite code" hint="Optional" value={invite} onChange={(e) => setInvite(e.target.value)} autoComplete="off" spellCheck={false} autoFocus={!linkedInvite} />
+        )}
         {error && <AuthError>{error}</AuthError>}
         {sent && <p className="text-sm text-muted-foreground" role="status">If that email has an account, a reset link is on its way.</p>}
         <div ref={captcha.box} className="empty:hidden" />
@@ -189,6 +191,14 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
       {mode === 'sign-up' && linkState !== 'valid' && (
         <p className="text-center text-[0.8125rem] leading-relaxed text-pretty text-muted-foreground">
           Invite-only beta. New accounts join the waitlist and get one free search while they wait. A friend's invite skips the line.
+          {!inviteOpen && (
+            <>
+              {' '}
+              <button type="button" className="-my-3 py-3 font-medium text-primary underline-offset-4 hover:underline" onClick={() => setInviteOpen(true)}>
+                Have an invite code?
+              </button>
+            </>
+          )}
         </p>
       )}
       <p className="-mt-2 text-center text-[0.8125rem] text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-foreground">

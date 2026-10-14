@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'wouter'
-import { Briefcase, Check, ChevronRight, Users } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { EMPTY_PROFILE, type Profile } from '../../shared/types'
 import { EMPTY_FEED_PREFS, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, type FeedLevel, type FeedPrefs } from '../../shared/listings'
 import { api, type Me } from '../lib/api'
@@ -22,11 +22,11 @@ const FIRST_COUNTRIES = ['BE', 'NL', 'FR', 'DE', 'LU', 'GB', 'IE', 'CH', 'ES', '
 const chip =
   'h-11 gap-1.5 rounded-lg border-border px-4 text-[0.9375rem] font-normal text-foreground aria-pressed:border-primary aria-pressed:bg-primary/8 aria-pressed:text-primary dark:aria-pressed:bg-primary/15'
 
-/** First run after sign-up: the CV, then what the seeker is after (level, fields, where; one question a screen), then one clear first move. Every step can be skipped. */
+/** First run after sign-up: the CV, then what the seeker is after (level, fields, where; one question a screen), then the feed those answers shape. Every step can be skipped. */
 export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
   const [, navigate] = useLocation()
   // "looking" is one saved step shown as three screens.
-  const steps = ['cv', 'level', 'fields', 'where', 'done'] as const
+  const steps = ['cv', 'level', 'fields', 'where'] as const
   // ?step=looking reopens at that step (the Today checklist links there).
   const [step, setStep] = useState(() => {
     const q = new URLSearchParams(window.location.search).get('step') ?? ''
@@ -76,7 +76,9 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
     if (await save(next_)) {
       setProfile(next_)
       posthog.capture('onboarding_step', { step: 'looking' })
-      go(step + 1)
+      // The answers just shaped the feed, so that's where to start. Busy until it opens, so a second click can't finish twice.
+      setBusy(true)
+      await finish('/jobs?view=feed')
     }
   }
 
@@ -103,11 +105,9 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
           <span className="flex items-center gap-2 text-[0.9375rem] font-semibold tracking-tight">
             <BoothSignMark className="size-7!" /> Agisse
           </span>
-          {at !== 'done' && (
-            <Button type="button" variant="ghost" className="h-9 px-3 text-muted-foreground" onClick={() => void finish('/')}>
-              Skip for now
-            </Button>
-          )}
+          <Button type="button" variant="ghost" className="h-9 px-3 text-muted-foreground" onClick={() => void finish('/')}>
+            Skip for now
+          </Button>
         </div>
         <p className="sr-only" aria-live="polite">
           Step {step + 1} of {steps.length}
@@ -163,45 +163,30 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
           </Screen>
         )}
 
-        {at === 'done' && (
-          <Screen title="You are set. Where do you want to start?" lede="Agisse suggests and drafts. You decide, and you send everything yourself.">
-            <div className="grid gap-3">
-              <Choice icon={<Briefcase />} title="See roles picked for you" onClick={() => void finish('/jobs?view=feed')}>
-                Internships and graduate jobs across Europe, ranked by your CV.
-              </Choice>
-              <Choice icon={<Users />} title="Find people at a company" onClick={() => void finish('/contacts')}>
-                Name a company and a role. Get the people worth a message, and a draft.
-              </Choice>
-            </div>
-          </Screen>
-        )}
-
         {error && <div className="mt-6"><AuthError>{error}</AuthError></div>}
       </main>
 
-      {at !== 'done' && (
-        <footer className="sticky bottom-0 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:border-0">
-          <div className="mx-auto flex w-full max-w-xl flex-col-reverse gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pt-0 sm:pb-10">
-            {at === 'cv' ? (
-              <Button
-                variant="ghost"
-                className="h-11 text-muted-foreground"
-                render={<Link href="/profile" onClick={() => posthog.capture('onboarding_step', { step: 'cv-manual' })} />}
-                nativeButton={false}
-              >
-                Fill it in by hand instead
-              </Button>
-            ) : (
-              <Button type="button" variant="ghost" className="h-11 text-muted-foreground" onClick={() => go(step - 1)}>
-                Back
-              </Button>
-            )}
-            <Button type="button" className="h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36" disabled={busy} onClick={at === 'where' ? () => void saveLooking() : next}>
-              {busy && <Spinner />} {busy && at === 'where' ? 'Saving…' : 'Continue'}
+      <footer className="sticky bottom-0 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:border-0">
+        <div className="mx-auto flex w-full max-w-xl flex-col-reverse gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pt-0 sm:pb-10">
+          {at === 'cv' ? (
+            <Button
+              variant="ghost"
+              className="h-11 text-muted-foreground"
+              render={<Link href="/profile" onClick={() => posthog.capture('onboarding_step', { step: 'cv-manual' })} />}
+              nativeButton={false}
+            >
+              Fill it in by hand instead
             </Button>
-          </div>
-        </footer>
-      )}
+          ) : (
+            <Button type="button" variant="ghost" className="h-11 text-muted-foreground" onClick={() => go(step - 1)}>
+              Back
+            </Button>
+          )}
+          <Button type="button" className="h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36" disabled={busy} onClick={at === 'where' ? () => void saveLooking() : next}>
+            {busy && <Spinner />} {at !== 'where' ? 'Continue' : busy ? 'Saving…' : 'See my roles'}
+          </Button>
+        </div>
+      </footer>
     </div>
   )
 }
@@ -215,22 +200,5 @@ function Screen({ title, lede, children }: { title: ReactNode; lede: string; chi
       </div>
       {children}
     </section>
-  )
-}
-
-function Choice({ icon, title, children, onClick }: { icon: ReactNode; title: string; children: ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex w-full items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition-colors duration-150 outline-none hover:bg-muted/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-5"
-    >
-      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary [&_svg]:size-5" aria-hidden="true">{icon}</span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <strong className="text-base font-semibold">{title}</strong>
-        <span className="text-sm text-muted-foreground">{children}</span>
-      </span>
-      <ChevronRight aria-hidden="true" className="size-5 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-primary motion-reduce:transition-none" />
-    </button>
   )
 }
