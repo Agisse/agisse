@@ -38,10 +38,13 @@ export function InviteCard() {
   )
 }
 
+// Set by App.tsx from ?invite=, so opening an invite link while signed in fills the code in.
+const invited = () => document.cookie.match(/(?:^|;\s*)agisse_invite=([\w-]+)/)?.[1] ?? ''
+
 /** An invite that arrives after sign-up opens the account in place. */
 function RedeemInvite() {
-  const [open, setOpen] = useState(false)
-  const [code, setCode] = useState('')
+  const [code, setCode] = useState(invited)
+  const [open, setOpen] = useState(!!code)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   if (!open) {
@@ -67,7 +70,7 @@ function RedeemInvite() {
   return (
     <form className="flex basis-full flex-wrap items-center gap-2" onSubmit={redeem}>
       <label className="sr-only" htmlFor="redeem-invite">Invite code or link</label>
-      <Input id="redeem-invite" className="min-w-0 max-w-xs flex-1 basis-48 bg-background max-md:h-11" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Invite code or link" autoComplete="off" spellCheck={false} autoFocus aria-invalid={!!error} aria-describedby={error ? 'redeem-invite-error' : undefined} />
+      <Input id="redeem-invite" className="min-w-0 max-w-xs flex-1 basis-48 bg-background max-md:h-11" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Invite code or link" autoComplete="off" spellCheck={false} autoFocus={!code} aria-invalid={!!error} aria-describedby={error ? 'redeem-invite-error' : undefined} />
       <Button type="submit" size="sm" className="max-md:h-11" disabled={busy || !code.trim()}>{busy ? 'Checking…' : 'Use code'}</Button>
       {error && <p id="redeem-invite-error" className="m-0 basis-full text-destructive" role="alert">{error}</p>}
     </form>
