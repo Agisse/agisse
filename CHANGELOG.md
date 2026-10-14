@@ -18,6 +18,7 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - A self-host page in the docs: configure, check locally, deploy with `npm run self-host`, become the admin, and what to expect from an empty job feed.
 - `npm run self-host` deploys your own copy: R2 bucket, migrations, build and deploy, with `SELF_HOST_DOMAIN` in place of the agisse.xyz routes.
 - A data-flow page in the docs: what Agisse stores, where, and which outside service sees what.
+- `scripts/import-feed.ts`, a reference feed provider: it loads the early-career roles from Arbeitnow's public API into the job feed, so a self-hosted copy has a working feed. Run it daily from cron.
 
 ### Changed
 
