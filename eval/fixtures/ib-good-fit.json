@@ -1,21 +1,21 @@
 {
   "name": "ib-good-fit",
   "seekerName": "Lotte Janssens",
-  "resume": "Lotte Janssens — lotte.janssens@example.com — Ghent, Belgium\nEDUCATION\nGhent University — MSc Business Engineering, Finance track (2023–2025, expected June 2025). Thesis: valuation of family-owned mid-caps.\nGhent University — BSc Business Engineering (2020–2023), cum laude.\nEXPERIENCE\nKBC Securities — Corporate Finance Intern (Jul–Sep 2024): built three-statement models and trading comps for two sell-side mandates in industrials; drafted 15 pages of a teaser and information memorandum.\nDeloitte — Financial Advisory Summer Intern (Jul–Aug 2023): supported a buy-side due diligence; reconciled 3 years of management accounts.\nLEADERSHIP\nVlaamse Economische Kring — Treasurer (2022–2023): managed a €180k budget for 40 events.\nSKILLS\nExcel (advanced), PowerPoint, FactSet, Capital IQ, Python (basic). Languages: Dutch (native), English (fluent), French (professional).",
+  "resume": "Lotte Janssens — lotte.janssens@example.com — Ghent, Belgium\nEDUCATION\nExample University Ghent — MSc Business Engineering, Finance track (2023–2025, expected June 2025). Thesis: valuation of family-owned mid-caps.\nExample University Ghent — BSc Business Engineering (2020–2023), cum laude.\nEXPERIENCE\nExample Securities — Corporate Finance Intern (Jul–Sep 2024): built three-statement models and trading comps for two sell-side mandates in industrials; drafted 15 pages of a teaser and information memorandum.\nExample Audit & Advisory — Financial Advisory Summer Intern (Jul–Aug 2023): supported a buy-side due diligence; reconciled 3 years of management accounts.\nLEADERSHIP\nExample Business Society — Treasurer (2022–2023): managed a €180k budget for 40 events.\nSKILLS\nExcel (advanced), PowerPoint, market data terminals, Capital IQ, Python (basic). Languages: Dutch (native), English (fluent), French (professional).",
   "profile": {
-    "university": "Ghent University",
+    "university": "Example University Ghent",
     "degree": "MSc Business Engineering",
     "gradYear": "2025",
     "internships": [
-      "KBC Securities",
-      "Deloitte"
+      "Example Securities",
+      "Example Audit & Advisory"
     ],
     "organizations": [
-      "Vlaamse Economische Kring"
+      "Example Business Society"
     ],
     "skills": [
       "Excel",
-      "FactSet",
+      "market data terminals",
       "Capital IQ",
       "financial modelling"
     ],
@@ -23,7 +23,7 @@
       "investment banking"
     ]
   },
-  "posting": "Lazard — Financial Advisory Analyst, Brussels (graduate start 2025)\nLazard's Brussels office advises Belgian and European corporates, families and financial sponsors on M&A, restructuring and capital markets.\nAs an Analyst you will build financial models (DCF, LBO, comparable companies and precedent transactions), prepare pitch books and information memoranda, run data rooms and support senior bankers throughout live transactions.\nRequirements:\n- Master's degree in business engineering, economics, finance or similar, graduating in 2025 with excellent results\n- At least one internship in M&A, corporate finance, transaction services or private equity\n- Strong financial modelling and valuation skills; advanced Excel and PowerPoint\n- Fluent in English and Dutch or French; the third language is a plus\n- Attention to detail and ability to work long hours in a small team\nWe offer a structured analyst training programme in London and exposure to cross-border mandates.",
+  "posting": "Example Advisory — Financial Advisory Analyst, Brussels (graduate start 2025)\nExample Advisory's Brussels office advises Belgian and European corporates, families and financial sponsors on M&A, restructuring and capital markets.\nAs an Analyst you will build financial models (DCF, LBO, comparable companies and precedent transactions), prepare pitch books and information memoranda, run data rooms and support senior bankers throughout live transactions.\nRequirements:\n- Master's degree in business engineering, economics, finance or similar, graduating in 2025 with excellent results\n- At least one internship in M&A, corporate finance, transaction services or private equity\n- Strong financial modelling and valuation skills; advanced Excel and PowerPoint\n- Fluent in English and Dutch or French; the third language is a plus\n- Attention to detail and ability to work long hours in a small team\nWe offer a structured analyst training programme in London and exposure to cross-border mandates.",
   "expectScore": [
     3.8,
     5
@@ -31,24 +31,24 @@
   "person": {
     "name": "Pieter De Smet",
     "title": "Associate, Financial Advisory",
-    "company": "Lazard",
+    "company": "Example Advisory",
     "location": "Brussels",
-    "summary": "Associate in Lazard's Brussels M&A team since 2022; previously analyst at KBC Securities corporate finance; Ghent University business engineering alumnus.",
+    "summary": "Associate in Example Advisory's Brussels M&A team since 2022; previously analyst at Example Securities corporate finance; Example University Ghent business engineering alumnus.",
     "sharedGround": [
       {
         "kind": "university",
-        "detail": "Both: Ghent University"
+        "detail": "Both: Example University Ghent"
       },
       {
         "kind": "internship",
-        "detail": "Both: KBC Securities"
+        "detail": "Both: Example Securities"
       }
     ],
-    "reason": "Former KBC Securities analyst and Ghent alumnus now in the exact team; can speak to the analyst intake.",
+    "reason": "Former Example Securities analyst and Ghent alumnus now in the exact team; can speak to the analyst intake.",
     "value": "peer"
   },
   "search": {
-    "company": "Lazard",
+    "company": "Example Advisory",
     "role": "Financial Advisory Analyst",
     "goal": "referral"
   }

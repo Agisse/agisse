@@ -141,12 +141,12 @@ console.log('short text checks passed')
 const cv4 = verifyCv(
   {
     name: 'Ada', summary: '', competencies: [], experience: [], projects: [], education: [], skills: [], gaps: [],
-    contact: [': ada@x.com', ': Ghent'], contactLine2: ['ada@x.com', 'Open to relocation'],
+    contact: [': ada@example.com', ': Ghent'], contactLine2: ['ada@example.com', 'Open to relocation'],
     skillGroups: [{ label: 'Technical skills', items: ['Excel', 'Power Query'] }],
     changes: [{ change: 'Added Power Query to Technical skills', why: '' }, { change: 'Reworded the KBC bullet', why: '' }],
   },
-  'Ada, ada@x.com, Ghent. Skills: Excel.',
+  'Ada, ada@example.com, Ghent. Skills: Excel.',
 )
-eq(cv4.contact, ['ada@x.com', 'Ghent'], 'contact cleaned')
+eq(cv4.contact, ['ada@example.com', 'Ghent'], 'contact cleaned')
 eq(cv4.contactLine2, ['Open to relocation'], 'line 2 deduped')
 eq(cv4.changes?.map((c) => c.change), ['Reworded the KBC bullet'], 'change for dropped skill removed')
