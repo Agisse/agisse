@@ -42,14 +42,14 @@ We never sell your data and never use it to advertise to you.
 | OpenRouter | Routes AI requests to model providers (such as Anthropic, OpenAI, Google, Mistral and others) | USA and other countries |
 | Exa | Web search for companies, people and postings | USA |
 | Nominatim (OpenStreetMap Foundation) | Turns job locations into map points; your browser sends it the location text and your IP address | UK |
-| OpenFreeMap | Map tiles for the world map; your browser sends it your IP address | [where] |
+| OpenFreeMap | Map tiles for the world map; your browser sends it your IP address | Hungary (EU); may be delivered through Cloudflare's network |
 | logo.dev | Company logos; your browser sends it the company's domain or name and your IP address | USA |
 | PostHog | Product analytics, cookieless | EU or USA |
 | Resend | Sending email from hello@agisse.xyz | USA |
 | Google | Sign in with Google, if you choose it | USA |
 | Sentry | Error reports | USA |
 
-Each processor works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation.
+Where a processor offers one, it works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation.
 
 ## Cookies
 
