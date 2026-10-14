@@ -26,6 +26,8 @@ npx tsx scripts/bundle-size.ts
 
 It prints the gzipped JS and CSS the first page load downloads, and the biggest packages in that JS.
 
+CI runs it with `--check` and fails when the initial JS grows more than 10% over `scripts/bundle-budget.json`. A PR that makes the bundle smaller lowers that number; one that needs more raises it on purpose and says why.
+
 **API.** Every `/api`, `/mcp` and `/.well-known` response carries a `Server-Timing` header with the number of database round trips and their time. Open DevTools → Network → Timing, or:
 
 ```sh

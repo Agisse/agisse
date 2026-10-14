@@ -1,6 +1,8 @@
 // What the first page load downloads, from `npm run build`'s output: the entry script, its modulepreloads
 // and stylesheets from dist/client/index.html, gzipped, plus the biggest packages and files in that JS.
 // Usage: npx tsx scripts/bundle-size.ts [top=15]
+// CI: `--check` fails when the initial JS is more than 10% over scripts/bundle-budget.json. Raising that number is a
+// deliberate change in the PR that needs it, with the reason in the PR body.
 import { readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { SourceMapConsumer } from 'source-map-js'
@@ -30,7 +32,8 @@ function modules(file: string, into: Map<string, number>) {
 
 const sizes = new Map<string, number>()
 for (const f of js) modules(f, sizes)
-const top = Number(process.argv[2] ?? 15)
+const args = process.argv.slice(2).filter((a) => a !== '--check')
+const top = Number(args[0] ?? 15)
 console.log(
   JSON.stringify(
     {
@@ -43,3 +46,11 @@ console.log(
     2,
   ),
 )
+
+if (process.argv.includes('--check')) {
+  const budget = JSON.parse(readFileSync('scripts/bundle-budget.json', 'utf8')).initialJsGzipKb as number
+  if (gz(js) > budget * 1.1) {
+    console.error(`Initial JS is ${gz(js)} kB gzipped, more than 10% over the budget of ${budget} kB (scripts/bundle-budget.json).`)
+    process.exit(1)
+  }
+}
