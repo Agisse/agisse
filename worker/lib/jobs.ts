@@ -379,7 +379,7 @@ export function verifyCv(cv: Omit<TailoredCv, 'createdAt'>, source: string) {
   // A change log entry for a skill dropped above would claim an edit the CV no longer has.
   const kept = new Set((skillGroups?.flatMap((g) => g.items) ?? cv.skills.filter(known)).map(norm))
   const dropped = (cv.skillGroups?.flatMap((g) => g.items) ?? cv.skills).filter((s) => !kept.has(norm(s))).map(norm)
-  // Models sometimes leave an icon's label behind (": name@x.com") or repeat line 1 on line 2.
+  // Models sometimes leave an icon's label behind (": name@example.com") or repeat line 1 on line 2.
   const contact = cv.contact.map((s) => s.replace(/^[\s:|•·-]+/, '').trim()).filter(Boolean)
   return {
     ...cv,
