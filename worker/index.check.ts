@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { eq, sql } from 'drizzle-orm'
 import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
-import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
+import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, feedCapDays, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
 
 const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new Error(`${what}${got === undefined ? '' : `: got ${JSON.stringify(got)}`}`) }
 
@@ -54,6 +54,7 @@ if (!databaseUrl) {
     await db.update(schema.feedDay).set({ pages: FEED_DAILY_PAGES }).where(eq(schema.feedDay.userId, user!.id))
     const capped = await call('GET', '/api/vacancies')
     check(capped.status === 429 && capped.json?.error === FEED_CAP_MESSAGE, 'feed page past the daily cap', capped)
+    check((await feedCapDays(db)).get(user!.id) === 1, 'a capped day counts once for /admin')
     // Admins are exempt.
     await db.update(schema.user).set({ isAdmin: true }).where(eq(schema.user.id, user!.id))
     ;(env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL = email

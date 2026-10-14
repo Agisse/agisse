@@ -38,6 +38,17 @@ export const MAX_OFFSET = 600
 export const FEED_DAILY_PAGES = 200
 export const FEED_CAP_MESSAGE = "That's a lot of roles for one day. The feed opens again tomorrow."
 
+/** Per account, the days in the last 30 on which it asked for more than the cap (a count only, for /admin). */
+export async function feedCapDays(db: Db) {
+  const f = schema.feedDay
+  const rows = await db
+    .select({ userId: f.userId, days: sql<number>`count(*)::int` })
+    .from(f)
+    .where(and(sql`${f.pages} > ${FEED_DAILY_PAGES}`, sql`${f.day} > current_date - 30`))
+    .groupBy(f.userId)
+  return new Map(rows.map((r) => [r.userId, r.days]))
+}
+
 /** Counts one feed page for today; false once the account is past today's cap. */
 export async function countFeedPage(db: Db, userId: string) {
   const [row] = await db

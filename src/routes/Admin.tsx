@@ -58,7 +58,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     {error && <p className="field__error" role="alert">{error}</p>}
     {loading ? <AccountsGhost /> : visible.length === 0 ? <p className="admin-page__empty">{filter === 'pending' ? 'No requests are waiting for approval.' : 'No accounts in this view.'}</p> : <ul className="admin-page__list">
       {visible.map((user) => <li className="admin-page__row" key={user.id}>
-        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small></div>
+        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small>{user.feedCapDays > 0 && <small>Hit the feed limit {user.feedCapDays === 1 ? 'once' : `${user.feedCapDays} times`} in 30 days</small>}</div>
         <span className={`admin-page__status admin-page__status--${user.accessStatus}`}>{user.isAdmin ? 'Administrator' : user.accessStatus}</span>
         <BudgetForm key={user.budget.limit} user={user} busy={busyId === user.id} onSave={(n) => void setBudget(user, n)} />
         <div className="admin-page__actions">
