@@ -11,7 +11,7 @@ const ok = (cond: boolean, what: string) => {
 }
 
 const good = `Anna Peeters
-anna.peeters@example.com · +32 470 12 34 56 · linkedin.com/in/annapeeters
+anna.peeters@example.com · +32 470 12 34 56 · linkedin.com/in/anna-peeters-example
 
 EXPERIENCE
 Data Analyst Intern, Colruyt Group — Halle | Feb 2025 – Jun 2025
@@ -103,10 +103,10 @@ Skills
 Python
 SQL`
 const prof = { ...EMPTY_PROFILE, skills: ['Python', 'SQL'], targetIndustries: ['supply chain'] }
-const li = reviewLinkedin({ text: page, url: 'https://www.linkedin.com/in/annapeeters/' }, prof)
+const li = reviewLinkedin({ text: page, url: 'https://www.linkedin.com/in/anna-peeters-example/' }, prof)
 eq(li.headline, 'Business engineering student · Python, SQL · Aiming for supply chain analytics', 'linkedin headline from top card')
 eq(li.checks.filter((c) => !c.pass).map((c) => c.id), [], 'strong linkedin profile passes')
-const bare = reviewLinkedin({ text: 'Tom Jansen\nStudent at UGent\nExperience\nIntern\nAcme', url: 'https://www.linkedin.com/in/tom-jansen-4a7b9c21/' }, prof)
+const bare = reviewLinkedin({ text: 'Tom Jansen\nStudent at UGent\nExperience\nIntern\nAcme', url: 'https://www.linkedin.com/in/tom-jansen-example-4a7b9c21/' }, prof)
 for (const id of ['headline-specific', 'headline-keywords', 'about', 'experience-described', 'skills', 'education', 'url']) ok(bare.checks.some((c) => c.id === id && !c.pass), `bare profile fails ${id}`)
 ok(bare.score < 30, `bare profile scores ${bare.score}`)
 

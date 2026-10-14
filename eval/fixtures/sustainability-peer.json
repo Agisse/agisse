@@ -1,16 +1,16 @@
 {
   "name": "sustainability-peer",
   "seekerName": "Hanna Vermeulen",
-  "resume": "Hanna Vermeulen — Ghent\nEDUCATION\nGhent University — MSc Bioscience Engineering, Environmental Technology (2022–2024).\nEXPERIENCE\nUmicore — Sustainability Intern (Feb–Jun 2024): mapped scope 3 emissions for the battery materials unit across 40 suppliers; built the data model in Excel and Power BI.\nGhent University — Teaching assistant, Environmental Chemistry lab (2023).\nPROJECTS\nMaster thesis: life-cycle assessment of recycled cathode materials with SimaPro.\nLEADERSHIP\nStudent Consulting Ghent — Project lead (2023): led a team of 4 on a circularity scan for a local brewery.\nSKILLS\nLife-cycle assessment (SimaPro), GHG Protocol, Excel, Power BI, Python (basic). Languages: Dutch (native), English (fluent), German (basic).",
+  "resume": "Hanna Vermeulen — Ghent\nEDUCATION\nExample University Ghent — MSc Bioscience Engineering, Environmental Technology (2022–2024).\nEXPERIENCE\nExample Materials — Sustainability Intern (Feb–Jun 2024): mapped scope 3 emissions for the battery materials unit across 40 suppliers; built the data model in Excel and Power BI.\nExample University Ghent — Teaching assistant, Environmental Chemistry lab (2023).\nPROJECTS\nMaster thesis: life-cycle assessment of recycled cathode materials with SimaPro.\nLEADERSHIP\nExample Student Consulting — Project lead (2023): led a team of 4 on a circularity scan for a local brewery.\nSKILLS\nLife-cycle assessment (SimaPro), GHG Protocol, Excel, Power BI, Python (basic). Languages: Dutch (native), English (fluent), German (basic).",
   "profile": {
-    "university": "Ghent University",
+    "university": "Example University Ghent",
     "degree": "MSc Bioscience Engineering",
     "gradYear": "2024",
     "internships": [
-      "Umicore"
+      "Example Materials"
     ],
     "organizations": [
-      "Student Consulting Ghent"
+      "Example Student Consulting"
     ],
     "skills": [
       "life-cycle assessment",
@@ -23,7 +23,7 @@
       "materials"
     ]
   },
-  "posting": "Solvay — Sustainability Analyst, Brussels\nThe Group Sustainability team measures and reduces Solvay's environmental footprint. As an analyst you will consolidate greenhouse-gas data across sites, run product carbon footprints and life-cycle assessments, and help business units set reduction roadmaps aligned with SBTi.\nRequirements:\n- Master's degree in engineering, environmental science or similar\n- 0–2 years of experience; an internship in sustainability or LCA is a strong plus\n- Knowledge of the GHG Protocol (scopes 1–3) and LCA software (SimaPro or GaBi)\n- Strong Excel; Power BI or Python is a plus\n- Fluent English; French or Dutch appreciated",
+  "posting": "Example Chemicals — Sustainability Analyst, Brussels\nThe Group Sustainability team measures and reduces Example Chemicals's environmental footprint. As an analyst you will consolidate greenhouse-gas data across sites, run product carbon footprints and life-cycle assessments, and help business units set reduction roadmaps aligned with SBTi.\nRequirements:\n- Master's degree in engineering, environmental science or similar\n- 0–2 years of experience; an internship in sustainability or LCA is a strong plus\n- Knowledge of the GHG Protocol (scopes 1–3) and LCA software (SimaPro or GaBi)\n- Strong Excel; Power BI or Python is a plus\n- Fluent English; French or Dutch appreciated",
   "expectScore": [
     3.8,
     5
@@ -31,24 +31,24 @@
   "person": {
     "name": "Jonas Claes",
     "title": "Sustainability Analyst",
-    "company": "Solvay",
+    "company": "Example Chemicals",
     "location": "Brussels",
-    "summary": "Sustainability analyst at Solvay since 2023 working on product carbon footprints; Ghent University bioscience engineering alumnus; previously intern at Umicore.",
+    "summary": "Sustainability analyst at Example Chemicals since 2023 working on product carbon footprints; Example University Ghent bioscience engineering alumnus; previously intern at Example Materials.",
     "sharedGround": [
       {
         "kind": "university",
-        "detail": "Both: Ghent University"
+        "detail": "Both: Example University Ghent"
       },
       {
         "kind": "internship",
-        "detail": "Both: Umicore"
+        "detail": "Both: Example Materials"
       }
     ],
     "reason": "Does the job today and came through the same school and internship.",
     "value": "peer"
   },
   "search": {
-    "company": "Solvay",
+    "company": "Example Chemicals",
     "role": "Sustainability Analyst",
     "goal": "role advice"
   }

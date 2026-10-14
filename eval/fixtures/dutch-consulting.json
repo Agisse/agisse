@@ -1,16 +1,16 @@
 {
   "name": "dutch-consulting",
   "seekerName": "Thomas Peeters",
-  "resume": "Thomas Peeters — Leuven\nOPLEIDING\nKU Leuven — Master Handelsingenieur, major Strategie (2023–2025).\nKU Leuven — Bachelor Handelsingenieur (2020–2023).\nERVARING\nArthur D. Little — Strategy Intern (sep–dec 2024): marktanalyse voor een Belgische energieleverancier; interviews met 12 industriële klanten; eindpresentatie voor de CEO.\nEkonomika — Praeses (2023–2024): leidde een bestuur van 35 studenten.\nVAARDIGHEDEN\nExcel, PowerPoint, Think-cell, Tableau. Talen: Nederlands (moedertaal), Engels (vloeiend), Frans (goed).",
+  "resume": "Thomas Peeters — Leuven\nOPLEIDING\nExample University Leuven — Master Handelsingenieur, major Strategie (2023–2025).\nExample University Leuven — Bachelor Handelsingenieur (2020–2023).\nERVARING\nExample Strategy Advisors — Strategy Intern (sep–dec 2024): marktanalyse voor een Belgische energieleverancier; interviews met 12 industriële klanten; eindpresentatie voor de CEO.\nExample Economics Society — Praeses (2023–2024): leidde een bestuur van 35 studenten.\nVAARDIGHEDEN\nExcel, PowerPoint, Think-cell, Tableau. Talen: Nederlands (moedertaal), Engels (vloeiend), Frans (goed).",
   "profile": {
-    "university": "KU Leuven",
+    "university": "Example University Leuven",
     "degree": "Master Handelsingenieur",
     "gradYear": "2025",
     "internships": [
-      "Arthur D. Little"
+      "Example Strategy Advisors"
     ],
     "organizations": [
-      "Ekonomika"
+      "Example Economics Society"
     ],
     "skills": [
       "Excel",
@@ -21,7 +21,7 @@
       "strategy consulting"
     ]
   },
-  "posting": "Roland Berger — Junior Consultant, Brussel\nAls Junior Consultant werk je in kleine teams aan strategische vraagstukken voor Belgische en internationale klanten: groeistrategieën, operationele transformaties en energietransitie.\nJe analyseert markten, bouwt businesscases in Excel, interviewt klanten en experts en bereidt presentaties voor directiecomités voor.\nProfiel:\n- Masterdiploma handelsingenieur, burgerlijk ingenieur of economie, met sterke resultaten\n- Een eerste stage in consulting, strategie of finance\n- Sterk analytisch en communicatief, ondernemend\n- Vloeiend Nederlands en Engels; Frans is een sterke troef\n- Engagement naast de studies (studentenvereniging, sport, vrijwilligerswerk)\nStart: september 2025.",
+  "posting": "Example Consulting Partners — Junior Consultant, Brussel\nAls Junior Consultant werk je in kleine teams aan strategische vraagstukken voor Belgische en internationale klanten: groeistrategieën, operationele transformaties en energietransitie.\nJe analyseert markten, bouwt businesscases in Excel, interviewt klanten en experts en bereidt presentaties voor directiecomités voor.\nProfiel:\n- Masterdiploma handelsingenieur, burgerlijk ingenieur of economie, met sterke resultaten\n- Een eerste stage in consulting, strategie of finance\n- Sterk analytisch en communicatief, ondernemend\n- Vloeiend Nederlands en Engels; Frans is een sterke troef\n- Engagement naast de studies (studentenvereniging, sport, vrijwilligerswerk)\nStart: september 2025.",
   "expectScore": [
     3.8,
     5
@@ -29,20 +29,20 @@
   "person": {
     "name": "Elise Wouters",
     "title": "Recruiting Manager Benelux",
-    "company": "Roland Berger",
+    "company": "Example Consulting Partners",
     "location": "Brussels",
-    "summary": "Runs campus recruiting for Roland Berger Benelux; regularly on stage at KU Leuven and Ghent career fairs.",
+    "summary": "Runs campus recruiting for Example Consulting Partners Benelux; regularly on stage at Example University Leuven and Ghent career fairs.",
     "sharedGround": [
       {
         "kind": "university",
-        "detail": "Both: KU Leuven"
+        "detail": "Both: Example University Leuven"
       }
     ],
     "reason": "Owns the junior consultant intake for Brussels.",
     "value": "recruiter"
   },
   "search": {
-    "company": "Roland Berger",
+    "company": "Example Consulting Partners",
     "role": "Junior Consultant",
     "goal": "recruiter insight"
   }
