@@ -322,6 +322,12 @@ function DeleteAccount() {
     if (res.error) return setError(res.error.code === 'SESSION_EXPIRED' ? 'For safety, sign out and back in, then delete within a day.' : (res.error.message ?? 'Could not delete the account.'))
     posthog.capture('account_deleted')
     posthog.reset()
+    // What this browser kept for the account goes too: assistant chats, the weekly goal, layout hints. The theme belongs to the device.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith('agisse') && k !== 'agisse.theme').forEach((k) => localStorage.removeItem(k))
+    } catch {
+      /* storage blocked: nothing was kept */
+    }
     window.location.href = '/'
   }
   return (
