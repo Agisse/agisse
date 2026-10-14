@@ -6,7 +6,7 @@ import { EMPTY_FEED_PREFS, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, type FeedLevel,
 import { api, type Me } from '../lib/api'
 import { mergeResume } from '../lib/profile'
 import { ResumeImport } from '../components/ResumeImport'
-import { BoothSignMark } from '../components/Shell'
+import { BoothSignMark } from '../components/BoothSignMark'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'

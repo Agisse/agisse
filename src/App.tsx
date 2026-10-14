@@ -2,7 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'wouter'
 import { authClient } from './lib/auth-client'
 import { api, ApiError, type Me } from './lib/api'
-import { Shell } from './components/Shell'
 import { ResetPassword, SignIn } from './routes/SignIn'
 import { Landing } from './routes/Landing'
 import { AccessWaiting } from './routes/AccessWaiting'
@@ -10,11 +9,17 @@ import posthog from './lib/posthog'
 import { sessionHint } from './lib/hooks'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// The signed-in app is its own chunk, so the homepage, sign-in and waitlist don't download it.
-// A signed-in hint starts the download at once, next to /api/me instead of after it.
+// The signed-in app and its shell are their own chunks, so the homepage, sign-in and waitlist don't download them.
+// A signed-in hint starts both downloads at once, next to /api/me instead of after it. The shell is small, so it
+// usually arrives first and frames the page while the rest loads.
 const loadSignedIn = () => import('./SignedInApp')
-if (sessionHint() === 'in' || sessionHint() === 'trial') void loadSignedIn()
+const loadShell = () => import('./components/Shell').then((m) => ({ default: m.Shell }))
+if (sessionHint() === 'in' || sessionHint() === 'trial') {
+  void loadShell()
+  void loadSignedIn()
+}
 const SignedInApp = lazy(loadSignedIn)
+const Shell = lazy(loadShell)
 
 
 // ?ref= and ?invite= ride a 30-day cookie, so they survive the hop to /sign-in and the round trip through Google.
@@ -105,14 +110,16 @@ export default function App() {
   if (hint === 'pending' || hint === 'rejected') return <AccessWaiting status={hint} onRefresh={load} onSignOut={signOut} />
   if (auth.state === 'loading') {
     return location === '/welcome' ? <PageSkeleton /> : (
-      <Shell email="" trial={hint === 'trial'} isAdmin={false} onSignOut={signOut}>
-        <PageSkeleton />
-      </Shell>
+      <Suspense>
+        <Shell email="" trial={hint === 'trial'} isAdmin={false} onSignOut={signOut}>
+          <PageSkeleton />
+        </Shell>
+      </Suspense>
     )
   }
 
   return (
-    <Suspense fallback={location === '/welcome' ? <PageSkeleton /> : <Shell email={auth.me.user.email} trial={!!auth.me.trial} isAdmin={auth.me.user.isAdmin} onSignOut={signOut}><PageSkeleton /></Shell>}>
+    <Suspense fallback={location === '/welcome' ? <PageSkeleton /> : <Suspense><Shell email={auth.me.user.email} trial={!!auth.me.trial} isAdmin={auth.me.user.isAdmin} onSignOut={signOut}><PageSkeleton /></Shell></Suspense>}>
       <SignedInApp me={auth.me} load={load} signOut={signOut} />
     </Suspense>
   )
