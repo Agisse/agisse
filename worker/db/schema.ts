@@ -356,6 +356,8 @@ export const usage = pgTable(
     tokens: integer('tokens').notNull(),
     // Provider cost as billed to us (OpenRouter usage.cost + Exa costDollars), before margin.
     costUsd: doublePrecision('cost_usd').notNull(),
+    // € drawn from the account's one-time credit; those rows stay out of the monthly allowance and the daily free limits.
+    creditEur: doublePrecision('credit_eur'),
     // Generation log, for measuring quality (worker/lib/quality.ts); null on rows without a successful model call.
     task: text('task'), // schemaName of the call, e.g. agisse_cv
     model: text('model'),
