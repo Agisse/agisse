@@ -59,6 +59,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
 - The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy.
 - The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
