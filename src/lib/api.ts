@@ -56,14 +56,14 @@ export type AdminUser = { id: string; name: string; email: string; accessStatus:
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
-export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
+export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; expiresAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
 
 export const api = {
   checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),
   redeemInvite: (code: string) => request<{ ok: true }>('/api/me/invite', { method: 'POST', body: JSON.stringify({ code }) }),
   referral: () => request<{ code: string; referrals: number; invitesLeft: number | null; waitlist: { position: number; total: number } | null }>('/api/referral'),
   invites: () => request<{ invites: Invite[] }>('/api/admin/invites'),
-  createInvite: (note: string, creditEur: number | null) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note, creditEur }) }),
+  createInvite: (note: string, creditEur: number | null, expiresInDays: number | null) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note, creditEur, expiresInDays }) }),
   revokeInvite: (code: string) => request<{ ok: true }>(`/api/admin/invites/${encodeURIComponent(code)}`, { method: 'DELETE' }),
   me: () => request<Me>('/api/me'),
   saveAiKey: (body: { provider: AiProvider; key: string; model: string }) => request<{ aiKey: AiKeyInfo }>('/api/ai-key', { method: 'PUT', body: JSON.stringify(body) }),

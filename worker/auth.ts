@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { captcha, jwt } from 'better-auth/plugins'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, gt, isNull, or, sql } from 'drizzle-orm'
 import { mails } from './lib/email'
 import { eraseOutsideCascade } from './lib/retention'
 import { newReferralCode, readCookie, resolveReferral, waitlistPosition } from './lib/waitlist'
@@ -10,6 +10,8 @@ import type { Db } from './db'
 import { schema } from './db'
 
 // The one admin account, set as a secret so the address stays out of the source. Unset means no admin.
+/** An invite past its expiry date opens nothing (no expiry = never). */
+export const unexpired = () => or(isNull(schema.invite.expiresAt), gt(schema.invite.expiresAt, sql`now()`))
 export const isAdminEmail = (env: Env, email?: string | null) => !!env.ADMIN_EMAIL && email?.toLowerCase() === env.ADMIN_EMAIL.trim().toLowerCase()
 
 // Workers Free allows ~10 ms CPU per request; Better Auth's default scrypt blows past that.
@@ -77,7 +79,7 @@ export function createAuth(env: Env, db: Db, origin: string) {
             const invite = inviteCode(ctx)
             const group = !!invite && !!env.GROUP_INVITE?.trim() && invite === env.GROUP_INVITE.trim()
             // A personal invite from the admin skips the waitlist. The email route has already claimed it (usedAt set, usedBy not yet).
-            const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt)), columns: { creditEur: true } }) : undefined
+            const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt), unexpired()), columns: { creditEur: true } }) : undefined
             const approved = ref?.admits || group || !!personal
             // One-time credit: the invite's, else the admin's ref link's.
             const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || null
@@ -87,7 +89,7 @@ export function createAuth(env: Env, db: Db, origin: string) {
             const u = user as typeof user & { accessStatus?: string; referralCode?: string; referredBy?: string | null }
             // Google sign-ups skip the email form's x-invite claim, so a one-off invite in the cookie is claimed here.
             const invite = inviteCode(ctx)
-            if (invite) await db.update(schema.invite).set({ usedAt: new Date(), usedBy: user.id }).where(and(eq(schema.invite.code, invite), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt)))
+            if (invite) await db.update(schema.invite).set({ usedAt: new Date(), usedBy: user.id }).where(and(eq(schema.invite.code, invite), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt), unexpired()))
             const approved = u.accessStatus === 'approved'
             if (approved) await mails.approved(env, user, origin)
             else {

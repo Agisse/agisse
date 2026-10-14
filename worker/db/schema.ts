@@ -43,6 +43,7 @@ export const invite = pgTable('invite', {
   usedAt: timestamp('used_at'),
   usedBy: text('used_by').references(() => user.id, { onDelete: 'set null' }),
   revokedAt: timestamp('revoked_at'),
+  expiresAt: timestamp('expires_at'), // null = never
 })
 
 export const session = pgTable(

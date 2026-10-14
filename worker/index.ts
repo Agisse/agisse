@@ -8,7 +8,7 @@ import { requireMcpAuth } from '@better-auth/mcp'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { createDb, dbTiming, schema, type Db } from './db'
 import { forgetSwitches, isSwitch, switchRows, SWITCHES, withSwitches } from './lib/settings'
-import { isAdminEmail, createAuth, type Auth } from './auth'
+import { isAdminEmail, createAuth, unexpired, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
 import { qualityReport } from './lib/quality'
@@ -194,7 +194,7 @@ app.get('/api/public/stats', async (c) => {
 
 // Sign-up is open and every account starts on the waitlist (pending, one free search) until approved.
 // A personal invite skips the waitlist (auth.ts user.create hook); it is claimed before Better Auth runs, so one code opens one account.
-const openInvite = (code: string) => and(eq(schema.invite.code, code), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt))
+const openInvite = (code: string) => and(eq(schema.invite.code, code), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt), unexpired())
 
 // GROUP_INVITE (declared in auth.ts): one reusable link for a group chat; every sign-up with it starts approved on the default budget.
 // Rotate or delete the secret to kill the link. ponytail: no use cap, add one if the link leaks.
@@ -206,7 +206,7 @@ app.post('/api/auth/sign-up/email', async (c) => {
   // The group link is approved by the user.create hook in auth.ts, which reads the same header.
   if (!code || isGroupInvite(c.env, code)) return c.get('auth').handler(c.req.raw)
   const [claimed] = await db.update(schema.invite).set({ usedAt: new Date() }).where(openInvite(code)).returning({ code: schema.invite.code })
-  if (!claimed) return c.json({ code: 'INVITE_INVALID', message: 'This invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.' }, 403)
+  if (!claimed) return c.json({ code: 'INVITE_INVALID', message: 'This invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.' }, 403)
   const res = await c.get('auth').handler(c.req.raw)
   const user = res.ok ? ((await res.clone().json().catch(() => null)) as { user?: { id: string } } | null)?.user : undefined
   if (!user) {
@@ -348,7 +348,7 @@ app.post('/api/me/invite', async (c) => {
   const userId = c.get('userId')
   const { code } = parsed.data
   const [personal] = isGroupInvite(c.env, code) ? [] : await db.update(schema.invite).set({ usedAt: new Date(), usedBy: userId }).where(openInvite(code)).returning({ creditEur: schema.invite.creditEur })
-  if (!personal && !isGroupInvite(c.env, code)) return c.json({ error: 'This invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.' }, 403)
+  if (!personal && !isGroupInvite(c.env, code)) return c.json({ error: 'This invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.' }, 403)
   // Pending accounts never hold a credit (only invites and admins' links give one, and both approve), so this grants it once.
   const credit = personal?.creditEur ? { creditGrantedEur: personal.creditEur, creditEur: personal.creditEur } : {}
   const [user] = await db
@@ -489,27 +489,29 @@ app.delete('/api/admin/users/:id', async (c) => {
 app.get('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
+    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, expiresAt: schema.invite.expiresAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
     .from(schema.invite)
     .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
     .orderBy(desc(schema.invite.createdAt))
-  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
+  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null, expiresAt: r.expiresAt?.toISOString() ?? null })) })
 })
 
 app.post('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
-  const parsed = z.object({ note: z.string().trim().min(1).max(120), creditEur: z.number().positive().max(100).nullable().optional() }).safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Say who the invite is for, in 120 characters or fewer, and a credit between €0 and €100.' }, 400)
+  const parsed = z.object({ note: z.string().trim().min(1).max(120), creditEur: z.number().positive().max(100).nullable().optional(), expiresInDays: z.number().int().min(1).max(365).nullable().optional() }).safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Say who the invite is for, in 120 characters or fewer, a credit between €0 and €100, and an expiry between 1 and 365 days.' }, 400)
+  const days = parsed.data.expiresInDays
+  const expiresAt = days ? new Date(Date.now() + days * 86_400_000) : null
   // 9 random bytes = 12 URL-safe characters.
   const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
-  const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
+  const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null, expiresAt }).returning()
+  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, expiresAt: expiresAt?.toISOString() ?? null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
 })
 
 app.delete('/api/admin/invites/:code', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const [row] = await c.get('db').update(schema.invite).set({ revokedAt: new Date() }).where(openInvite(c.req.param('code'))).returning({ code: schema.invite.code })
-  if (!row) return c.json({ error: 'That invite is already used or withdrawn.' }, 409)
+  if (!row) return c.json({ error: 'That invite is already used, expired or withdrawn.' }, 409)
   return c.json({ ok: true })
 })
 
