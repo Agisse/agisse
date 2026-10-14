@@ -16,6 +16,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
+- The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - The job feed loads up to four times faster, most of all with no field picked.
 - The homepage and sign-in load less than half the code they used to: the rest of the app only downloads once you're signed in, alongside your account details instead of after them.
 - Usage analytics load after the page has, instead of before it.
