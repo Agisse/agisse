@@ -1,7 +1,7 @@
 // Run: npx tsx worker/lib/vacancies.check.ts
 import { and } from 'drizzle-orm'
 import { PgDialect } from 'drizzle-orm/pg-core'
-import { reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
+import { degreeQuery, reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -46,4 +46,10 @@ eq(views.params, ['summer', 'graduate_programme', 7], 'programme + new params')
 if (!views.sql.includes('"program" = ANY(ARRAY[$1, $2]::text[])') || !views.sql.includes('"first_seen" >= current_date - $3::int')) throw new Error(`programme/new missing: ${views.sql}`)
 // Similar-roles fallback: meaningful title words only.
 eq(titleWords('Summer Analyst 2027 - M&A (m/f/d), London'), ['analyst', 'm&a'], 'title words')
+// Cold start: the degree's field words, prefixes for longer ones, nothing for a degree that names no field.
+eq(degreeQuery('MSc Pharmaceutical Sciences'), 'pharmaceutical:*', 'degree query')
+eq(degreeQuery('BA Marketing and Communication'), 'marketing:* | communication:*', 'degree query, two words')
+eq(degreeQuery('LLB Law'), 'law', 'short word: exact')
+eq(degreeQuery("Bachelor of Arts (Hons) 2024 & l'été"), 'été', 'only letters reach to_tsquery')
+eq(degreeQuery('MSc'), null, 'no field words')
 console.log('vacancies ok')
