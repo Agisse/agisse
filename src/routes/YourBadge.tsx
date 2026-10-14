@@ -156,7 +156,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : 'Runs on Claude Haiku. Smarter models with a subscription are not available yet.'}</p>
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
         {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
       </section>
 

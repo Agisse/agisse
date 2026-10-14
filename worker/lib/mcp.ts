@@ -34,7 +34,7 @@ export const GetBoardItemInput = { jobId: z.string() }
 export const GetSeekerBriefInput = { jdText: z.string().trim().max(JD_TEXT_LIMIT).optional().describe('The posting text. When given, the evaluation rubric and output schema for it come back too.') }
 export const AddJobInput = {
   jdText: z.string().trim().min(200, 'Paste the whole posting: that is too little text to judge.').max(JD_TEXT_LIMIT),
-  url: z.string().trim().url().max(500).optional().describe('The posting link; used to spot a posting already on the board.'),
+  url: z.string().trim().url({ protocol: /^https?$/ }).max(500).optional().describe('The posting link; used to spot a posting already on the board.'),
   evaluation: EvaluationOutput.describe('Your evaluation of the posting, in the outputSchema get_seeker_brief returned for it.'),
 }
 export const AddToShortlistInput = SavedCompanyInput
