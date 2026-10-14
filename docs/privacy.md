@@ -49,7 +49,7 @@ We never sell your data and never use it to advertise to you.
 | Google | Sign in with Google, if you choose it | USA |
 | Sentry | Error reports | USA |
 
-Where a processor offers one, it works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation.
+Where a processor offers one, it works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation. Contact details in your CV (email address, phone number, birth date, street address and national ID number) are taken out before it is sent, where Agisse recognises them, and put back in the answer afterwards. Your name stays in, because drafts are signed with it.
 
 ## Cookies
 
