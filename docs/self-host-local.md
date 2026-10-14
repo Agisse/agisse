@@ -70,6 +70,7 @@ Three, all for local mode and none in the Worker bundle:
 
 - No edge cache: facet counts run their queries on every request.
 - Rate limits count per process and reset on restart.
+- One process per data folder: PGlite takes no lock of its own, so Agisse keeps a pid in `agisse-data/db.pid` and refuses to start a second one. Stop Agisse before `import-feed` or a backup.
 - Backups are copies of `agisse-data/` taken while Agisse is stopped.
 - No email without `RESEND_API_KEY`: verification and password-reset links print to the console (I3).
-- The feed starts empty. `npx agisse import-feed` loads public Arbeitnow roles (see the [feed contract](/feed-contract)).
+- The feed starts empty. `npx agisse import-feed` (for now `npm run local -- import-feed`) loads public Arbeitnow roles (see the [feed contract](/feed-contract)). Run it again to refresh: a role leaves the feed 3 days after its last import.

@@ -4,7 +4,7 @@
 // Only early-career roles are kept. Run it at least daily: a role drops out of the feed 3 days after its last import.
 import { pathToFileURL } from 'node:url'
 import { eq, sql } from 'drizzle-orm'
-import { createDb, schema } from '../worker/db'
+import { createDb, schema, type Db } from '../worker/db'
 import { VACANCY_COUNTRIES, htmlToText, levelOf, type VacancyFunction } from '../shared/listings'
 
 type Row = Record<string, unknown>
@@ -85,10 +85,11 @@ export function vacancyFromArbeitnow(row: Row, today: string): typeof schema.vac
   }
 }
 
-async function main() {
-  const dry = process.argv.includes('--dry')
+/** Downloads Arbeitnow's recent early-career roles and upserts them into `db`; without one it only downloads and maps. */
+export async function importFeed(db?: Db) {
   const today = day(new Date())
-  const rows: NonNullable<ReturnType<typeof vacancyFromArbeitnow>>[] = []
+  // By URL: a role can show up on two pages, and one upsert can't touch a row twice.
+  const byUrl = new Map<string, NonNullable<ReturnType<typeof vacancyFromArbeitnow>>>()
   let next: string | null = API
   let seen = 0
   for (let page = 0; next && page < MAX_PAGES; page++) {
@@ -103,16 +104,14 @@ async function main() {
     seen += body.data?.length ?? 0
     for (const r of body.data ?? []) {
       const v = vacancyFromArbeitnow(r, today)
-      if (v) rows.push(v)
+      if (v) byUrl.set(v.url, v)
     }
     next = body.links?.next ?? null
   }
+  const rows = [...byUrl.values()]
   console.log(`${seen} Arbeitnow roles, ${rows.length} early-career, e.g.`, rows.slice(0, 3).map((r) => `${r.title} (${r.country ?? '?'})`).join(' | '))
-  if (dry || !rows.length) return
+  if (!db || !rows.length) return
 
-  const url = process.env.DATABASE_URL
-  if (!url) throw new Error('DATABASE_URL is not set (use --env-file=.env)')
-  const db = createDb(url)
   const v = schema.vacancy
   // Refreshes only rows this script wrote; another provider's row for the same URL is left alone.
   await db
@@ -126,4 +125,9 @@ async function main() {
   console.log('imported')
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) await main()
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  const url = process.env.DATABASE_URL
+  const dry = process.argv.includes('--dry')
+  if (!dry && !url) throw new Error('DATABASE_URL is not set (use --env-file=.env)')
+  await importFeed(dry ? undefined : createDb(url!))
+}

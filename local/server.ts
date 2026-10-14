@@ -1,7 +1,7 @@
 // `npx agisse`: the Worker's Hono app on Node, with local stand-ins for its Cloudflare bindings (docs/self-host-local.md).
 // Nothing in worker/ imports this folder, so none of it reaches the Worker bundle.
 import { randomBytes } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,8 +12,15 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { migrate as migrateNeon } from 'drizzle-orm/neon-http/migrator'
 import { createDb, schema, type Db } from '../worker/db'
+import { importFeed } from '../scripts/import-feed'
 import './html-rewriter'
 import worker from '../worker/index'
+
+const command = process.argv[2]
+if (command && command !== 'import-feed') {
+  console.error(`Unknown command "${command}". Run without one to start Agisse, or with import-feed to load public roles.`)
+  process.exit(1)
+}
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const data = resolve(process.env.AGISSE_DATA ?? 'agisse-data')
@@ -28,12 +35,41 @@ if (!existsSync(secretFile)) writeFileSync(secretFile, randomBytes(32).toString(
 // ponytail: Neon only; a plain Postgres URL needs the node-postgres driver (one more dependency) when someone asks for it.
 const migrationsFolder = join(root, 'drizzle')
 let db: Db | undefined
+let pglite: PGlite | undefined
 if (process.env.DATABASE_URL) {
   await migrateNeon(createDb(process.env.DATABASE_URL), { migrationsFolder })
 } else {
-  const local = drizzle(new PGlite(join(data, 'db'), { extensions: { vector } }), { schema, casing: 'snake_case' })
+  // PGlite takes no lock of its own, and two processes on one folder can corrupt it.
+  // ponytail: a pid file, not an atomic lock; two starts in the same instant could both pass.
+  const lock = join(data, 'db.pid')
+  const holder = existsSync(lock) ? Number(readFileSync(lock, 'utf8')) : 0
+  if (holder && holder !== process.pid && running(holder)) {
+    console.error(`Agisse is already running on ${data} (process ${holder}). Stop it first, or delete ${lock} if that process isn't Agisse.`)
+    process.exit(1)
+  }
+  writeFileSync(lock, String(process.pid))
+  process.on('exit', () => rmSync(lock, { force: true }))
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => process.exit(0))
+  pglite = new PGlite(join(data, 'db'), { extensions: { vector } })
+  const local = drizzle(pglite, { schema, casing: 'snake_case' })
   await migrate(local, { migrationsFolder })
   db = local as unknown as Db
+}
+const store = db ?? createDb(process.env.DATABASE_URL!)
+
+if (command === 'import-feed') {
+  await importFeed(store)
+  await pglite?.close()
+  process.exit(0)
+}
+
+function running(pid: number) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM'
+  }
 }
 
 const client = join(root, 'dist/client')
@@ -127,3 +163,5 @@ void daily()
 setInterval(daily, 24 * 60 * 60 * 1000).unref()
 
 console.log(`Agisse is running on http://localhost:${port} (data in ${data})`)
+const feed = await store.select({ url: schema.vacancy.url }).from(schema.vacancy).limit(1)
+if (!feed.length) console.log('The job feed is empty. To load public roles from Arbeitnow, stop Agisse and run: npm run local -- import-feed')
