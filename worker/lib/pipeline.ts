@@ -290,6 +290,9 @@ const NOTE_SHAPE: Record<ContactValue, string> = {
 
 export { BANNED_PHRASES }
 
+/** In every prompt that scores the seeker or writes for them: what a score or a draft never leans on (GDPR art. 9, and fairness). */
+export const FAIRNESS = 'Never use age, gender, nationality, ethnicity, religion, health, disability, family situation or a photo as a signal, even when the CV mentions them. Work-permit status counts only when the seeker states it.'
+
 export async function draftOutreach(
   env: Env,
   subject: OutreachSubject,

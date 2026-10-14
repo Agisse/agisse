@@ -53,6 +53,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
+import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
@@ -67,6 +68,8 @@ declare global {
   interface Env {
     /** Unset: Sentry stays off. */
     SENTRY_DSN?: string
+    /** Set only by the local entry (`local/server.ts`): its PGlite or Postgres database instead of Neon over HTTP. */
+    DB?: Db
   }
 }
 
@@ -74,6 +77,8 @@ type Variables = {
   db: Db
   auth: Auth
   userId: string
+  /** The signed-in user's row, as the session guard read it. */
+  user: typeof schema.user.$inferSelect
   isAdmin: boolean
   /** Pending account on its free try: one search, nothing else that costs money. */
   trial: boolean
@@ -121,7 +126,7 @@ const authCache = new Map<string, Auth>()
 // Also covers the MCP endpoint and its OAuth discovery routes, which live outside /api.
 const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const url = c.env.DATABASE_URL
-  if (!dbCache || dbCache.url !== url) dbCache = { url, db: createDb(url) }
+  if (!dbCache || dbCache.url !== url) dbCache = { url, db: c.env.DB ?? createDb(url) }
   const origin = new URL(c.req.url).origin
   let auth = authCache.get(origin)
   if (!auth) {
@@ -161,9 +166,14 @@ async function edgeCached<T>(c: Context<{ Bindings: Env; Variables: Variables }>
 }
 
 // The homepage's live count of open roles. Public, so it sits above the session guard; the edge cache keeps it to one query an hour.
-app.get('/api/public/stats', async (c) =>
-  c.json(await edgeCached(c, '/api/public/stats', 3600, () => openVacancyStats(c.get('db'))), 200, { 'Cache-Control': 'public, max-age=3600' }),
-)
+// With PUBLIC_LAUNCH=1 it also carries GitHub stars and the Hired Wall count, one GitHub read an hour per colo.
+app.get('/api/public/stats', async (c) => {
+  const [stats, github] = await Promise.all([
+    edgeCached(c, '/api/public/stats', 3600, () => openVacancyStats(c.get('db'))),
+    Number(c.env.PUBLIC_LAUNCH) === 1 ? edgeCached(c, '/_cache/github', 3600, () => repoNumbers()) : undefined,
+  ])
+  return c.json({ ...stats, ...github }, 200, { 'Cache-Control': 'public, max-age=3600' })
+})
 
 // Sign-up is open and every account starts on the waitlist (pending, one free search) until approved.
 // A personal invite skips the waitlist (auth.ts user.create hook); it is claimed before Better Auth runs, so one code opens one account.
@@ -306,6 +316,7 @@ app.use('/api/*', async (c, next) => {
     if (!success) return c.json({ error: 'You are going a bit fast. Wait a minute and try again.' }, 429)
   }
   c.set('userId', session.user.id)
+  c.set('user', user)
   c.set('isAdmin', isAdmin)
   c.set('trial', trial)
   await next()
@@ -511,15 +522,15 @@ async function trialUsed(db: Db, userId: string) {
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const [u, { profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
-    db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { id: true, name: true, email: true, isAdmin: true } }),
+  const { id, name, email, isAdmin, budgetEur } = c.get('user')
+  const [{ profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
     loadMeProfile(db, userId),
-    loadBudget(db, c.env, userId),
+    loadBudget(db, c.env, userId, budgetEur),
     c.get('trial') ? trialUsed(db, userId) : false,
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: u, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
 })
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
@@ -663,7 +674,7 @@ app.post('/api/profile/extract', async (c) => {
       .where(and(eq(schema.usage.userId, userId), eq(schema.usage.kind, 'resume')))
     if ((row?.n ?? 0) >= TRIAL_RESUME_READS) return c.json({ error: 'Your free try covers a few résumé reads, and they are used. More opens once the administrator approves your account.' }, 403)
   }
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   try {
@@ -732,7 +743,7 @@ app.post('/api/cv/rewrite', async (c) => {
   if (!parsed.success) return c.json({ error: 'Pick a line from your CV to rewrite.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
@@ -765,7 +776,7 @@ app.post('/api/cv/match', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Pick a posting or paste one.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, row] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId), parsed.data.jobId ? findEvaluated(db, parsed.data.jobId, userId) : null])
   if (parsed.data.jobId && !row) return c.json({ error: 'Evaluate this posting first.' }, 404)
@@ -812,7 +823,7 @@ app.post('/api/cv/headlines', async (c) => {
   if (!parsed.success) return c.json({ error: 'That headline is too long.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, roles] = await Promise.all([
     loadProfile(db, userId),
@@ -848,7 +859,7 @@ app.post('/api/searches', async (c) => {
   if (c.get('trial') && (await trialUsed(db, userId))) {
     return c.json({ error: 'Your free try is used. Full access opens once the administrator approves your account.' }, 403)
   }
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
 
@@ -906,7 +917,7 @@ app.post('/api/searches/:id/more', async (c) => {
   if (!row) return c.json({ error: 'Search not found' }, 404)
   if (row.status === 'running') return c.json({ error: 'This booth is still being searched.' }, 409)
 
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1053,7 +1064,7 @@ app.post('/api/people/:id/outreach', async (c) => {
     db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { name: true } }),
   ])
   if (!srch) return c.json({ error: 'Search not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1091,7 +1102,7 @@ app.post('/api/people/:id/email', async (c) => {
     loadResumeText(db, userId),
     db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { name: true } }),
   ])
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const context = `Target company: ${srch?.company ?? row.company}
 Target role: ${srch?.role ?? 'not given'}
@@ -1126,7 +1137,7 @@ app.post('/api/people/:id/prep', async (c) => {
 
   const [srch, profile] = await Promise.all([db.query.search.findFirst({ where: eq(schema.search.id, row.searchId) }), loadProfile(db, userId)])
   if (!srch) return c.json({ error: 'Search not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1210,7 +1221,7 @@ app.post('/api/helper', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Ask a shorter question.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   try {
@@ -1228,7 +1239,7 @@ app.post('/api/helper', async (c) => {
 app.post('/api/helper/briefing', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   try {
@@ -1465,7 +1476,7 @@ async function evaluateInto(c: Context<{ Bindings: Env; Variables: Variables }>,
   const db = c.get('db')
   const userId = c.get('userId')
   if (c.get('trial')) return c.json({ error: 'Checking and tailoring open once your account is approved. Save the role for now.' }, 403)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
@@ -1570,7 +1581,7 @@ app.post('/api/jobs/:id/:doc{cv|cover}', async (c) => {
   const row = await findEvaluated(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   if ((doc === 'cv' ? row.cv : row.coverLetter) && c.req.query('rewrite') !== '1') return c.json({ job: toJob(row) })
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, u] = await Promise.all([
     loadProfile(db, userId),
@@ -1608,7 +1619,7 @@ app.post('/api/jobs/:id/email', async (c) => {
   if (!parsed.success) return c.json({ error: 'Choose a follow-up or a thank-you email.' }, 400)
   const row = await findJob(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, u] = await Promise.all([
     loadProfile(db, userId),
@@ -1646,7 +1657,7 @@ app.post('/api/jobs/:id/answer', async (c) => {
   if (!parsed.success) return c.json({ error: 'Paste the question from the form.' }, 400)
   const row = await findEvaluated(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
@@ -1672,7 +1683,7 @@ app.post('/api/jobs/:id/check', async (c) => {
   const userId = c.get('userId')
   const row = await findEvaluated(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
   const record = cvText(profile, resumeText)
@@ -1749,7 +1760,7 @@ app.post('/api/jobs/:id/assessment/research', async (c) => {
   const userId = c.get('userId')
   const row = await findJob(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1803,7 +1814,7 @@ app.post('/api/jobs/:id/selection/research', async (c) => {
   const userId = c.get('userId')
   const row = await findJob(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1867,7 +1878,7 @@ app.post('/api/jobs/:id/answer-feedback', async (c) => {
     where: and(eq(schema.practiceAnswer.jobId, row.id), eq(schema.practiceAnswer.userId, userId), eq(schema.practiceAnswer.question, question), eq(schema.practiceAnswer.answer, answer)),
   })
   if (same) return c.json({ feedback: same.feedback, answer: toPractice(same) })
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, gaps] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId), recentGaps(db, userId)])
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
@@ -1891,7 +1902,7 @@ app.post('/api/interview/answer-feedback', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid answer' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, gaps] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId), recentGaps(db, userId)])
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
@@ -1931,7 +1942,7 @@ app.get('/api/jobs/:id/interview-questions', async (c) => {
   const key = { companyKey: companyKey(row.company), roleKey: roleKey(row.role) }
   const cached = await db.query.interviewQuestionSet.findFirst({ where: and(eq(schema.interviewQuestionSet.companyKey, key.companyKey), eq(schema.interviewQuestionSet.roleKey, key.roleKey)) })
   if (cached) return c.json({ questions: cached.questions, format })
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1955,7 +1966,7 @@ app.post('/api/transcribe', async (c) => {
   if (!parsed.success) return c.json({ error: 'Recording too long or unreadable. Keep answers under 3 minutes.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   try {
@@ -1974,7 +1985,7 @@ app.post('/api/jobs/:id/offer-brief', async (c) => {
   const userId = c.get('userId')
   const row = await findJob(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -1995,7 +2006,7 @@ app.post('/api/jobs/:id/pay-check', async (c) => {
   const userId = c.get('userId')
   const row = await findEvaluated(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   meter.ref = row.id
@@ -2128,7 +2139,7 @@ app.post('/api/scouts/similar', async (c) => {
   if (!parsed.success) return c.json({ error: 'Name a company.' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
   try {
@@ -2217,7 +2228,7 @@ app.post('/api/scouts', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid scout' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const budget = await loadBudget(db, c.env, userId)
+  const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const input = parsed.data
   const profile = input.useProfile ? await loadProfile(db, userId) : null
@@ -2288,7 +2299,7 @@ export default {
   fetch: app.fetch,
   // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed.
   async scheduled(_event: ScheduledController, env: Env) {
-    const db = createDb(env.DATABASE_URL)
+    const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
   },

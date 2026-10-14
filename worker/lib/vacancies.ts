@@ -2,6 +2,7 @@ import { and, asc, desc, gte, isNull, lte, or, sql, eq, type SQL } from 'drizzle
 import type { Db } from '../db'
 import type { Meter } from './openrouter'
 import { jevDecide, scoreOf, type ScoreQ } from './jev'
+import { FAIRNESS } from './pipeline'
 import { schema } from '../db'
 import { plainText, VACANCY_FUNCTIONS, type Vacancy, type VacancyFacets, type VacancySort } from '../../shared/listings'
 import { SPONSOR_DROP, type SponsorCountry } from '../../shared/sponsors'
@@ -117,11 +118,15 @@ export function vacancyFilters(f: VacancyQuery): SQL[] {
 export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, skills: string[], degree = ''): Promise<{ vacancies: Vacancy[]; more: boolean; profiled: boolean; total: number }> {
   const pe = sql`(select embedding from profile_embedding where user_id = ${userId})`
   // Jev's judgement where the feed provider scored the pair (the seeker's top cosine matches), else the stretched cosine.
-  const jev = sql`(select score from vacancy_fit where user_id = ${userId} and url = ${v.url})`
+  // A join, not a per-row subquery: the subquery ran once per open role for every place `fit` appears.
+  const vf = schema.vacancyFit
+  const jev = vf.score
   // Cold start (no embedding yet): the degree's words against the posting's text, rank/(rank+1) so it stays in 0–1.
   // Target industries ("Tech", "Research") are left out: they match employer names and pulled the feed off-field (npm run eval:feed).
-  const words = degreeQuery(degree)
-  const text = words ? sql`ts_rank_cd(${v.search}, to_tsquery('simple', ${words}), 32)` : sql`0`
+  // Ranked only for the roles the words match (the search index finds those), not every open role. No words: no hits.
+  const tsq = sql`to_tsquery('simple', ${degreeQuery(degree)})`
+  const hits = db.select({ url: v.url, rank: sql<number>`ts_rank_cd(${v.search}, ${tsq}, 32)`.as('rank') }).from(v).where(and(sql`${v.search} @@ ${tsq}`, ...vacancyFilters(f))).as('degree_hits')
+  const text = sql`coalesce(${hits.rank}, 0)`
   // greatest/least skip nulls, so the cosine needs its own guard or a missing embedding reads as a perfect fit.
   const cosine = sql`case when ${v.embedding} is not null and ${pe} is not null then greatest(0, least(1, ((1 - (${v.embedding} <=> ${pe})) - 0.72) / 0.2)) end`
   const fit = sql<number>`coalesce(${jev}, ${cosine}, ${text})`
@@ -140,24 +145,25 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
     where.push(...like.where)
     order = [like.order, desc(score)]
   }
-  const [rows, [profiled]] = await Promise.all([
+  const [rows, [count], [profiled]] = await Promise.all([
     db
       .select({
         url: v.url, title: v.title, company: v.company, domain: v.domain, location: v.location, country: v.country, city: v.city,
         remote: v.remote, level: v.level, program: v.program, functions: v.functions, industry: v.industry, deadline: v.deadline,
         deadlineType: v.deadlineType, firstSeen: v.firstSeen, lastSeen: v.lastSeen, description: v.description, fit, jev: sql<number | null>`${jev}`, score, sponsors: sponsorsOf,
-        // Every match before the limit, counted in the same scan the ranking already does.
-        total: sql<number>`count(*) over ()::int`,
       })
       .from(v)
+      .leftJoin(vf, and(eq(vf.userId, userId), eq(vf.url, v.url)))
+      .leftJoin(hits, eq(hits.url, v.url))
       .where(and(...where))
       .orderBy(...order, asc(v.url))
       .limit(PAGE + 1)
       .offset(f.offset),
+    // Its own query: `count(*) over ()` held every matching row, description included, until the sort, and spilled to disk.
+    db.select({ n: sql<number>`count(*)::int` }).from(v).where(and(...where)),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.profileEmbedding).where(eq(schema.profileEmbedding.userId, userId)),
   ])
-  // eslint-disable-next-line no-unused-vars -- total is page metadata, not a row field
-  const vacancies = rows.slice(0, PAGE).map(({ fit, jev, total: _, ...r }) => ({
+  const vacancies = rows.slice(0, PAGE).map(({ fit, jev, ...r }) => ({
     ...r,
     title: plainText(r.title),
     description: r.description && plainText(r.description),
@@ -166,7 +172,7 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
     sponsors: r.sponsors ?? [],
     reasons: reasonsFor({ ...r, fit: Number(fit), jev: jev == null ? null : Number(jev) }, f.functions, skills),
   }))
-  return { vacancies, more: rows.length > PAGE && f.offset + PAGE <= MAX_OFFSET, profiled: (profiled?.n ?? 0) > 0, total: rows.length ? Number(rows[0]!.total) : f.offset }
+  return { vacancies, more: rows.length > PAGE && f.offset + PAGE <= MAX_OFFSET, profiled: (profiled?.n ?? 0) > 0, total: count?.n ?? 0 }
 }
 
 /** Title words worth matching on: no short words, numbers or generic programme words. */
@@ -215,7 +221,7 @@ const jevLabel = (jev: number) => (jev >= 0.83 ? 'Strong fit' : jev >= 0.5 ? 'Wo
 
 // The feed provider scores vacancy_fit on this same question and scale, so a pasted posting and a feed row read alike.
 export const FIT_SCALE = ['Wrong field or level for this candidate', 'A stretch: some overlap but a different direction', 'Reasonable fit worth applying to', 'Strong fit: matches their field, skills and interests']
-export const FIT_Q: ScoreQ = { type: 'score', criteria: FIT_SCALE, instructions: "How well does this job posting fit this candidate's background, skills and interests?" }
+export const FIT_Q: ScoreQ = { type: 'score', criteria: FIT_SCALE, instructions: `How well does this job posting fit this candidate's background, skills and interests? ${FAIRNESS}` }
 
 /** Jev's 0..3 fit score as 0..1 with its chip label. */
 export const fitFrom = (score: number) => {
