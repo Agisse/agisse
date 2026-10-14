@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter'
-import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, Shield, Sun, UserRound, Users } from 'lucide-react'
+import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Shield, Sun, UserRound, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { useCopy } from '../lib/hooks'
@@ -205,6 +205,9 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
           {/* Static VitePress site, not a SPA route, so a full navigation. */}
           <DropdownMenuItem onClick={() => (location.href = '/docs/')}>
             <BookOpen aria-hidden="true" /> Docs
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/changelog')}>
+            <ScrollText aria-hidden="true" /> What's new
           </DropdownMenuItem>
           {!trial && (
             <DropdownMenuItem
