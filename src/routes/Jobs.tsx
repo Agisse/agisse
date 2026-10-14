@@ -96,7 +96,9 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
   // ?view=feed|track|add; the old ?feed link, Scout's ?careers and the extension's ?import still land in the right view.
   // A waitlisted account opens on the feed: checking a posting waits for approval (evaluateInto).
   const asked = q.get('view')
-  const view: View = scoutId || (asked === 'companies' && !me.trial) ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.trial || me.profile?.skills?.length ? 'feed' : 'add'
+  const picked: View = scoutId || (asked === 'companies' && !me.trial) ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.trial || me.profile?.skills?.length ? 'feed' : 'add'
+  // Adding a job checks it, which opens once the account is approved.
+  const view: View = me.trial && picked === 'add' ? 'feed' : picked
   const abort = useAbortable()
   const shown = jobId && job?.id === jobId ? job : null
   useEffect(() => {
@@ -200,9 +202,11 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
               <Link href="/jobs?view=track" aria-current={view === 'track' ? 'page' : undefined}>My jobs</Link>
               {!me.trial && <Link href="/jobs?view=companies" aria-current={view === 'companies' ? 'page' : undefined}>Companies</Link>}
             </nav>
-            <Link href="/jobs?view=add" className="btn btn--sm btn--quiet" aria-current={view === 'add' ? 'page' : undefined}>
-              <Plus aria-hidden="true" /> Add a job
-            </Link>
+            {!me.trial && (
+              <Link href="/jobs?view=add" className="btn btn--sm btn--quiet" aria-current={view === 'add' ? 'page' : undefined}>
+                <Plus aria-hidden="true" /> Add a job
+              </Link>
+            )}
           </div>
           {error && (
             <p className="notice notice--error" role="alert">

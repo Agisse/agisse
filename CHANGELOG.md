@@ -16,7 +16,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.
 - Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.
 - An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
-- An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved.
+- An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved. Add a job stays hidden until then too, instead of offering checks that can't run yet.
 
 ### For contributors and self-hosters
 
