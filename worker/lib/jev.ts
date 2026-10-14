@@ -28,7 +28,7 @@ export async function jevDecide<Q extends Record<string, JevQuestion>>(env: Env,
     method: 'POST',
     signal: signal ?? AbortSignal.timeout(20_000),
     headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: JEV_MODEL, state, questions }),
+    body: JSON.stringify({ model: JEV_MODEL, state, questions, provider: { data_collection: 'deny' } }),
   })
   if (!res.ok) throw new Error(`Jev answered ${res.status}`)
   const { answers, usage } = (await res.json()) as { answers: { [K in keyof Q]: JevAnswer }; usage?: { input_tokens: number; output_tokens: number; cost: number } }

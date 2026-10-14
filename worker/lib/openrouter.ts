@@ -204,8 +204,9 @@ export async function generateStructured<T>(opts: {
               type: 'json_schema',
               json_schema: { name: opts.schemaName, strict: true, schema: opts.schema },
             },
-            provider: { require_parameters: true },
           }),
+          // The server's key skips providers that store or train on prompts; an own key follows its account's setting.
+          provider: { ...(native && { require_parameters: true }), ...(!byok && { data_collection: 'deny' }) },
           // Returns usage.cost (USD) so each call can be billed against the user's budget.
           usage: { include: true },
         }),
@@ -340,6 +341,7 @@ export async function transcribe(opts: { apiKey?: string; model: string; audio: 
       temperature: 0,
       max_tokens: 1500,
       reasoning: { enabled: false },
+      ...(!own && { provider: { data_collection: 'deny' } }),
       messages: [
         {
           role: 'user',
