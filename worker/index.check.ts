@@ -97,6 +97,21 @@ if (!databaseUrl) {
     const log = await db.select({ action: schema.adminAction.action }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     check(log.map((l) => l.action).sort().join() === 'credit,credit,delete,export', 'admin export, credit and delete are logged', log)
     await db.delete(schema.adminAction).where(eq(schema.adminAction.targetId, other))
+    // A live switch overrides wrangler.jsonc's var on the next request, says who set it, and DELETE restores the default.
+    const [taken] = await db.select().from(schema.setting).where(eq(schema.setting.key, 'FREE_DAILY_ACTIONS_ALL'))
+    if (!taken) try {
+      const cap = async () => ((await call('GET', '/api/admin/users')).json?.today as { actionsCap?: number })?.actionsCap
+      const before = await cap()
+      check((await call('PUT', '/api/admin/settings/FREE_DAILY_ACTIONS_ALL', { value: 1.5 })).status === 400, 'switch: whole actions only')
+      check((await call('PUT', '/api/admin/settings/DATABASE_URL', { value: 1 })).status === 404, 'switch: only the listed keys')
+      check((await call('PUT', '/api/admin/settings/FREE_DAILY_ACTIONS_ALL', { value: 7 })).status === 200, 'switch set')
+      check((await cap()) === 7, 'switch applies at once', await cap())
+      const listed = ((await call('GET', '/api/admin/settings')).json?.switches as Array<{ key: string; value: string; changedBy: string | null }>).find((s) => s.key === 'FREE_DAILY_ACTIONS_ALL')
+      check(listed?.value === '7' && listed.changedBy === 'Index Check', 'switch lists value and who changed it', listed)
+      check((await call('DELETE', '/api/admin/settings/FREE_DAILY_ACTIONS_ALL')).status === 200 && (await cap()) === before, 'switch back to the default')
+    } finally {
+      await db.delete(schema.setting).where(eq(schema.setting.key, 'FREE_DAILY_ACTIONS_ALL'))
+    }
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.
     await db.insert(schema.feedDay).values([{ userId: user!.id, day: sql`current_date - 30`, pages: 1 }, { userId: user!.id, day: sql`current_date - 31`, pages: 1 }])

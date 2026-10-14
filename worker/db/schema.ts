@@ -397,6 +397,15 @@ export const adminAction = pgTable('admin_action', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
+// Live switches an admin sets in /admin (worker/lib/settings.ts): each row overrides the env var of the same name; no row = the
+// env default. Who changed it last is kept; no content.
+export const setting = pgTable('setting', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedBy: text('updated_by').references(() => user.id, { onDelete: 'set null' }),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
 // Every Exa response (people, web, contents, company), keyed by `${kind}:${request body}`. Rows older than 7 days are
 // refetched but never deleted: the table doubles as the corpus of everything Exa ever returned.
 // The seeker's story bank (shared/stories.ts): STAR stories reused across applications and interviews.
