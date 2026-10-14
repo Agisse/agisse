@@ -2,7 +2,6 @@
 //   npx tsx --env-file=.env scripts/import-feed.ts           (upserts into DATABASE_URL)
 //   npx tsx scripts/import-feed.ts --dry                      (downloads and maps only)
 // Only early-career roles are kept. Run it at least daily: a role drops out of the feed 3 days after its last import.
-import { pathToFileURL } from 'node:url'
 import { eq, sql } from 'drizzle-orm'
 import { createDb, schema, type Db } from '../worker/db'
 import { VACANCY_COUNTRIES, htmlToText, levelOf, type VacancyFunction } from '../shared/listings'
@@ -125,7 +124,8 @@ export async function importFeed(db?: Db) {
   console.log('imported')
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+// By file name: once bundled into `npx agisse`, import.meta.url is the bundle's, which is argv[1] too.
+if (/import-feed\.ts$/.test(process.argv[1] ?? '')) {
   const url = process.env.DATABASE_URL
   const dry = process.argv.includes('--dry')
   if (!dry && !url) throw new Error('DATABASE_URL is not set (use --env-file=.env)')

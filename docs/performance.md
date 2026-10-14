@@ -76,6 +76,8 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 | `/api/vacancies/facets` | 7 | 544 ms |
 | `/api/public/stats` | 1, then 0 | edge cache |
 
+**Sentry tracing**, measured 2026-10-14 in `npm run dev` against a local stub collector, median of 30. Tracing every request adds about 6 ms to a cached `/api/public/stats` (18 → 24 ms) and 11 ms to `/api/me` (68 → 79 ms), and sends one envelope of 5 kB (stats) to 20 kB (`/api/me`) per request. Errors are reported either way, so Agisse traces one request in ten.
+
 ## What comes next
 
 - Load the landing page without the app, and the app's pages one by one (`React.lazy`). PostHog, motion and the assistant load late.

@@ -1120,6 +1120,7 @@
 .verdict--do_not_apply .verdict__label { color: var(--red); }
 .verdict__tldr { margin-top: 4px; font-size: var(--fs-16); }
 .verdict__note { margin-top: 4px; font-size: var(--fs-14); color: var(--ink-2); }
+.verdict__how { margin-top: var(--space-2); }
 
 /* Requirement and legitimacy rows share one ruled layout: the call on the left, the reading on the right. */
 .reqs { display: grid; list-style: none; margin: 0; padding: 0; }
