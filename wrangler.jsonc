@@ -53,6 +53,10 @@
     "USD_TO_EUR": "0.86",
     // Kill switch: total provider spend per UTC day across every user. Past it all AI features pause until midnight.
     "GLOBAL_DAILY_USD_CAP": "15",
+    // Actions per UTC day on this server's key, per account and for everyone ("0" = no limit). Seekers with their own key skip both.
+    // OpenRouter's free models allow 1,000 requests a day per OpenRouter account (50 before $10 of credits); one action can take a few attempts.
+    "FREE_DAILY_ACTIONS": "15",
+    "FREE_DAILY_ACTIONS_ALL": "600",
     // Local dev overrides this to "development" via .dev.vars if you add one; deployed always sends "production".
     "SENTRY_ENVIRONMENT": "production",
     // "1" turns on the launch-day homepage. The owner flips it; until then the launch sections ship dark.
