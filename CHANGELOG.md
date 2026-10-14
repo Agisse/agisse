@@ -29,5 +29,6 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - With no open roles at all, the job feed says no feed is connected, offers "Add a job", and links the feed contract for whoever runs the copy. The filters and views it can't use are hidden.
 - The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.
 - Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.
+- An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
 
 [Unreleased]: https://github.com/Agisse/agisse/commits/main

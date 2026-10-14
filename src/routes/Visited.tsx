@@ -87,7 +87,9 @@ export function Visited({ trial }: { trial: boolean }) {
           <GhostBadge rank={2} live />
         </div>
       ) : people.length === 0 ? (
-        <p className="empty-hall__text">Nobody yet. Mark someone contacted and they show up here.</p>
+        <div className="empty-hall">
+          <p className="empty-hall__text">Nobody yet. <Link href="/contacts">Find people for a role</Link>, then press Mark contacted once you write to someone.</p>
+        </div>
       ) : (
         <>
           {followUp.length > 0 && (
