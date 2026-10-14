@@ -22,6 +22,7 @@ Who it is for: students and graduates in their first few years of work looking f
 - [Docs](https://agisse.xyz/docs/): what Agisse is and how to connect to it
 - [MCP setup](https://agisse.xyz/docs/mcp): connect Claude, ChatGPT/Codex, Cursor or any MCP client; endpoint, OAuth sign-in, tools
 - [Browser extension](https://agisse.xyz/docs/extension): send a job posting or profile into Agisse in one click
+- [Methodology](https://agisse.xyz/docs/methodology): how the 1–5 score and the feed's match are made, the 4.0 line, and what they can't know
 
 ## Selection processes and online tests
 
