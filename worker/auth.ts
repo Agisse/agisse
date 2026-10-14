@@ -76,9 +76,11 @@ export function createAuth(env: Env, db: Db, origin: string) {
             const invite = inviteCode(ctx)
             const group = !!invite && !!env.GROUP_INVITE?.trim() && invite === env.GROUP_INVITE.trim()
             // A personal invite from the admin skips the waitlist. The email route has already claimed it (usedAt set, usedBy not yet).
-            const personal = !!invite && !group && !!(await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt)), columns: { code: true } }))
-            const approved = ref?.admits || group || personal
-            return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}) } }
+            const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt)), columns: { creditEur: true } }) : undefined
+            const approved = ref?.admits || group || !!personal
+            // One-time credit: the invite's, else the admin's ref link's.
+            const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || null
+            return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}), ...(credit ? { creditGrantedEur: credit, creditEur: credit } : {}) } }
           },
           after: async (user, ctx) => {
             const u = user as typeof user & { accessStatus?: string; referralCode?: string; referredBy?: string | null }
@@ -121,6 +123,8 @@ export function createAuth(env: Env, db: Db, origin: string) {
       accessStatus: { type: 'string', required: false, input: false },
       referralCode: { type: 'string', required: false, input: false },
       referredBy: { type: 'string', required: false, input: false },
+      creditGrantedEur: { type: 'number', required: false, input: false },
+      creditEur: { type: 'number', required: false, input: false },
       reviewedAt: { type: 'date', required: false, input: false },
       },
     },
