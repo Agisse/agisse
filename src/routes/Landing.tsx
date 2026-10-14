@@ -169,7 +169,7 @@ export function Landing() {
             <span>Made in Europe, for Europe</span>
           </div>
           <nav aria-label="Footer" className="-mx-2 flex flex-wrap">
-            {FOOTER.map(([href, label]) => (
+            {(LAUNCH ? LAUNCH_FOOTER : FOOTER).map(([href, label]) => (
               <a key={href} href={href} className="rounded-md px-2 py-2.5 text-muted-foreground no-underline hover:text-foreground">
                 {label}
               </a>
@@ -466,5 +466,16 @@ const FOOTER: [string, string][] = [
   ['/docs/privacy', 'Privacy'],
   ['/docs/terms', 'Terms'],
   ['/docs/imprint', 'Imprint'],
+  ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
+]
+
+// MCP and the extension sit in the docs' own menu. Manifesto, Compare and Changelog join once their public pages exist.
+const LAUNCH_FOOTER: [string, string][] = [
+  ['/docs/', 'Docs'],
+  ['/docs/methodology', 'Methodology'],
+  ['/docs/privacy', 'Privacy'],
+  ['/docs/terms', 'Terms'],
+  ['/docs/imprint', 'Imprint'],
+  ['https://github.com/Agisse/agisse', 'GitHub'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
