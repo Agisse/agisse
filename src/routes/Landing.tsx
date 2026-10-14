@@ -56,12 +56,7 @@ export function Landing() {
             <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
               Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </Button>
-            <p className="text-sm text-muted-foreground">
-              Invite-only beta, free while it lasts.{' '}
-              <Link href={SIGN_UP} className="font-medium text-primary underline-offset-4 hover:underline" onClick={track('hero_invite')}>
-                Have an invite?
-              </Link>
-            </p>
+            <p className="text-sm text-muted-foreground">Invite-only beta, free while it lasts.</p>
           </div>
         </section>
 
@@ -179,9 +174,6 @@ export function Landing() {
                 {label}
               </a>
             ))}
-            <Link href="/sign-in" className="rounded-md px-2 py-2.5 text-muted-foreground no-underline hover:text-foreground">
-              Sign in
-            </Link>
           </nav>
         </div>
       </footer>
