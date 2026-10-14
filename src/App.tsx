@@ -58,9 +58,7 @@ export default function App() {
   }, [])
 
   const load = useCallback(async () => {
-    const session = await authClient.getSession().catch(() => null)
-    if (session?.data?.user) identifyUser(session.data.user)
-
+    // /api/me alone decides signed in, waitlisted or out; a getSession call first only added a round trip.
     try {
       const me = await api.me()
       identifyUser(me.user)
