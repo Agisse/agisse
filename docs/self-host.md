@@ -106,6 +106,10 @@ The code is open source (AGPL). The job data on agisse.xyz is not: it's collecte
 
 Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog unless you set `SENTRY_DSN`, `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`, or `SENTRY_AUTH_TOKEN`. Your own keys send to your own accounts. See [Data flow](/data-flow) for which service sees what.
 
+## Your users' data
+
+If other people use your copy, you are the controller of their data under the GDPR, not Agisse. Your users' CVs and profiles live in your database and storage, and go to the AI provider and other services you configure. Write your own privacy policy: agisse.xyz's [privacy policy](/privacy) and [Data flow](/data-flow) show what the code does, but name agisse.xyz's processors and owner, not yours. Running it only for yourself on your own computer is personal use, which the GDPR doesn't cover.
+
 ## Name and logo
 
 The code is AGPL-3.0. The name and logo are not covered by the license: if you offer your copy to others, rename it (see `TRADEMARK.md`).
