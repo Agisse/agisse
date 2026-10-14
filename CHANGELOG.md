@@ -19,6 +19,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - A job and its tailored CV open on their layout at once, with Back and the tabs ready, instead of a "Loading the posting…" line.
 - A job's Prepare tab shows its Hiring rounds and Online test sections at once while your saved research loads, so nothing jumps when it arrives.
 - Companies opens on its search form straight away, instead of drawing it folded and then opening it.
+- Score my CV shows which résumé it checks in its final shape while yours loads, instead of a "Loading your résumé…" line. On a phone, that sentence no longer breaks into three narrow columns.
 - Text you paste into Score my CV stays put when Agisse refreshes your data in the background, instead of being cleared. Offer compare keeps your offers on screen while your jobs refresh, and Companies loads without a "Loading…" line.
 - Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
 - The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.

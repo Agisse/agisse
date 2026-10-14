@@ -36,7 +36,7 @@ export function CvReviewRoute({ me, refreshMe, tab }: { me: Me; refreshMe: () =>
         </nav>
         {tab !== 'linkedin' &&
           (stored.loading && !stored.data ? (
-            <p className="label label--muted">Loading your résumé…</p>
+            <CvSourceGhost />
           ) : (
             <CvSource source={source} hasImported={!!imported} onPick={setPicked} />
           ))}
@@ -49,6 +49,25 @@ export function CvReviewRoute({ me, refreshMe, tab }: { me: Me; refreshMe: () =>
 }
 
 /* ---------- Which CV is checked ---------- */
+
+/** The source line and its upload button, drawn before the stored résumé answers. */
+function CvSourceGhost() {
+  return (
+    <section className="cv-source" aria-busy="true" aria-label="CV to check">
+      <p>
+        <FileText aria-hidden="true" />{' '}
+        <span aria-hidden="true">
+          {/* The real sentence, invisible: the placeholder wraps exactly like the loaded line at every width. */}
+          <span className="feed-ghost cv-source__ghost-text">Checking the résumé you imported on your profile. Nothing you drop or paste here is stored.</span>
+        </span>
+      </p>
+      <div className="posting__actions" aria-hidden="true">
+        <span className="feed-ghost cv-source__ghost-btn" />
+      </div>
+      <p className="sr-only" role="status">Loading your résumé…</p>
+    </section>
+  )
+}
 
 function CvSource({ source, hasImported, onPick }: { source: Source | null; hasImported: boolean; onPick: (s: Source | null) => void }) {
   const input = useRef<HTMLInputElement>(null)
@@ -80,13 +99,15 @@ function CvSource({ source, hasImported, onPick }: { source: Source | null; hasI
     <section className="cv-source" aria-label="CV to check">
       <p>
         <FileText aria-hidden="true" />{' '}
-        {checking ? (
-          <>
-            Checking <strong>{checking}</strong>. Nothing you drop or paste here is stored.
-          </>
-        ) : (
-          'No résumé imported yet. Drop a PDF or paste your CV to check it.'
-        )}
+        <span>
+          {checking ? (
+            <>
+              Checking <strong>{checking}</strong>. Nothing you drop or paste here is stored.
+            </>
+          ) : (
+            'No résumé imported yet. Drop a PDF or paste your CV to check it.'
+          )}
+        </span>
       </p>
       <div className="posting__actions">
         <input ref={input} type="file" accept="application/pdf,.pdf" hidden onChange={(e) => void readFile(e.target.files?.[0])} />
