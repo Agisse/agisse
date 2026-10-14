@@ -25,6 +25,7 @@ export default defineConfig({
     sidebar: [
       { text: 'Guides', items: [{ text: 'Extension', link: '/extension' }, { text: 'MCP', link: '/mcp' }, { text: 'Self-host', link: '/self-host' }] },
       { text: 'How it works', items: [{ text: 'Methodology', link: '/methodology' }, { text: 'Architecture', link: '/architecture' }, { text: 'Data flow', link: '/data-flow' }, { text: 'Feed contract', link: '/feed-contract' }, { text: 'Performance', link: '/performance' }] },
+      { text: 'Compare', items: [{ text: 'Overview', link: '/compare/' }, { text: 'career-ops', link: '/compare/career-ops' }, { text: 'Simplify', link: '/compare/simplify' }, { text: 'Jobright', link: '/compare/jobright' }] },
       { text: 'Selection processes', items: [{ text: 'All employers and tests', link: '/guides/' }] },
       { text: 'Legal', items: [{ text: 'Privacy', link: '/privacy' }, { text: 'Terms', link: '/terms' }, { text: 'Imprint', link: '/imprint' }] },
     ],
