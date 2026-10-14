@@ -59,7 +59,7 @@ export async function spendThisMonth(db: Db, userId?: string) {
   return new Map<string, Spend>(rows.map((r) => [r.userId, r]))
 }
 
-/** Provider cost → what the user is charged in €: cost ÷ (1 − margin), so at a 0.5 margin a €10 allowance costs us at most €5.
+/** Provider cost → what the user is charged in €: cost ÷ (1 − margin), so a margin of 1/3 charges cost × 1.5 (a 50% markup).
  *  Free OpenRouter models bill $0, so tokens also carry a small nominal price (TOKEN_EUR_PER_MILLION). */
 export function toBudget(env: Env, spend: Spend | undefined, budgetEur: number | null | undefined): Budget {
   const cost = (spend?.costUsd ?? 0) * Number(env.USD_TO_EUR)
