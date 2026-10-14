@@ -16,6 +16,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - The homepage and sign-in load less than half the code they used to: the rest of the app only downloads once you're signed in, alongside your account details instead of after them.
+- Usage analytics load after the page has, instead of before it.
 - No more Loading screen when Agisse opens: the homepage, the waitlist card or the app's layout shows at once, and your page fills in when your account answers.
 - A job and its tailored CV open on their layout at once, with Back and the tabs ready, instead of a "Loading the posting…" line.
 - A job's Prepare tab shows its Hiring rounds and Online test sections at once while your saved research loads, so nothing jumps when it arrives.
