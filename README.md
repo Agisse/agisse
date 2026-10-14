@@ -1,8 +1,16 @@
 # Agisse
 
-Agisse finds the best people to contact at a target company for a specific role, explains why each one matters, shows what you have in common, and drafts the note you send yourself. It never sends messages, never sends connection requests, and never logs into LinkedIn.
+**English** · [Nederlands](README.nl.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Español](README.es.md) · [Italiano](README.it.md) · [Polski](README.pl.md)
 
-Agisse is open source under the [AGPL-3.0](LICENSE). Use it free at [agisse.xyz](https://agisse.xyz) (bring your own AI key, or pay for Pro and use ours), or run your own copy: see [Self-host](#self-host).
+<!-- translations:start -->
+Agisse is a job-search copilot for students and early-career people in Europe. The name is French, from « il faut que j'agisse »: "I must act".
+
+- **European roles, ranked against your CV.** Paste any posting for an honest score out of 5: below 4.0, Agisse tells you not to apply.
+- **Warm introductions** through real shared ground: the same university, employer or student organisation. You always send the message yourself; Agisse never automates LinkedIn.
+- **Prep and tracking:** the interview rounds and online tests a company uses, practice with feedback, and one place for every application.
+
+Agisse is free and open source ([AGPL-3.0](LICENSE)). Use it at [agisse.xyz](https://agisse.xyz), or run your own copy: see [Self-host](#self-host). The code is open; the job feed on agisse.xyz is not, so a copy you run yourself starts with an empty feed. No ads, no selling your data, no paid placement.
+<!-- translations:end -->
 
 Hired with Agisse: [0 stories](HIRED.md). Got the job? Share yours there.
 
