@@ -277,6 +277,7 @@ const TRIAL_ROUTES = [
   /^PUT \/api\/profile(\/resume)?$/,
   /^POST \/api\/profile\/extract$/,
   /^PATCH \/api\/people\/[^/]+$/,
+  /^POST \/api\/me\/invite$/,
 ]
 
 // ---- Session guard for everything below ----
@@ -303,6 +304,25 @@ app.use('/api/*', async (c, next) => {
   c.set('isAdmin', isAdmin)
   c.set('trial', trial)
   await next()
+})
+
+// An invite that arrives after sign-up: the same codes as the sign-up route, claimed the same way. POSTs are rate limited above.
+app.post('/api/me/invite', async (c) => {
+  if (!c.get('trial')) return c.json({ error: 'Your account is already open.' }, 400)
+  const parsed = z.object({ code: z.string().trim().min(1).max(100) }).safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Paste your invite code.' }, 400)
+  const db = c.get('db')
+  const userId = c.get('userId')
+  const { code } = parsed.data
+  const claimed = isGroupInvite(c.env, code) || (await db.update(schema.invite).set({ usedAt: new Date(), usedBy: userId }).where(openInvite(code)).returning({ code: schema.invite.code })).length > 0
+  if (!claimed) return c.json({ error: 'This invite is not valid, already used, or withdrawn. Ask the person who invited you for a new link.' }, 403)
+  const [user] = await db
+    .update(schema.user)
+    .set({ accessStatus: 'approved', reviewedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(schema.user.id, userId), eq(schema.user.accessStatus, 'pending')))
+    .returning({ email: schema.user.email, name: schema.user.name })
+  if (user) c.executionCtx.waitUntil(mails.approved(c.env, user, new URL(c.req.url).origin))
+  return c.json({ ok: true })
 })
 
 // Your invite link, invites left and (while waiting) your place in line.

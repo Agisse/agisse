@@ -445,8 +445,8 @@ export const company = pgTable('company', {
 
 const tsvector = customType<{ data: string }>({ dataType: () => 'tsvector' })
 
-// Early-career European vacancies, scraped and classified by startup-radar on the homelab; its `push` step is the
-// only writer (upsert on url). Not tied to any user; the feed ranks them per seeker (worker/lib/vacancies.ts).
+// Early-career European vacancies, written only by a feed provider (upsert on url; docs/feed-contract.md).
+// Not tied to any user; the feed ranks them per seeker (worker/lib/vacancies.ts).
 export const vacancy = pgTable(
   'vacancy',
   {
@@ -498,7 +498,7 @@ export const vacancy = pgTable(
   ],
 )
 
-// Jev's 0..1 judgement of how well a vacancy fits a seeker, written by startup-radar's `profiles` step for each
+// Jev's 0..1 judgement of how well a vacancy fits a seeker, written by the feed provider for each
 // seeker's top cosine matches; the feed prefers it over cosine where present.
 export const vacancyFit = pgTable(
   'vacancy_fit',
@@ -516,7 +516,7 @@ export const vacancyFit = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.url] })],
 )
 
-// A seeker's profile + résumé embedded by startup-radar's `profiles` step (same model as vacancy.embedding).
+// A seeker's profile + résumé embedded by the feed provider (same model as vacancy.embedding).
 export const profileEmbedding = pgTable('profile_embedding', {
   userId: text('user_id')
     .primaryKey()
