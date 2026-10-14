@@ -2,7 +2,7 @@ import { AskAssistant } from '@/components/AssistantChat'
 import { AiWorking } from '@/components/AiWorking'
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
-import { AlertCircle, ArrowLeft, Check, Copy, Download, Dumbbell, ExternalLink, FileText, IdCard, MoreHorizontal, Plus, Search as SearchIcon, Trash2 } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, Copy, Download, Dumbbell, ExternalLink, FileText, IdCard, MoreHorizontal, Plus, Search as SearchIcon, Trash2, X } from 'lucide-react'
 import { EMPTY_PROFILE, JD_TEXT_LIMIT, JOB_STATUSES, NEXT_AT_LABEL, type ApplicationCheck, type CheckIssue, type Job, type JobStatus, type JobSummary, type Recommendation, type Requirement, type StatusChange } from '../../shared/types'
 import { api, isAbort, type Me } from '../lib/api'
 import { formatDate, groupByCompany, remembered, useAbortable, useCopy, useResource } from '../lib/hooks'
@@ -42,6 +42,8 @@ const CLOSE: Partial<Record<JobStatus, [JobStatus, string]>> = {
   interview: ['rejected', 'Rejected'],
 }
 /** Statuses whose date the seeker should set as soon as they get there. */
+// The Hired Wall's form on GitHub: nothing is pre-filled and nothing is sent until the seeker submits it there.
+const HIRED_STORY = 'https://github.com/Agisse/agisse/issues/new?template=hired.yml'
 const ASK_DATE = new Set<JobStatus>(['assessment', 'interview', 'offer'])
 type View = 'feed' | 'track' | 'add' | 'offers' | 'companies'
 const MATCH: Record<Requirement['match'], string> = { strong: 'Have it', partial: 'Partly', missing: 'Missing', na: 'n/a' }
@@ -411,6 +413,9 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
   // "Did you apply?": set when the seeker leaves for the posting before applying, asked when they come back.
   const leftForPosting = useRef(false)
   const [askApplied, setAskApplied] = useState(false)
+  // Asked once per browser: hidden for good after a click on the link or on ×.
+  const [askStory, setAskStory] = useState(() => remembered('hired-story', ['ask', 'done'], 'ask') === 'ask')
+  const storyDone = () => { remembered('hired-story', ['ask', 'done'], 'ask', 'done'); setAskStory(false) }
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState !== 'visible' || !leftForPosting.current) return
@@ -701,7 +706,9 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
           <Check aria-hidden="true" />
           <span>
             Offer received. <Link href={`/jobs/${job.id}/offer`}>Prepare your negotiation brief</Link>.
+            {askStory && <> Got the job? <a href={HIRED_STORY} target="_blank" rel="noreferrer" onClick={storyDone}>Share your story</a>.</>}
           </span>
+          {askStory && <button type="button" className="btn btn--quiet btn--sm notice__close" onClick={storyDone} aria-label="Hide Share your story"><X aria-hidden="true" /></button>}
         </p>
       )}
 

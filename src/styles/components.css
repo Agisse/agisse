@@ -419,8 +419,10 @@ ul.chips {
   line-height: 1.5;
 }
 /* A notice that carries buttons: the text takes the line, the buttons wrap under it on a narrow screen. */
-.notice:has(> .btn) { flex-wrap: wrap; align-items: center; }
-.notice:has(> .btn) > span { flex: 1 1 16rem; }
+.notice:has(> .btn:not(.notice__close)) { flex-wrap: wrap; align-items: center; }
+.notice:has(> .btn:not(.notice__close)) > span { flex: 1 1 16rem; }
+/* An icon-only ×: stays on the text's first line, at the end. */
+.notice__close { margin: -4px -6px -4px auto; }
 .notice svg {
   width: 16px;
   height: 16px;
