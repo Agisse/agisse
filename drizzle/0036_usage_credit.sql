@@ -1,0 +1,1 @@
+ALTER TABLE "usage" ADD COLUMN "credit_eur" double precision;
