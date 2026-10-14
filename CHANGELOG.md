@@ -41,6 +41,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- `npm run local -- import-feed` loads public Arbeitnow roles into local mode's database. Local mode refuses to open a data folder another Agisse process is using, and says when the feed is empty.
+- `scripts/import-feed.ts` no longer fails when Arbeitnow lists the same role on two pages.
 - `npm run local` runs Agisse on Node without Cloudflare: the same app on `http://localhost:3000`, with an embedded Postgres (PGlite) in `./agisse-data/`, or your Neon database when `DATABASE_URL` is set. The first step towards `npx agisse`.
 - `docs/self-host-local.md`: the design for `npx agisse`, which will run Agisse on one computer with an embedded Postgres (PGlite), and the local stand-in for each Cloudflare binding. All migrations apply on PGlite as they are.
 - Hashed build files (`/assets/*`, `/docs/assets/*`) are served without running the Worker, with their headers in `public/_headers`; a missing one is a 404 instead of the app's HTML. Self-hosted zones keep the Worker's http → https and www redirects for every other path.
