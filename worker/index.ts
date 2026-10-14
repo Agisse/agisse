@@ -364,17 +364,28 @@ app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
   const [users, used, capped, freeCapped, today] = await Promise.all([
-    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true } }),
+    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true, referredBy: true } }),
     spendThisMonth(db),
     feedCapDays(db),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
   ])
+  // Per admin share link: how many joined with it, and how much of the credit it gave them they've spent.
+  const joined = new Map<string, { count: number; creditUsedEur: number }>()
+  for (const u of users) {
+    if (!u.referredBy) continue
+    const j = joined.get(u.referredBy) ?? { count: 0, creditUsedEur: 0 }
+    j.count++
+    j.creditUsedEur += (u.creditGrantedEur ?? 0) - (u.creditEur ?? 0)
+    joined.set(u.referredBy, j)
+  }
   return c.json({
     // Since midnight UTC, against the daily limits (0 = no limit).
     today: { usd: today.usd, usdCap: Number(c.env.GLOBAL_DAILY_USD_CAP) || 0, actions: today.actions, actionsCap: Number(c.env.FREE_DAILY_ACTIONS_ALL) || 0 },
     users: users.map((u) => ({
       ...u,
+      referredBy: undefined,
+      joined: u.isAdmin ? joined.get(u.id) ?? { count: 0, creditUsedEur: 0 } : null,
       createdAt: u.createdAt.toISOString(),
       reviewedAt: u.reviewedAt?.toISOString() ?? null,
       budget: toBudget(c.env, used.get(u.id), u.budgetEur),
