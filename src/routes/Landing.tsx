@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 const SIGN_UP = '/sign-in?mode=sign-up'
 const track = (position: string) => () => posthog.capture('landing_cta_clicked', { position })
 
-type Stats = { open: number; companies: number; countries: number }
+type Stats = { open: number; companies: number; countries: number; stars?: number | null; hired?: number | null }
 
 const WRAP = 'mx-auto w-full max-w-[1080px] px-4 sm:px-8'
 /** The Worker sets it when PUBLIC_LAUNCH=1; known before the first paint, so nothing shifts. */
@@ -169,7 +169,7 @@ export function Landing() {
             <span>Made in Europe, for Europe</span>
           </div>
           <nav aria-label="Footer" className="-mx-2 flex flex-wrap">
-            {(LAUNCH ? LAUNCH_FOOTER : FOOTER).map(([href, label]) => (
+            {(LAUNCH ? launchFooter(stats) : FOOTER).map(([href, label]) => (
               <a key={href} href={href} className="rounded-md px-2 py-2.5 text-muted-foreground no-underline hover:text-foreground">
                 {label}
               </a>
@@ -479,3 +479,19 @@ const LAUNCH_FOOTER: [string, string][] = [
   ['https://github.com/Agisse/agisse', 'GitHub'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
+
+/** The launch footer with GitHub's live numbers (N5). A number GitHub didn't give, or a zero, isn't shown. */
+function launchFooter(stats: Stats | null): [string, ReactNode][] {
+  return LAUNCH_FOOTER.flatMap(([href, label]): [string, ReactNode][] => {
+    if (label !== 'GitHub') return [[href, label]]
+    const stars = stats?.stars ? (
+      <span className="tabular-nums">
+        {' '}
+        <span aria-hidden="true">★</span> {stats.stars.toLocaleString('en')}
+        <span className="sr-only"> stars</span>
+      </span>
+    ) : null
+    const hired: [string, ReactNode][] = stats?.hired ? [[`${href}/blob/main/HIRED.md`, `${stats.hired} hired with Agisse`]] : []
+    return [[href, <>GitHub{stars}</>], ...hired]
+  })
+}
