@@ -387,7 +387,8 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
               <X aria-hidden="true" className="feed-chosen__x" />
             </button>
           ))}
-          {chosen.length > 0 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
+          {/* One chip: its own × already clears it. */}
+          {chosen.length > 1 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
           {current !== saved && <button type="button" className="btn btn--sm feed-chosen__save" onClick={saveDefaults}>Save as my defaults</button>}
         </div>
       )}
