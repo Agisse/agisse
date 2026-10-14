@@ -7,7 +7,7 @@ import { getTableConfig, PgTable } from 'drizzle-orm/pg-core'
 import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
 import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, feedCapDays, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
-import { freeLimitDays, spendThisMonth } from './lib/shared.ts'
+import { freeLimitDays, freeLimitToday, spendThisMonth, spendToday } from './lib/shared.ts'
 
 const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new Error(`${what}${got === undefined ? '' : `: got ${JSON.stringify(got)}`}`) }
 
@@ -89,13 +89,23 @@ if (!databaseUrl) {
     for (const addCreditEur of [5, 2.5]) await call('PATCH', `/api/admin/users/${other}`, { addCreditEur })
     const [given] = await db.select({ granted: schema.user.creditGrantedEur, left: schema.user.creditEur }).from(schema.user).where(eq(schema.user.id, other))
     check(given?.granted === 7.5 && given?.left === 7.5, 'admin credit adds up', given)
+    // A reset starts the account's free count for today again; the global count stays.
+    const freeRow = () => ({ id: crypto.randomUUID(), userId: other, kind: 'job' as const, tokens: 100, costUsd: 0 })
+    await db.insert(schema.usage).values([freeRow(), freeRow()])
+    check((await spendToday(db, other)).mine === 2 && (await freeLimitToday(db, 2)).has(other), 'free actions today before a reset')
+    check((await call('PATCH', `/api/admin/users/${other}`, { resetFreeLimit: true })).status === 200, 'admin reset of the free limit')
+    const afterReset = await spendToday(db, other)
+    check(afterReset.mine === 0 && afterReset.actions >= 2 && !(await freeLimitToday(db, 2)).has(other), 'a reset zeroes the account, not everyone', afterReset)
+    await new Promise((r) => setTimeout(r, 5))
+    await db.insert(schema.usage).values(freeRow())
+    check((await spendToday(db, other)).mine === 1, 'actions after a reset count again')
     check((await call('DELETE', `/api/admin/users/${user!.id}`)).status === 400, 'admin cannot delete an admin account here')
     check((await call('DELETE', `/api/admin/users/${other}`)).status === 200, 'admin delete')
     check(!files.has(`resumes/${other}.pdf`), 'admin delete removes the CV PDF')
     const [left] = await db.select({ n: sql<number>`(select count(*) from "user" where id = ${other}) + (select count(*) from oauth_consent where user_id = ${other})` }).from(sql`(select 1) one`)
     check(Number(left?.n) === 0, 'admin delete leaves no user or OAuth rows', left)
     const log = await db.select({ action: schema.adminAction.action }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))
-    check(log.map((l) => l.action).sort().join() === 'credit,credit,delete,export', 'admin export, credit and delete are logged', log)
+    check(log.map((l) => l.action).sort().join() === 'credit,credit,delete,export,reset', 'admin export, credit, reset and delete are logged', log)
     await db.delete(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.

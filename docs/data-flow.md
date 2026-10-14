@@ -21,7 +21,7 @@ This page describes what the code does: what is stored, where, and which outside
 | Practice answers, interview and assessment prep | Postgres: `practice_answer`, `interview_question_set`, `training_session`, … | Per user. Mock-interview video stays in the browser |
 | AI usage | Postgres: `usage` | Feature, model, tokens and cost, for the monthly allowance |
 | Feed pages per day | Postgres: `feed_day` | A count per day, for the feed's daily limit; deleted after 30 days |
-| Admin actions | Postgres: `admin_action` | Which admin exported or deleted which account id, and when; no content. Kept after the account is deleted |
+| Admin actions | Postgres: `admin_action` | Which admin exported, deleted, gave credit to or reset the free AI limit of which account id, and when; no content. Kept after the account is deleted |
 | Web search cache | Postgres: `exa_cache` | About a week |
 | Company facts | Postgres: `company` | From Wikidata, refreshed after 30 days |
 | Job feed | Postgres: `vacancy`, `profile_embedding`, `vacancy_fit` | Written by a feed provider outside this repo, see below |

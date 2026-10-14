@@ -52,7 +52,7 @@ export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
-export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
+export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number; freeLimitToday: boolean }
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
@@ -79,6 +79,7 @@ export const api = {
   deleteAccount: (id: string) => request<{ ok: true }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   /** Adds to the account's one-time credit; logged. */
   addCredit: (id: string, addCreditEur: number) => request<{ user: { id: string; creditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ addCreditEur }) }),
+  resetFreeLimit: (id: string) => request<{ user: { id: string } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ resetFreeLimit: true }) }),
   setReferralCredit: (id: string, referralCreditEur: number | null) => request<{ user: { id: string; referralCreditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ referralCreditEur }) }),
   saveProfile: (profile: Profile) => request<{ profile: Profile }>('/api/profile', { method: 'PUT', body: JSON.stringify(profile) }),
   uploadResume: (file: File) =>

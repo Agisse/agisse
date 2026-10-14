@@ -87,17 +87,28 @@ export function creditFor(env: Money, creditEur: number | null | undefined, ownK
 
 type Today = { usd: number; actions: number; mine: number; ownKey: boolean; credit: boolean }
 
-/** Since UTC midnight: provider USD spent by everyone, and free actions on this server's key (rows with tokens and no credit drawn;
- *  own-key rows book none), by everyone and by this user. */
-export async function spendToday(db: Db, userId: string): Promise<Today> {
+const utcMidnight = () => {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
+  return today
+}
+
+/** Usage rows after an admin last reset this account's free limit (an admin_action 'reset' line), so the count starts again. */
+const afterReset = (userId: PgColumn | string) => {
+  const a = schema.adminAction
+  return sql`${schema.usage.createdAt} > coalesce((select max(${a.createdAt}) from ${a} where ${a.targetId} = ${userId} and ${a.action} = 'reset'), '-infinity')`
+}
+
+/** Since UTC midnight: provider USD spent by everyone, and free actions on this server's key (rows with tokens and no credit drawn;
+ *  own-key rows book none), by everyone and by this user (since an admin's reset, if any). */
+export async function spendToday(db: Db, userId: string): Promise<Today> {
+  const today = utcMidnight()
   const u = schema.usage
   const [row] = await db
     .select({
       usd: sql<number>`coalesce(sum(${u.costUsd}), 0)`.mapWith(Number),
       actions: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.creditEur} is null)`.mapWith(Number),
-      mine: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.creditEur} is null and ${u.userId} = ${userId})`.mapWith(Number),
+      mine: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.creditEur} is null and ${u.userId} = ${userId} and ${afterReset(userId)})`.mapWith(Number),
       ownKey: sql<boolean>`exists (select 1 from ${schema.aiKey} where ${schema.aiKey.userId} = ${userId})`,
       credit: sql<boolean>`exists (select 1 from ${schema.user} where ${schema.user.id} = ${userId} and ${schema.user.creditEur} > 0)`,
     })
@@ -119,6 +130,19 @@ export async function freeLimitDays(db: Db, limit: number) {
     .as('days')
   const rows = await db.select({ userId: days.userId, days: sql<number>`count(*)::int` }).from(days).groupBy(days.userId)
   return new Map(rows.map((r) => [r.userId, r.days]))
+}
+
+/** Accounts at the free daily limit right now, counted the way spendToday counts `mine` (for /admin's reset button). */
+export async function freeLimitToday(db: Db, limit: number) {
+  if (!limit) return new Set<string>()
+  const u = schema.usage
+  const rows = await db
+    .select({ userId: u.userId })
+    .from(u)
+    .where(and(gte(u.createdAt, utcMidnight()), sql`${u.tokens} > 0 and ${u.creditEur} is null`, afterReset(u.userId)))
+    .groupBy(u.userId)
+    .having(sql`count(*) >= ${limit}`)
+  return new Set(rows.map((r) => r.userId))
 }
 
 /** Why AI is paused for this user until midnight UTC, if it is. The USD cap stops everyone; the free-action limits
