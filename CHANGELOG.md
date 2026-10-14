@@ -20,6 +20,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Usage analytics load after the page has, instead of before it.
 - The homepage and sign-in no longer download the app's sidebar and menus.
 - The homepage's opening animation is now plain CSS, so the homepage downloads a quarter less code.
+- Coming back to Agisse is quicker: your browser keeps the app's code for a year instead of checking every file again on each visit.
 - No more Loading screen when Agisse opens: the homepage, the waitlist card or the app's layout shows at once, and your page fills in when your account answers.
 - A job and its tailored CV open on their layout at once, with Back and the tabs ready, instead of a "Loading the posting…" line.
 - A job's Prepare tab shows its Hiring rounds and Online test sections at once while your saved research loads, so nothing jumps when it arrives.
@@ -36,6 +37,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- Hashed build files (`/assets/*`, `/docs/assets/*`) are served without running the Worker, with their headers in `public/_headers`; a missing one is a 404 instead of the app's HTML. Self-hosted zones keep the Worker's http → https and www redirects for every other path.
 - The admin guest list shows placeholder rows while accounts load, instead of a "Loading accounts…" line and filter counts of 0.
 - `GOVERNANCE.md` describes Agisse as it is: a free, open-source project led by its founder, with no company or association behind it. The plan for a Belgian association is dropped.
 - The README, `/docs/self-host` and `/docs/feed-contract` say plainly what's open and what isn't: all the code is AGPL; agisse.xyz's job data stays with the hosted service, and a self-hosted copy starts with an empty feed.

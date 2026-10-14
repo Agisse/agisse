@@ -84,8 +84,8 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 // Sentry wraps everything else, so it must be the first middleware registered.
 app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 1.0, enableLogs: true })))
 
-// The zone's "Always Use HTTPS" is not enabled, so the Worker owns the redirect (it runs first for
-// every path, see wrangler.jsonc) and pins HTTPS for a year via HSTS. Local dev stays on http.
+// agisse.xyz's zone redirects http → https and www → apex itself; this stays for self-hosted zones without
+// those rules (hashed build files skip the Worker, see wrangler.jsonc). Local dev stays on http.
 app.use('*', async (c, next) => {
   const url = new URL(c.req.url)
   const local = url.hostname === 'localhost' || url.hostname === '127.0.0.1'
@@ -2257,7 +2257,9 @@ app.delete('/api/shortlist/:id', async (c) => {
 
 app.notFound(async (c) => {
   if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
-  const asset = await c.env.ASSETS.fetch(c.req.raw)
+  let asset = await c.env.ASSETS.fetch(c.req.raw)
+  // The SPA fallback (wrangler.jsonc has not_found_handling "none" so missing build files stay 404s).
+  if (asset.status === 404) asset = await c.env.ASSETS.fetch(new URL('/', c.req.url))
   if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
   // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
   const res = Number(c.env.PUBLIC_LAUNCH) === 1 ? new HTMLRewriter().on('html', { element: (el) => void el.setAttribute('data-launch', '') }).transform(asset) : asset
