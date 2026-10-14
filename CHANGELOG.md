@@ -19,6 +19,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
+- Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
 - Deleting your account also clears what Agisse kept in that browser for it: your assistant chats, weekly goal and layout hints.
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
@@ -59,6 +60,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy.
+- The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).
