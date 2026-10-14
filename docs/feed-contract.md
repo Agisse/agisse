@@ -63,6 +63,21 @@ The feed only shows a role while all three hold (`open()` in `worker/lib/vacanci
 
 So a provider closes a role by setting `closed_at`, or simply by no longer refreshing `last_seen`. A provider that runs less often than every 3 days empties the feed. Agisse never deletes rows; agisse.xyz's provider prunes closed roles after 30 days.
 
+## A reference provider
+
+`scripts/import-feed.ts` loads the early-career roles from [Arbeitnow's free public API](https://www.arbeitnow.com/blog/job-board-api) (mostly Germany, France, the Netherlands and Switzerland) into `vacancy`, following this contract. It takes `level` from the title or Arbeitnow's job types, `country` from the location only when that names exactly one country, and `functions` from tags that name a field unambiguously; everything else stays empty. It refreshes only rows with `source = 'arbeitnow'`.
+
+```sh
+npx tsx scripts/import-feed.ts --dry                 # download and map, write nothing
+npx tsx --env-file=.env scripts/import-feed.ts       # upsert into DATABASE_URL
+```
+
+Agisse doesn't schedule it. Run it daily from cron, for example at 06:00:
+
+```text
+0 6 * * * cd /path/to/agisse && npx tsx --env-file=.env scripts/import-feed.ts >> import-feed.log 2>&1
+```
+
 ## Embeddings
 
 Both embedding columns use **multilingual-e5-small**: 384 dimensions, stored as pgvector `halfvec(384)`. `vacancy.embedding` is the posting side (e5's passage role), `profile_embedding.embedding` the seeker side (e5's query role). The `vector` extension is created by migration `0020`.
