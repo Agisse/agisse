@@ -35,7 +35,7 @@ export function CvReviewRoute({ me, refreshMe, tab }: { me: Me; refreshMe: () =>
           <Link href="/prepare/cv/linkedin" aria-current={tab === 'linkedin' ? 'page' : undefined}>LinkedIn</Link>
         </nav>
         {tab !== 'linkedin' &&
-          (stored.loading ? (
+          (stored.loading && !stored.data ? (
             <p className="label label--muted">Loading your résumé…</p>
           ) : (
             <CvSource source={source} hasImported={!!imported} onPick={setPicked} />

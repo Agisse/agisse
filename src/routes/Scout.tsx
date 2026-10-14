@@ -154,7 +154,7 @@ function ScoutRoute({ me, refreshMe, scoutId: picked }: { me: Me; refreshMe: () 
           ) : shown ? (
             <RouteView scout={shown} entering={fresh === shown.id} saved={saved} onSave={toggleSave} onDream={addToDream} onDelete={() => remove(shown.id)} />
           ) : scoutId || list.loading ? (
-            <RouteGhost text="Loading…" live />
+            <RouteGhost text="Loading companies" live />
           ) : (
             <RouteGhost text="Companies appear here, best fit first." />
           )}
@@ -472,7 +472,8 @@ function RouteRunning({ input, startedAt, onCancel }: { input: ScoutInput; start
 function RouteGhost({ text, live = false }: { text: string; live?: boolean }) {
   return (
     <div className="route">
-      <p className="empty-hall__text">{text}</p>
+      {/* While loading, the line keeps its height and only screen readers hear it (the section is a live region). */}
+      <p className="empty-hall__text">{live ? <><span className="sr-only">{text}</span>{'\u00a0'}</> : text}</p>
       <GhostStops live={live} />
     </div>
   )
@@ -505,10 +506,10 @@ function Shortlist({ companies, loading, onRemove }: { companies: SavedCompany[]
         <h2 id="shortlist-title" className="label">
           Shortlist
         </h2>
-        <span className="booth-row__count tnum">{companies?.length ?? 0}</span>
+        <span className="booth-row__count tnum">{companies?.length ?? (loading ? null : 0)}</span>
       </div>
       {!companies?.length ? (
-        <p className="scout__hint">{loading ? 'Loading…' : 'Save a company to keep it here.'}</p>
+        <p className="scout__hint">{loading ? <><span className="sr-only">Loading the shortlist</span>{'\u00a0'}</> : 'Save a company to keep it here.'}</p>
       ) : (
         <ul className="booth-index">
           {companies.map((c) => (

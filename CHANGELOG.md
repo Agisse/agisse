@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - No more Loading screen when Agisse opens: the homepage, the waitlist card or the app's layout shows at once, and your page fills in when your account answers.
 - A job and its tailored CV open on their layout at once, with Back and the tabs ready, instead of a "Loading the posting…" line.
 - A job's Prepare tab shows its Hiring rounds and Online test sections at once while your saved research loads, so nothing jumps when it arrives.
+- Text you paste into Score my CV stays put when Agisse refreshes your data in the background, instead of being cleared. Offer compare keeps your offers on screen while your jobs refresh, and Companies loads without a "Loading…" line.
 - Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
 - The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.
 - Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.

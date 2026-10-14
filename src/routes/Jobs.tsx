@@ -216,7 +216,7 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
           {view === 'companies' ? (
             <CompaniesView me={me} refreshMe={refreshMe} scoutId={scoutId} />
           ) : view === 'offers' ? (
-            <OfferCompare ids={offers.map((j) => j.id)} loading={list.loading} />
+            <OfferCompare ids={offers.map((j) => j.id)} loading={!list.data} />
           ) : view === 'feed' ? (
             <VacancyFeed jobs={jobs} exhausted={exhausted} onEvaluate={evaluateRole} onSave={saveRole} profile={me.profile} onSavePrefs={(jobFeed) => api.saveProfile({ ...EMPTY_PROFILE, ...me.profile, jobFeed }).then(refreshMe)} onApplied={() => (void list.reload(), dispatchEvent(new Event('agisse:jobs')))} trial={!!me.trial} />
           ) : view === 'add' ? (
