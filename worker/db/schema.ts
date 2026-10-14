@@ -20,6 +20,11 @@ export const user = pgTable('user', {
   isAdmin: boolean('is_admin').notNull().default(false),
   // Monthly allowance in € set by the admin; null = MONTHLY_BUDGET_EUR.
   budgetEur: doublePrecision('budget_eur'),
+  // One-time credit in € from an invite or an admin's ref link: granted once, never reset. Null = none.
+  creditGrantedEur: doublePrecision('credit_granted_eur'),
+  creditEur: doublePrecision('credit_eur'), // what's left of it
+  // Admins only: the credit each friend who joins with this account's ref link gets.
+  referralCreditEur: doublePrecision('referral_credit_eur'),
   // Their share link is /?ref=<referralCode>. Friends who join with it point back here via referredBy.
   referralCode: text('referral_code').unique(),
   referredBy: text('referred_by'),
@@ -33,6 +38,7 @@ export const invite = pgTable('invite', {
   code: text('code').primaryKey(),
   // Who the admin meant it for; only the admin sees it.
   note: text('note').notNull(),
+  creditEur: doublePrecision('credit_eur'), // one-time credit for the account it opens
   createdAt: timestamp('created_at').notNull().defaultNow(),
   usedAt: timestamp('used_at'),
   usedBy: text('used_by').references(() => user.id, { onDelete: 'set null' }),
