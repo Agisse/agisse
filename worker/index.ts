@@ -486,9 +486,10 @@ const SearchInputSchema = z.object({
   sharedOnly: z.boolean().default(false),
 })
 
-async function loadBriefing(db: Db, userId: string) {
-  const row = await db.query.profile.findFirst({ where: eq(schema.profile.userId, userId), columns: { briefing: true, cvReview: true } })
-  return { briefing: row?.briefing ?? null, cvReview: row?.cvReview ?? null }
+/** /api/me's profile, briefing and CV review in one read; the same profile shape as loadProfile. */
+async function loadMeProfile(db: Db, userId: string) {
+  const row = await db.query.profile.findFirst({ where: eq(schema.profile.userId, userId), columns: { data: true, briefing: true, cvReview: true } })
+  return { profile: row ? { ...EMPTY_PROFILE, ...row.data } : null, briefing: row?.briefing ?? null, cvReview: row?.cvReview ?? null }
 }
 
 /** The free try is spent once a search did not fail (a running one counts, so it cannot be doubled up). */
@@ -505,10 +506,9 @@ async function trialUsed(db: Db, userId: string) {
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const [u, profile, { briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
+  const [u, { profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
     db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { id: true, name: true, email: true, isAdmin: true } }),
-    loadProfile(db, userId),
-    loadBriefing(db, userId),
+    loadMeProfile(db, userId),
     loadBudget(db, c.env, userId),
     c.get('trial') ? trialUsed(db, userId) : false,
     loadMemories(db, userId),
@@ -1219,7 +1219,7 @@ app.post('/api/helper', async (c) => {
 })
 
 // The desk's opening synthesis: 8 queries + a model call, so it runs only when the user asks and is
-// cached on the profile row until the next manual refresh (see loadBriefing, /api/me).
+// cached on the profile row until the next manual refresh (see loadMeProfile, /api/me).
 app.post('/api/helper/briefing', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
