@@ -37,6 +37,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - The admin guest list shows placeholder rows while accounts load, instead of a "Loading accounts…" line and filter counts of 0.
+- `GOVERNANCE.md` describes Agisse as it is: a free, open-source project led by its founder, with no company or association behind it. The plan for a Belgian association is dropped.
 - The README, `/docs/self-host` and `/docs/feed-contract` say plainly what's open and what isn't: all the code is AGPL; agisse.xyz's job data stays with the hosted service, and a self-hosted copy starts with an empty feed.
 - Eval fixtures use made-up employers, universities and people. `scripts/fixtures.check.ts` fails when a committed fixture, result or the seed links outside `example.com`, or, with a dev database, names an employer from the feed.
 - CI fails when the initial JS grows more than 10% over `scripts/bundle-budget.json`.

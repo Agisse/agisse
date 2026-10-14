@@ -1,6 +1,6 @@
 # Governance
 
-Agisse is open source (AGPL-3.0) and run as a mission-first project: help students and early-career job seekers find work honestly and affordably. The hosted service at agisse.xyz pays for development; it does not sell user data or paid placement.
+Agisse is a free, open-source project (AGPL-3.0) with one mission: help students and early-career job seekers find work honestly. The hosted service at agisse.xyz runs on free AI models plus each user's own AI key, so it costs little to host. It has no paid plans and no ads, and it never sells user data or paid placement.
 
 ## Open code, hosted data
 
@@ -8,11 +8,7 @@ The code is open source (AGPL). The job data on agisse.xyz is not: it's collecte
 
 ## Today
 
-The project is maintained by its founder, Lennart Steen, who has the final say on what gets merged and released. Decisions on larger changes happen in public GitHub Discussions.
-
-## Next
-
-The project is moving to a Belgian non-profit association (VZW/ASBL). Once it exists, the association will hold the trademark and the hosted service, and its board will take over final decisions. This file will be updated with the board members and the decision process.
+The project is led by its founder, Lennart Steen, who has the final say on what gets merged and released. There's no company or association behind it. Decisions on larger changes happen in public GitHub Discussions.
 
 ## Becoming a maintainer
 
