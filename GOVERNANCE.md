@@ -4,7 +4,7 @@ Agisse is open source (AGPL-3.0) and run as a mission-first project: help studen
 
 ## Open code, hosted data
 
-The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service, and paying for that is part of what the hosted service is for. A self-hosted copy starts with an empty feed; fill it with your own provider (see the [feed contract](docs/feed-contract.md)) or the Arbeitnow importer (`scripts/import-feed.ts`).
+The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service, and that curated feed is much of why agisse.xyz is worth using. A self-hosted copy starts with an empty feed; fill it with your own provider (see the [feed contract](docs/feed-contract.md)) or the Arbeitnow importer (`scripts/import-feed.ts`).
 
 ## Today
 
