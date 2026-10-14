@@ -118,7 +118,13 @@ export function createAuth(env: Env, db: Db, origin: string) {
     account: { accountLinking: { enabled: true, trustedProviders: ['google'] } },
     user: {
       // Profile › Your data. Rows cascade from user; the CV PDF lives in R2 and goes here.
-      deleteUser: { enabled: true, beforeDelete: async (user) => { await env.RESUMES.delete(`resumes/${user.id}.pdf`) } },
+      deleteUser: {
+        enabled: true,
+        // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here.
+        beforeDelete: async (user) => {
+          await Promise.all([env.RESUMES.delete(`resumes/${user.id}.pdf`), ...[schema.oauthAccessToken, schema.oauthRefreshToken, schema.oauthConsent].map((t) => db.delete(t).where(eq(t.userId, user.id)))])
+        },
+      },
       additionalFields: {
       accessStatus: { type: 'string', required: false, input: false },
       referralCode: { type: 'string', required: false, input: false },
