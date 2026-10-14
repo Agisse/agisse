@@ -58,7 +58,17 @@ Each piece below feeds the next:
 
 ## Self-host
 
-Agisse runs on Cloudflare's free plan plus a free Neon Postgres database. Step by step: [`/docs/self-host`](docs/self-host.md).
+Two ways, same app. Step by step: [`/docs/self-host`](docs/self-host.md).
+
+**On your computer:** for trying it, a home server, or one student association. Needs Node 20+ or Bun, nothing else:
+
+```sh
+npx github:Agisse/agisse  # http://localhost:3000, all data in ./agisse-data/
+```
+
+It lacks the edge cache and an admin on the embedded database, its rate limits count per process, and backups are copies of `agisse-data/` taken while it's stopped.
+
+**On Cloudflare:** for a public deploy, on Cloudflare's free plan plus a free Neon Postgres database. The rest of this section is about this way.
 
 The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. A self-hosted copy starts with an empty feed; fill it with your own provider (see the [feed contract](docs/feed-contract.md)) or the Arbeitnow importer (`scripts/import-feed.ts`).
 
