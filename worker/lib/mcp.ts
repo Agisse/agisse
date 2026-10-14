@@ -10,7 +10,7 @@ import { schema } from '../db'
 import { draftOutreach } from './pipeline'
 import { EvaluationOutput, cvText, evaluationBrief, evaluationSchema, finalizeEvaluation, findPosting, insertJob, pushStatus } from './jobs'
 import { SavedCompanyInput, toSaved, upsertSavedCompany } from './companies'
-import { PAGE, searchVacancies } from './vacancies'
+import { countFeedPage, FEED_CAP_MESSAGE, MAX_OFFSET, PAGE, searchVacancies } from './vacancies'
 import { dueItems } from '../../src/lib/followup'
 import { budgetSpent, charge, decodeCursor, loadBudget, loadContactedPeople, loadJobSummaries, loadMemories, loadProfile, loadResumeText, loadSearchList, loadSearchWithPeople, modelError, newMeter, toJob, userStyle, toPerson, type Page, type PageQuery } from './shared'
 import { EMPTY_FEED_PREFS, FEED_LEVELS, SPOKEN_LANGUAGES } from '../../shared/listings'
@@ -449,8 +449,9 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean)
     },
     async ({ cursor, sort, ...f }) => {
       const offset = cursor === undefined ? 0 : Number(cursor)
-      if (!Number.isInteger(offset) || offset < 0 || offset > 3000) return errorText('Invalid cursor: pass nextCursor from the previous page unchanged.')
-      const profile = await loadProfile(db, userId)
+      if (!Number.isInteger(offset) || offset < 0 || offset > MAX_OFFSET) return errorText('Invalid cursor: pass nextCursor from the previous page unchanged.')
+      const [allowed, profile] = await Promise.all([countFeedPage(db, userId), loadProfile(db, userId)])
+      if (!allowed) return errorText(FEED_CAP_MESSAGE)
       const p = { ...EMPTY_FEED_PREFS, ...profile?.jobFeed }
       const { vacancies, more, profiled } = await searchVacancies(
         db,
