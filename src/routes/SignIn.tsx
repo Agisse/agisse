@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentProps, type FormEvent, type ReactNode } from 'react'
 import { CircleAlert, TicketCheck, TicketX } from 'lucide-react'
-import { api } from '../lib/api'
+import { api, inviteCode } from '../lib/api'
 import { authClient } from '../lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel, FieldSeparator } from '@/components/ui/field'
@@ -45,12 +45,6 @@ const GoogleMark = () => (
     <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
   </svg>
 )
-
-/** Accepts the bare code or the whole invite link pasted into the field. */
-const inviteCode = (raw: string) => {
-  const s = raw.trim()
-  try { return new URL(s).searchParams.get('invite') ?? s } catch { return s }
-}
 
 export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
   // Read per mount: the homepage links here client-side with ?mode=sign-up.
