@@ -476,7 +476,7 @@ const FOOTER: [string, string][] = [
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
 
-// MCP and the extension sit in the docs' own menu. Manifesto and Changelog join once their public pages exist.
+// MCP and the extension sit in the docs' own menu. Manifesto joins once its docs page exists; the changelog is the repo's file (the flag is on only once the repo is public).
 const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/', 'Docs'],
   ['/docs/methodology', 'Methodology'],
@@ -484,6 +484,7 @@ const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/privacy', 'Privacy'],
   ['/docs/terms', 'Terms'],
   ['/docs/imprint', 'Imprint'],
+  ['https://github.com/Agisse/agisse/blob/main/CHANGELOG.md', 'Changelog'],
   ['https://github.com/Agisse/agisse', 'GitHub'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
