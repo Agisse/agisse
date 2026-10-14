@@ -54,7 +54,7 @@ import {
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
 import { referralStatus } from './lib/waitlist'
-import { openVacancyStats, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
+import { countFeedPage, FEED_CAP_MESSAGE, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
 import { dueItems } from '../src/lib/followup'
 import type { SelectionProcess } from '../shared/selection'
@@ -252,7 +252,7 @@ app.all('/mcp', async (c) => {
         const isAdmin = user?.isAdmin && isAdminEmail(c.env, user.email)
         if (!user || (user.accessStatus !== 'approved' && !isAdmin)) return c.json({ error: 'This account is not approved for MCP access.' }, 403)
         const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined })
-        const server = buildMcpServer(db, c.env, userId, false)
+        const server = buildMcpServer(db, c.env, userId, false, !!isAdmin)
         await server.connect(transport)
         return transport.handleRequest(request)
       },
@@ -1356,7 +1356,7 @@ const VacancyQuerySchema = z.object({
   newWithin: z.coerce.number().int().min(1).max(90).nullable(),
   programs: z.array(z.string().max(30)).max(10),
   sort: z.enum(['match', 'new', 'deadline']).default('match'),
-  offset: z.coerce.number().int().min(0).max(3000).default(0),
+  offset: z.coerce.number().int().min(0).max(MAX_OFFSET).default(0),
   similar: z.object({ url: z.string().max(2000), title: z.string().max(300) }).nullable(),
 })
 
@@ -1372,7 +1372,8 @@ app.get('/api/vacancies', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid filters' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const profile = await loadProfile(db, userId)
+  const [allowed, profile] = await Promise.all([c.get('isAdmin') || countFeedPage(db, userId), loadProfile(db, userId)])
+  if (!allowed) return c.json({ error: FEED_CAP_MESSAGE }, 429)
   return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])], profile?.degree))
 })
 
@@ -2277,6 +2278,8 @@ export default {
   fetch: app.fetch,
   // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed.
   async scheduled(_event: ScheduledController, env: Env) {
-    console.log('closed postings', await checkClosedPostings(createDb(env.DATABASE_URL)))
+    const db = createDb(env.DATABASE_URL)
+    console.log('closed postings', await checkClosedPostings(db))
+    await pruneFeedDays(db)
   },
 } satisfies ExportedHandler<Env>
