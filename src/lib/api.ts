@@ -56,7 +56,7 @@ export type AdminUser = { id: string; name: string; email: string; accessStatus:
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
-export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
+export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
 
 export const api = {
   checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),

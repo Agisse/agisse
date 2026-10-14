@@ -444,11 +444,11 @@ app.delete('/api/admin/users/:id', async (c) => {
 app.get('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email })
+    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
     .from(schema.invite)
     .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
     .orderBy(desc(schema.invite.createdAt))
-  return c.json({ invites: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
+  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
 })
 
 app.post('/api/admin/invites', async (c) => {
@@ -458,7 +458,7 @@ app.post('/api/admin/invites', async (c) => {
   // 9 random bytes = 12 URL-safe characters.
   const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
   const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null } })
+  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
 })
 
 app.delete('/api/admin/invites/:code', async (c) => {
