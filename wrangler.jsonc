@@ -7,9 +7,11 @@
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
-    // Every request goes through the Worker so http → https and HSTS apply to assets too.
-    "run_worker_first": true
+    // Hashed build files skip the Worker (headers and caching in public/_headers) and 404 when missing, so a
+    // stale chunk name never caches index.html for a year. Everything else runs the Worker: the API, /mcp,
+    // and the HTML it rewrites, with its own SPA fallback. The zone redirects http → https and www → apex.
+    "not_found_handling": "none",
+    "run_worker_first": ["/*", "!/assets/*", "!/docs/assets/*"]
   },
   "observability": { "enabled": true },
   // Daily: mark saved postings their public ATS board no longer lists as closed (worker/lib/closed.ts).
