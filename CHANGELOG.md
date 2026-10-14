@@ -21,6 +21,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Posting and contact links must be web links (`http` or `https`), from the app, the extension and MCP alike.
 - A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
 - Scores and drafts never lean on your age, gender, nationality, religion, health or photo, even when your CV mentions them. Every prompt that scores you or writes for you now says so, and the methodology page explains it.
+- Agisse's free AI now has a daily limit per account, so a busy day can't use it up for everyone. Past it, Agisse says so and points to connecting your own OpenRouter key, which has no Agisse limit.
 - Agisse's own AI key now runs on free models only. For stronger models, connect your own OpenRouter key in Profile → AI.
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
