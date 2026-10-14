@@ -52,6 +52,7 @@ import {
   toSearch,
 } from './lib/shared'
 import { mails } from './lib/email'
+import { exportUserData } from './lib/export'
 import { referralStatus } from './lib/waitlist'
 import { openVacancyStats, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
@@ -263,7 +264,7 @@ app.all('/mcp', async (c) => {
 
 // What a pending account may do on its free try. Deleting is out so the try cannot be reset.
 const TRIAL_ROUTES = [
-  /^GET \/api\/(me|searches|contacted|referral|vacancies|vacancies\/facets|jobs)$/,
+  /^GET \/api\/(me|me\/export|searches|contacted|referral|vacancies|vacancies\/facets|jobs)$/,
   // The feed and saving from it are plain database work; evaluating or tailoring stays closed (evaluateInto).
   /^GET \/api\/jobs\/[^/]+$/,
   /^POST \/api\/jobs$/,
@@ -488,6 +489,12 @@ app.get('/api/me', async (c) => {
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
   return c.json({ user: u, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+})
+
+/** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
+app.get('/api/me/export', async (c) => {
+  const data = await exportUserData(c.get('db'), c.get('userId'))
+  return c.json(data, 200, { 'content-disposition': `attachment; filename="agisse-data-${data.exportedAt.slice(0, 10)}.json"` })
 })
 
 // ---- Own AI key (bring your own key) ----
