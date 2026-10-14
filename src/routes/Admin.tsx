@@ -42,6 +42,16 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     finally { setBusyId(null) }
   }
 
+  const setReferralCredit = async (user: AdminUser, eur: number | null) => {
+    setBusyId(user.id)
+    setError(null)
+    try {
+      const { user: saved } = await api.setReferralCredit(user.id, eur)
+      setUsers((current) => current.map((item) => item.id === user.id ? { ...item, referralCreditEur: saved.referralCreditEur } : item))
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not update the credit.') }
+    finally { setBusyId(null) }
+  }
+
   const visible = users.filter((u) => filter === 'all' || u.accessStatus === filter).sort((a, b) => order[a.accessStatus] - order[b.accessStatus] || b.createdAt.localeCompare(a.createdAt))
   const count = (status: AccessStatus) => users.filter((u) => u.accessStatus === status).length
 
@@ -62,6 +72,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
         <span className={`admin-page__status admin-page__status--${user.accessStatus}`}>{user.isAdmin ? 'Administrator' : user.accessStatus}</span>
         <BudgetForm key={user.budget.limit} user={user} busy={busyId === user.id} onSave={(n) => void setBudget(user, n)} />
         <div className="admin-page__actions">
+          {user.isAdmin && <CreditForm key={user.referralCreditEur} user={user} busy={busyId === user.id} onSave={(n) => void setReferralCredit(user, n)} />}
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
@@ -107,12 +118,37 @@ function BudgetForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; on
   </form>
 }
 
+/** The one-time credit each friend gets when they join with this admin's share link. */
+function CreditForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; onSave: (eur: number | null) => void }) {
+  const [value, setValue] = useState(user.referralCreditEur === null ? '' : String(user.referralCreditEur))
+  const n = euros(value)
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    if (n !== undefined) onSave(n)
+  }
+  return <form className="admin-page__budget-edit" onSubmit={submit}>
+    <label className="sr-only" htmlFor={`ref-credit-${user.id}`}>One-time credit in euros for each friend who joins with {user.name}'s share link</label>
+    <input id={`ref-credit-${user.id}`} className="field__input tnum" type="number" min={0} max={100} step={0.5} placeholder="Credit €" value={value} onChange={(e) => setValue(e.target.value)} />
+    <button className="btn btn--sm" disabled={busy || n === undefined || n === user.referralCreditEur}>Set friend credit</button>
+  </form>
+}
+
+/** Euros from an optional field: null when empty or 0, undefined when not a valid amount (over €100 included). */
+const euros = (value: string): number | null | undefined => {
+  if (!value.trim()) return null
+  const n = Math.round(Number(value) * 100) / 100
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n || null : undefined
+}
+
+const eur = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'EUR', maximumFractionDigits: 2, minimumFractionDigits: Number.isInteger(n) ? 0 : 2 })
+
 const inviteLink = (code: string) => `${window.location.origin}/?invite=${encodeURIComponent(code)}`
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 
 function Invites() {
   const [invites, setInvites] = useState<Invite[]>([])
   const [note, setNote] = useState('')
+  const [credit, setCredit] = useState('')
   const [fresh, setFresh] = useState<Invite | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -129,13 +165,16 @@ function Invites() {
   const create = async (e: FormEvent) => {
     e.preventDefault()
     if (!note.trim()) return setError('Say who the invite is for, so you know who joined.')
+    const creditEur = euros(credit)
+    if (creditEur === undefined) return setError('Give a credit between €0 and €100, or leave it empty.')
     setBusy('new')
     setError(null)
     try {
-      const { invite } = await api.createInvite(note.trim())
+      const { invite } = await api.createInvite(note.trim(), creditEur)
       setInvites((current) => [invite, ...current])
       setFresh(invite)
       setNote('')
+      setCredit('')
       await copy(invite.code, true)
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not make the invite.') }
     finally { setBusy(null) }
@@ -159,6 +198,8 @@ function Invites() {
     <form className="invites__new" onSubmit={create} noValidate>
       <label className="sr-only" htmlFor="invite-note">Who is this invite for</label>
       <input id="invite-note" className="field__input" placeholder="Who is it for? e.g. Sara, thesis group" maxLength={120} value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
+      <label className="sr-only" htmlFor="invite-credit">One-time AI credit in euros, optional</label>
+      <input id="invite-credit" className="field__input tnum invites__credit" type="number" min={0} max={100} step={0.5} placeholder="Credit €" value={credit} onChange={(e) => setCredit(e.target.value)} />
       <button className="btn btn--primary" disabled={busy === 'new'}>{busy === 'new' ? 'Making…' : 'Make invite link'}</button>
     </form>
     {fresh && <div className="invites__fresh" role="status">
@@ -173,7 +214,7 @@ function Invites() {
       {invites.map((invite) => {
         const state = invite.usedAt ? 'used' : invite.revokedAt ? 'withdrawn' : 'open'
         return <li key={invite.code} className={`invites__row invites__row--${state}`}>
-          <div className="invites__who"><strong>{invite.note}</strong><small>Made {shortDate(invite.createdAt)}</small></div>
+          <div className="invites__who"><strong>{invite.note}</strong><small>Made {shortDate(invite.createdAt)}{invite.creditEur ? ` · ${eur(invite.creditEur)} credit` : ''}</small></div>
           <span className={`admin-page__status admin-page__status--${state === 'used' ? 'approved' : state === 'withdrawn' ? 'rejected' : 'pending'}`}>
             {state === 'used' ? `Joined ${shortDate(invite.usedAt!)}` : state === 'withdrawn' ? 'Withdrawn' : 'Open'}
           </span>

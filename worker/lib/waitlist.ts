@@ -18,7 +18,7 @@ const referralCount = async (db: Db, userId: string) =>
 /** Who a new account points back to, and whether that friend's invite lets it skip the waitlist. */
 export async function resolveReferral(db: Db, code: string | undefined, email: string) {
   if (!code) return null
-  const referrer = await db.query.user.findFirst({ where: eq(schema.user.referralCode, code), columns: { id: true, email: true, name: true, accessStatus: true, isAdmin: true } })
+  const referrer = await db.query.user.findFirst({ where: eq(schema.user.referralCode, code), columns: { id: true, email: true, name: true, accessStatus: true, isAdmin: true, referralCreditEur: true } })
   if (!referrer || referrer.email.toLowerCase() === email.toLowerCase()) return null
   // ponytail: count-then-insert can let a 4th friend in under a race; a unique slot table fixes it if that ever matters.
   const admits = referrer.isAdmin || (referrer.accessStatus === 'approved' && (await referralCount(db, referrer.id)) < REFERRAL_INVITES)
