@@ -25,6 +25,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - Today is a little quieter: no date under the greeting, no progress bar repeating "1 of 4 done", and no empty Coming up box when nothing else is due.
+- Setting up your account ends on your roles: after the last question, "See my roles" opens the feed your answers shaped, instead of one more screen asking where to start.
 - Creating an account asks for three things, not four: the invite code field opens from "Have an invite code?" under the form, and stays open when you arrive with an invite link.
 - The job feed loads up to four times faster, most of all with no field picked.
 - An open role in the job feed no longer names its fields twice: they stay as tags under the description.
