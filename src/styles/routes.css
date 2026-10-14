@@ -1986,6 +1986,9 @@
 .cv-source { display: grid; gap: var(--space-3); }
 .cv-source > p { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-14); color: var(--ink-2); }
 .cv-source > p svg { flex: none; width: 16px; height: 16px; }
+.cv-source__ghost-text { display: inline; height: auto; width: auto; color: transparent; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.cv-source__ghost-btn { width: 8rem; height: 32px; border-radius: var(--radius); }
+@media (pointer: coarse) { .cv-source__ghost-btn { height: 44px; } }
 .cv-source form { display: grid; gap: var(--space-3); justify-items: start; }
 .cv-source form > .field { justify-self: stretch; }
 /* The flagged lines, quoted from the CV; each can be sent to the rewriter. */
