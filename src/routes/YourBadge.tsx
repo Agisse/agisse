@@ -14,6 +14,8 @@ import posthog from '../lib/posthog'
 import { authClient } from '../lib/auth-client'
 
 const eur = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR' })
+/** €5 for whole euros, €3.20 otherwise. */
+const euro = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })
 
 export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
   const [p, setP] = useState<Profile>({ ...EMPTY_PROFILE, ...(me.profile ?? {}) })
@@ -160,7 +162,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : me.budget.paused && me.budget.paused !== 'cap' ? 'Runs on free models. Your own OpenRouter key keeps you going today.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : me.credit && me.credit.left > 0 ? `${euro(me.credit.left)} of your ${euro(me.credit.granted)} starter credit left · then free models` : me.budget.paused && me.budget.paused !== 'cap' ? 'Runs on free models. Your own OpenRouter key keeps you going today.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
         {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
       </section>
 
