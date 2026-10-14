@@ -1,0 +1,136 @@
+{
+  "measuredAt": "2026-10-14",
+  "commit": "3e77bab",
+  "targets": {
+    "landingLcpMs": 1500,
+    "jobsLcpMs": 2500,
+    "initialJsGzipKb": 150
+  },
+  "bundle": {
+    "initialJsGzipKb": 781.5,
+    "initialCssGzipKb": 45.6,
+    "files": [
+      "/assets/index-DdQ3hdYJ.js",
+      "/assets/index-CA4JgMt8.css"
+    ],
+    "biggestMinifiedKb": {
+      "posthog-js": 305.6,
+      "react-dom": 207.6,
+      "@assistant-ui/core": 193.6,
+      "@base-ui/react": 140,
+      "motion-dom": 93.6,
+      "@assistant-ui/react": 66.1,
+      "src/routes/Jobs.tsx": 58.9,
+      "assistant-stream": 32.4,
+      "framer-motion": 31.8,
+      "src/features/interviews/CasePrep.tsx": 29,
+      "shared/assessment-catalog.ts": 28.5,
+      "src/routes/Map.tsx": 26.5,
+      "src/routes/Landing.tsx": 26,
+      "cn": 25.9,
+      "thinking-orbs": 25.8
+    },
+    "note": "npx tsx scripts/bundle-size.ts; gzip at Node defaults, kB = 1000 bytes; biggest = minified bytes per package from the sourcemap"
+  },
+  "lighthouse": {
+    "note": "Lighthouse 12.8, mobile preset (simulated 4G, 4x CPU), one run each. local = vite preview of npm run build, which serves assets uncompressed (2.4 MB JS on the wire), so its times are about 3x production; compare them only with each other. live = agisse.xyz signed out.",
+    "local": {
+      "landing": {
+        "url": "/",
+        "score": 55,
+        "fcpMs": 14278,
+        "lcpMs": 14891,
+        "tbtMs": 65,
+        "cls": 0,
+        "speedIndexMs": 14278
+      },
+      "signIn": {
+        "url": "/sign-in",
+        "score": 55,
+        "fcpMs": 14272,
+        "lcpMs": 14882,
+        "tbtMs": 42,
+        "cls": 0,
+        "speedIndexMs": 14272
+      },
+      "home": {
+        "url": "/",
+        "score": 52,
+        "fcpMs": 14345,
+        "lcpMs": 15142,
+        "tbtMs": 130,
+        "cls": 0.086,
+        "speedIndexMs": 14345
+      },
+      "jobs": {
+        "url": "/jobs?view=feed",
+        "score": 54,
+        "fcpMs": 14361,
+        "lcpMs": 15658,
+        "tbtMs": 118,
+        "cls": 0.012,
+        "speedIndexMs": 14361
+      }
+    },
+    "live": {
+      "landing": {
+        "url": "https://agisse.xyz/",
+        "score": 72,
+        "fcpMs": 1087,
+        "lcpMs": 6520,
+        "tbtMs": 261,
+        "cls": 0,
+        "speedIndexMs": 2746
+      },
+      "docs": {
+        "url": "https://agisse.xyz/docs/",
+        "score": 100,
+        "fcpMs": 1395,
+        "lcpMs": 1470,
+        "tbtMs": 35,
+        "cls": 0.019,
+        "speedIndexMs": 1395
+      }
+    }
+  },
+  "api": {
+    "note": "npm run dev against the dev Neon branch, synthetic account (data-scientist persona profile), warm, median of 5 (3 for sort=new). queries = HTTP round trips to Neon, including the session guard (2).",
+    "/api/auth/get-session": {
+      "queries": 1,
+      "ms": 19
+    },
+    "/api/me": {
+      "queries": 10,
+      "ms": 53
+    },
+    "/api/due": {
+      "queries": 4,
+      "ms": 44
+    },
+    "/api/jobs": {
+      "queries": 4,
+      "ms": 46
+    },
+    "/api/contacted": {
+      "queries": 3,
+      "ms": 43
+    },
+    "/api/vacancies (sort=match)": {
+      "queries": 5,
+      "ms": 100
+    },
+    "/api/vacancies (sort=new)": {
+      "queries": 5,
+      "ms": 77
+    },
+    "/api/vacancies/facets": {
+      "queries": 7,
+      "ms": 544
+    },
+    "/api/public/stats": {
+      "queries": 1,
+      "ms": 2526,
+      "note": "cold Neon branch; then 0 queries from the edge cache"
+    }
+  }
+}

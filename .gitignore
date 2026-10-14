@@ -40,6 +40,7 @@ docs/.vitepress/cache
 # local scratch
 tmp/
 
-# eval: your own data and run outputs stay local
+# eval: your own data and run outputs stay local; committed baselines are synthetic
 eval/fixtures/private/
-eval/results/
+eval/results/*
+!eval/results/*-baseline.json
