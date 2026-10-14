@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
 - Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
 - Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
