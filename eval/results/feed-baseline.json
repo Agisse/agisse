@@ -1,0 +1,213 @@
+{
+  "date": "2026-10-14",
+  "targets": {
+    "roles": 200,
+    "onField": 0.8,
+    "employers": 15
+  },
+  "results": [
+    {
+      "persona": "nursing",
+      "countries": [
+        "NL",
+        "BE"
+      ],
+      "fields": [
+        "healthcare"
+      ],
+      "roles": 1690,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 1,
+      "employers": 25,
+      "pass": true
+    },
+    {
+      "persona": "civil-engineer",
+      "countries": [
+        "DE",
+        "AT",
+        "CH"
+      ],
+      "fields": [
+        "engineering"
+      ],
+      "roles": 2190,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 1,
+      "employers": 18,
+      "pass": true
+    },
+    {
+      "persona": "law",
+      "countries": [
+        "GB",
+        "IE"
+      ],
+      "fields": [
+        "legal"
+      ],
+      "roles": 195,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.97,
+      "employers": 21,
+      "pass": false
+    },
+    {
+      "persona": "data-scientist",
+      "countries": [
+        "FR",
+        "BE",
+        "LU"
+      ],
+      "fields": [
+        "data",
+        "software"
+      ],
+      "roles": 1381,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.8,
+      "employers": 29,
+      "pass": true
+    },
+    {
+      "persona": "marketing",
+      "countries": [
+        "ES",
+        "PT"
+      ],
+      "fields": [
+        "marketing",
+        "media"
+      ],
+      "roles": 107,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.93,
+      "employers": 26,
+      "pass": false
+    },
+    {
+      "persona": "pharmacist",
+      "countries": [
+        "CH",
+        "DE"
+      ],
+      "fields": [
+        "science",
+        "healthcare"
+      ],
+      "roles": 1299,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.9,
+      "employers": 20,
+      "pass": true
+    },
+    {
+      "persona": "teacher",
+      "countries": [
+        "BE",
+        "NL"
+      ],
+      "fields": [
+        "education"
+      ],
+      "roles": 112,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.77,
+      "employers": 30,
+      "pass": false
+    },
+    {
+      "persona": "eu-affairs",
+      "countries": [
+        "BE",
+        "LU"
+      ],
+      "fields": [
+        "policy",
+        "consulting"
+      ],
+      "roles": 472,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 1,
+      "employers": 19,
+      "pass": true
+    },
+    {
+      "persona": "architect",
+      "countries": [
+        "IT",
+        "ES"
+      ],
+      "fields": [
+        "design",
+        "engineering"
+      ],
+      "roles": 763,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.97,
+      "employers": 20,
+      "pass": true
+    },
+    {
+      "persona": "auditor",
+      "countries": [
+        "PL",
+        "CZ"
+      ],
+      "fields": [
+        "audit",
+        "corp_finance"
+      ],
+      "roles": 306,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 0.97,
+      "employers": 22,
+      "pass": true
+    },
+    {
+      "persona": "ux-designer",
+      "countries": [
+        "SE",
+        "DK",
+        "FI"
+      ],
+      "fields": [
+        "design",
+        "product"
+      ],
+      "roles": 163,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 1,
+      "employers": 23,
+      "pass": false
+    },
+    {
+      "persona": "supply-chain",
+      "countries": [
+        "NL",
+        "DE",
+        "CZ"
+      ],
+      "fields": [
+        "ops"
+      ],
+      "roles": 835,
+      "top": 30,
+      "onFieldFunctions": 1,
+      "onFieldTitle": 1,
+      "employers": 24,
+      "pass": true
+    }
+  ]
+}

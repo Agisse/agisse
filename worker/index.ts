@@ -6,7 +6,7 @@ import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 import { requireMcpAuth } from '@better-auth/mcp'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { createDb, schema, type Db } from './db'
+import { createDb, dbTiming, schema, type Db } from './db'
 import { isAdminEmail, createAuth, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
@@ -129,7 +129,11 @@ const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(asy
   }
   c.set('db', dbCache.db)
   c.set('auth', auth)
-  await next()
+  // Database round trips and time (summed, so parallel queries can exceed total), visible in DevTools.
+  const start = Date.now()
+  const t = { queries: 0, ms: 0 }
+  await dbTiming.run(t, next)
+  c.header('Server-Timing', `db;dur=${t.ms};desc="${t.queries} queries", total;dur=${Date.now() - start}`)
 })
 for (const path of ['/api/*', '/mcp', '/.well-known/*']) app.use(path, withDbAuth)
 
