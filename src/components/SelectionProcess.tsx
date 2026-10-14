@@ -11,6 +11,7 @@ import { api, isAbort, type Me } from '../lib/api'
 import { useAbortable, useResource } from '../lib/hooks'
 import { ErrorNote } from '../features/assessments/components/AssessmentPrep'
 import posthog from '../lib/posthog'
+import { PrepGhost } from './PrepGhost'
 import '../features/assessments/assessments.css'
 
 const SOURCE_ORDER: AssessmentSource['kind'][] = ['official', 'university', 'candidate report', 'forum', 'provider']
@@ -50,7 +51,7 @@ export function SelectionProcess({ job, me, onSpend }: { job: Job; me: Me; onSpe
     }
   }
 
-  if (res.loading && !res.data) return <p className="label label--muted">Looking up the selection process…</p>
+  if (res.loading && !res.data) return <PrepGhost title="Hiring rounds" lines={2} status="Looking up the selection process…" />
   if (res.error) return <ErrorNote text={res.error} />
 
   const s = res.data?.selection ?? null

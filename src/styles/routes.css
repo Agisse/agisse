@@ -1031,6 +1031,10 @@
 }
 .posting__block > * { justify-self: stretch; }
 .posting__block > .btn { justify-self: start; }
+.prep__ghost-lede { display: grid; gap: 11px; padding-block: 6px; width: min(24rem, 90%); }
+.prep__ghost-lede > .feed-ghost { width: 100%; }
+.prep__ghost-lede > :last-child:not(:first-child) { width: 45%; }
+.posting__block > .prep__ghost-btn { justify-self: start; width: 9rem; height: 36px; border-radius: var(--radius); }
 /* A folded block: the label is the whole row until opened. */
 .posting__fold > summary { display: flex; align-items: center; gap: 6px; min-height: 44px; margin-top: calc(-1 * var(--space-3)); cursor: pointer; list-style: none; }
 .posting__fold:not([open]) { gap: 0; }
