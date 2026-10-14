@@ -32,6 +32,9 @@ export const SKIPPED: Record<string, string> = {
   profile_embedding: 'vector the feed provider derives from the profile',
 }
 
+// What we paid the provider is billing, not the seeker's data.
+export const withoutCost = (rows: (typeof schema.usage.$inferSelect)[]) => rows.map(({ costUsd: _, ...u }) => u)
+
 export async function exportUserData(db: Db, userId: string) {
   const [user, aiKey, ...rows] = await Promise.all([
     db.query.user.findFirst({
@@ -42,7 +45,5 @@ export async function exportUserData(db: Db, userId: string) {
     ...Object.values(EXPORTED).map((t) => db.select().from(t).where(eq(t.userId, userId))),
   ])
   const { usage, ...tables } = Object.fromEntries(Object.keys(EXPORTED).map((k, i) => [k, rows[i]]))
-  // What we paid the provider is billing, not the seeker's data.
-  const uses = (usage as (typeof schema.usage.$inferSelect)[]).map(({ costUsd: _, ...u }) => u)
-  return { exportedAt: new Date().toISOString(), user, aiKey: aiKey ?? null, ...tables, usage: uses }
+  return { exportedAt: new Date().toISOString(), user, aiKey: aiKey ?? null, ...tables, usage: withoutCost(usage as (typeof schema.usage.$inferSelect)[]) }
 }
