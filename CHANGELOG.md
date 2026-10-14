@@ -8,7 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
-- The Hired Wall: got the job with Agisse's help? Share your story on GitHub, and choose whether your name, only the role, or only the count shows.
+- The Hired Wall: got the job with Agisse's help? Share your story on GitHub, and choose whether your name, only the role, or only the count shows. A job at Offer links to it once, until you open or hide the link.
 - What's new, in the account menu: the changes that matter to you, newest first. A blue dot on your avatar says when there's something you haven't seen.
 - Download my data, in Profile next to Delete account: everything you saved in Agisse as one JSON file, also while your account is on the waitlist.
 - Have an invite code, on the waitlist card: an invite that arrives after you signed up opens your account straight away. The whole invite link works too.
