@@ -12,7 +12,8 @@
     "!dist/client/**/*.map",
     "dist/agisse.mjs",
     "drizzle",
-    "!drizzle/meta/*_snapshot.json"
+    "!drizzle/meta/*_snapshot.json",
+    "wrangler.jsonc"
   ],
   "scripts": {
     "predev": "npm run ext:zip && npm run docs:build",
