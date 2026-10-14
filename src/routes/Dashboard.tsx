@@ -344,7 +344,8 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
         </p>
       )}
 
-      <InviteCard />
+      {/* Invites wait until the seeker has used Agisse once; a waitlisted account (no checklist) still sees its place and the code field. */}
+      {!loading && !checklist && <InviteCard />}
     </main>
   )
 }

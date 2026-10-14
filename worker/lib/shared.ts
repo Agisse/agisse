@@ -102,12 +102,13 @@ export function pauseFor(env: Partial<Record<'GLOBAL_DAILY_USD_CAP' | 'FREE_DAIL
   return undefined
 }
 
-/** The user's allowance, plus the daily limits: past one, the account reads as spent (paused) until midnight UTC. */
-export async function loadBudget(db: Db, env: Env, userId: string): Promise<Budget> {
+/** The user's allowance, plus the daily limits: past one, the account reads as spent (paused) until midnight UTC.
+ *  Pass `budgetEur` when the caller already has the user row (the session guard does), to skip one query. */
+export async function loadBudget(db: Db, env: Env, userId: string, budgetEur?: number | null): Promise<Budget> {
   const limited = [env.GLOBAL_DAILY_USD_CAP, env.FREE_DAILY_ACTIONS, env.FREE_DAILY_ACTIONS_ALL].some((v) => Number(v) > 0)
   const [spend, u, today] = await Promise.all([
     spendThisMonth(db, userId),
-    db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
+    budgetEur !== undefined ? { budgetEur } : db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
     limited ? spendToday(db, userId) : null,
   ])
   const budget = toBudget(env, spend.get(userId), u?.budgetEur)

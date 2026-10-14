@@ -97,8 +97,8 @@ export function remembered<T extends string>(key: string, allowed: readonly T[],
 }
 
 /** What /api/me said last time in this browser, so the right layout draws before it answers. Not a secret: the server stays the authority. */
-export type SessionHint = 'in' | 'trial' | 'pending' | 'rejected' | 'out'
-export const sessionHint = (value?: SessionHint) => remembered<SessionHint>('session', ['in', 'trial', 'pending', 'rejected', 'out'], 'out', value)
+export type SessionHint = 'in' | 'trial' | 'rejected' | 'out'
+export const sessionHint = (value?: SessionHint) => remembered<SessionHint>('session', ['in', 'trial', 'rejected', 'out'], 'out', value)
 
 /** The map's search form, filled in with this company. */
 export const boothHref = (p: { name: string; domain: string | null }) => `/contacts?${new URLSearchParams({ company: p.name, ...(p.domain ? { domain: p.domain } : {}) })}`
