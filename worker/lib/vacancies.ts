@@ -47,6 +47,9 @@ export async function countFeedPage(db: Db, userId: string) {
     .returning({ pages: schema.feedDay.pages })
   return row!.pages <= FEED_DAILY_PAGES
 }
+
+/** Daily counts are kept 30 days, for the admin's "hit the feed limit" line; run by the daily cron. */
+export const pruneFeedDays = (db: Db) => db.delete(schema.feedDay).where(sql`${schema.feedDay.day} < current_date - 30`)
 const v = schema.vacancy
 const textArray = (xs: string[]) => sql`ARRAY[${sql.join(xs.map((x) => sql`${x}`), sql`, `)}]::text[]`
 

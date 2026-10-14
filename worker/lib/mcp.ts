@@ -170,7 +170,7 @@ const researchFor = (p: Person) => ({
 
 const READ = { readOnlyHint: true, openWorldHint: false } as const
 
-export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean) {
+export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean, admin = false) {
   const server = new McpServer({ name: 'agisse', version: '1.0.0' })
 
   server.registerTool(
@@ -450,7 +450,7 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean)
     async ({ cursor, sort, ...f }) => {
       const offset = cursor === undefined ? 0 : Number(cursor)
       if (!Number.isInteger(offset) || offset < 0 || offset > MAX_OFFSET) return errorText('Invalid cursor: pass nextCursor from the previous page unchanged.')
-      const [allowed, profile] = await Promise.all([countFeedPage(db, userId), loadProfile(db, userId)])
+      const [allowed, profile] = await Promise.all([admin || countFeedPage(db, userId), loadProfile(db, userId)])
       if (!allowed) return errorText(FEED_CAP_MESSAGE)
       const p = { ...EMPTY_FEED_PREFS, ...profile?.jobFeed }
       const { vacancies, more, profiled } = await searchVacancies(
