@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Where you add your CV, one line says what to leave out: your photo, date of birth and anything you wouldn't tell an employer.
 - Deleting your account also clears what Agisse kept in that browser for it: your assistant chats, weekly goal and layout hints.
 - Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
