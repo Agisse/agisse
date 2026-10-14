@@ -11,6 +11,9 @@ updates:
         versions: ["4.150.x"]
       - dependency-name: "@cloudflare/vite-plugin"
         versions: ["1.63.2"]
+      # babel-plugin-react-compiler 1.0 skips every component with a defaulted prop under Babel 8 (#49).
+      - dependency-name: "@babel/core"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
