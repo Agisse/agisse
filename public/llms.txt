@@ -23,7 +23,7 @@ Who it is for: students and graduates in their first few years of work looking f
 - [MCP setup](https://agisse.xyz/docs/mcp): connect Claude, ChatGPT/Codex, Cursor or any MCP client; endpoint, OAuth sign-in, tools
 - [Browser extension](https://agisse.xyz/docs/extension): send a job posting or profile into Agisse in one click
 - [Methodology](https://agisse.xyz/docs/methodology): how the 1–5 score and the feed's match are made, the 4.0 line, and what they can't know
-- [Compare](https://agisse.xyz/docs/compare/): Agisse next to career-ops, Simplify and Jobright, from their own public pages, dated
+- [Compare](https://agisse.xyz/docs/compare/): Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, from their own public pages, dated
 
 ## Selection processes and online tests
 

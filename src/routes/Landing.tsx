@@ -129,6 +129,13 @@ export function Landing() {
               </div>
             ))}
           </div>
+          {LAUNCH && (
+            <p className="mt-6 text-center text-sm">
+              <a href="/docs/compare/" className="text-primary underline-offset-4 hover:underline">
+                See comparisons
+              </a>
+            </p>
+          )}
         </section>
 
         <section id="faq" aria-labelledby="faq-title" className={cn(WRAP, 'mt-28 grid gap-8 sm:mt-40 md:grid-cols-[1fr_2fr] md:gap-16')}>
@@ -469,10 +476,11 @@ const FOOTER: [string, string][] = [
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
 
-// MCP and the extension sit in the docs' own menu. Manifesto, Compare and Changelog join once their public pages exist.
+// MCP and the extension sit in the docs' own menu. Manifesto and Changelog join once their public pages exist.
 const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/', 'Docs'],
   ['/docs/methodology', 'Methodology'],
+  ['/docs/compare/', 'Compare'],
   ['/docs/privacy', 'Privacy'],
   ['/docs/terms', 'Terms'],
   ['/docs/imprint', 'Imprint'],
