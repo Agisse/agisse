@@ -60,6 +60,8 @@ Each piece below feeds the next:
 
 Agisse runs on Cloudflare's free plan plus a free Neon Postgres database. Step by step: [`/docs/self-host`](docs/self-host.md).
 
+The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. A self-hosted copy starts with an empty feed; fill it with your own provider (see the [feed contract](docs/feed-contract.md)) or the Arbeitnow importer (`scripts/import-feed.ts`).
+
 **Required:** `DATABASE_URL`, `BETTER_AUTH_SECRET` and `ADMIN_EMAIL` (your account becomes the admin).
 
 **Optional:** each one turns a feature on, and the app works without it.
