@@ -54,6 +54,11 @@ function ScoutRoute({ me, refreshMe, scoutId: picked }: { me: Me; refreshMe: () 
   const [error, setError] = useState<string | null>(null)
   const [formOpen, setFormOpen] = useState<boolean | null>(null)
   const abort = useAbortable()
+  // Until the list answers, this browser's last answer draws the form, so it doesn't open (or fold) under the seeker.
+  const [hadSearches] = useState(() => remembered('companies', ['some', 'none'], 'none') === 'some')
+  useEffect(() => {
+    if (list.data) remembered('companies', ['some', 'none'], 'none', list.data.length ? 'some' : 'none')
+  }, [list.data])
 
   // The form lives here so "+ Dream list" on a stop can feed the next scout.
   const [mode, setMode] = useState<Mode>('dream')
@@ -133,12 +138,13 @@ function ScoutRoute({ me, refreshMe, scoutId: picked }: { me: Me; refreshMe: () 
   }
 
   const shown = scoutId && scout?.id === scoutId ? scout : null
-  const open = formOpen ?? list.data?.length === 0
+  const searched = list.data ? list.data.length > 0 : hadSearches
+  const open = formOpen ?? !searched
   const form = { mode, setMode, dream, setDream, description, setDescription, location, setLocation, sizes, setSizes, useProfile, setUseProfile, exclude, setExclude }
 
   return (
     <>
-      <ScoutForm me={me} busy={!!pending} open={open} compact={!!(shown || pending || scoutId || list.loading)} onToggle={setFormOpen} onSubmit={run} {...form} />
+      <ScoutForm me={me} busy={!!pending} open={open} compact={!!(shown || pending || scoutId || searched)} onToggle={setFormOpen} onSubmit={run} {...form} />
 
       {error && !pending && (
         <p className="notice notice--error" role="alert">
