@@ -54,6 +54,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
+import { deleteStaleWaitlist } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
@@ -2323,10 +2324,11 @@ app.onError((err, c) => {
 
 export default {
   fetch: app.fetch,
-  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed.
+  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, and apply retention.
   async scheduled(_event: ScheduledController, env: Env) {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
+    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(db, env.RESUMES))
   },
 } satisfies ExportedHandler<Env>
