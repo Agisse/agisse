@@ -55,6 +55,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The README opens with what Agisse is today (the feed, the apply-or-skip score, warm intros, prep) instead of People alone, and no longer mentions a paid Pro plan. Short versions in Dutch, French, German, Spanish, Italian and Polish sit next to it; `scripts/readme-translations.check.ts` says which ones to update when the English intro changes.
 - The README and `/docs/self-host` show both ways to self-host: on your computer with `npx github:Agisse/agisse` (Node 20+ or Bun, embedded Postgres), or on Cloudflare with `npm run self-host`, and what the first one lacks.
 - Installing the `npx agisse` package takes 174 MB instead of 545 MB: front-end packages are `devDependencies` now, since Vite bundles them into the built app anyway.
+- `publish.yml` publishes the `npx agisse` package to npm on a release tag, with provenance and no npm token. It stays off until the owner turns it on (#117).
 - `npm pack` builds the `npx agisse` package: the built app, local mode as one file (`dist/agisse.mjs`) and the migrations, about 3.3 MB. Not on npm yet (#117).
 - CI installs that package in an empty folder and checks `npx agisse` on Node and Bun: it starts, an account signs up, the feed loads (`scripts/npx-smoke.sh`).
 - `npm run local -- admin you@example.com` makes that signed-up account the admin in local mode, where there's no SQL editor. Without `RESEND_API_KEY`, the console now shows each email's link too, so a password reset works on a server without mail.
