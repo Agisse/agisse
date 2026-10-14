@@ -1,6 +1,6 @@
 // Run: npx tsx src/lib/changelog.check.ts
 import { readFileSync } from 'node:fs'
-import { inlineParts, parseChangelog } from './changelog.ts'
+import { inlineParts, parseChangelog, releaseKey } from './changelog.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -59,6 +59,11 @@ eq(
   'inline parts',
 )
 eq(inlineParts('a ` lone backtick'), [{ kind: 'text', text: 'a ` lone backtick' }], 'unmatched marks stay text')
+
+const r = { version: 'Unreleased', date: null, changes: ['One.'] }
+eq(releaseKey(r), releaseKey({ ...r, changes: ['One.'] }), 'same entries, same key')
+if (releaseKey(r) === releaseKey({ ...r, changes: ['One.', 'Two.'] })) throw new Error('a new entry must change the key')
+if (releaseKey(r) === releaseKey({ ...r, version: '0.1.0' })) throw new Error('a release must change the key')
 
 // The real file: the page has something to show, and none of it is contributor plumbing.
 const real = parseChangelog(readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf8'))

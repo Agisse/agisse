@@ -1,12 +1,12 @@
-import changelog from '../../CHANGELOG.md?raw'
-import { inlineParts, parseChangelog } from '../lib/changelog'
-
-const releases = parseChangelog(changelog)
+import { useEffect } from 'react'
+import { inlineParts } from '../lib/changelog'
+import { markNewsSeen, releases } from '../lib/whats-new'
 
 const dateLabel = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 
 /** What's new: the user-facing part of CHANGELOG.md, newest first. Linked from the account menu. */
 export function ChangelogRoute() {
+  useEffect(markNewsSeen, [])
   return (
     <main className="map map--stack changelog-page">
       <h1 className="display intake__title">What's new</h1>
