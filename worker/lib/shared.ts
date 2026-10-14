@@ -78,11 +78,12 @@ async function spendToday(db: Db) {
 }
 
 /** The user's allowance, plus the global daily cap: past it, every account reads as spent (paused) until midnight UTC. */
-export async function loadBudget(db: Db, env: Env, userId: string): Promise<Budget> {
+/** Pass `budgetEur` when the caller already has the user row (the session guard does), to skip one query. */
+export async function loadBudget(db: Db, env: Env, userId: string, budgetEur?: number | null): Promise<Budget> {
   const cap = Number(env.GLOBAL_DAILY_USD_CAP) || 0
   const [spend, u, today] = await Promise.all([
     spendThisMonth(db, userId),
-    db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
+    budgetEur !== undefined ? { budgetEur } : db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { budgetEur: true } }),
     cap ? spendToday(db) : 0,
   ])
   const budget = toBudget(env, spend.get(userId), u?.budgetEur)
