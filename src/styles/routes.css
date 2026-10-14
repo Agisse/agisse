@@ -1255,6 +1255,9 @@
 .cv__line { display: flex; justify-content: space-between; gap: 1em; }
 .cv ul { padding-left: 15pt; margin-top: 2pt; list-style: disc; }
 .cv li + li { margin-top: 1pt; }
+.cv--ghost { display: grid; gap: 12px; padding-bottom: clamp(20px, 6vw, 0.35in); }
+.cv--ghost .feed-ghost { background: #ebebef; }
+.cv__ghost-name { justify-self: center; width: 40%; height: 24px; margin-bottom: 12px; }
 
 @media print {
   @page { margin: 0; }
@@ -1923,6 +1926,12 @@
 .feed-ghost--sm { width: 40%; height: 10px; }
 .feed-ghost--logo { width: 40px; height: 40px; border-radius: var(--radius); }
 .feed-row--ghost .feed-row__when { width: 6rem; justify-self: end; }
+.booth__ghost-logo { flex: none; width: 56px; height: 56px; }
+.booth__ghost-text { flex: 1; display: grid; gap: 18px; padding-top: 10px; }
+.booth__ghost-company { width: min(16rem, 70%); height: clamp(1.5rem, 3vw, 2rem); }
+.booth__ghost-role { width: min(22rem, 90%); height: 14px; }
+.booth__ghost-meta { width: 8rem; }
+.booth__ghost-more { width: 4.5rem; height: 32px; }
 
 .feed-toast {
   position: sticky;

@@ -170,7 +170,17 @@ export function CvRoute({ me, refreshMe, jobId }: { me: Me; refreshMe: () => Pro
           <AlertCircle aria-hidden="true" /> <span>{error}</span>
         </p>
       )}
-      {!job && !error && <p className="label label--muted no-print">Loading the posting…</p>}
+      {!job && !error && (
+        <div className="no-print" aria-busy="true">
+          <p className="sr-only" role="status">Loading the posting…</p>
+          <article className="cv cv--ghost" aria-hidden="true">
+            <span className="feed-ghost cv__ghost-name" />
+            {[90, 75, 85, 60, 80, 70].map((w, i) => (
+              <span key={i} className="feed-ghost feed-ghost--sm" style={{ width: `${w}%` }} />
+            ))}
+          </article>
+        </div>
+      )}
       {busy && (
         <div className="no-print">
           <AiWorking label={cv ? 'Rewriting your CV for this posting' : 'Tailoring your CV to this posting'} />
