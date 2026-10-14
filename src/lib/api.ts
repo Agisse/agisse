@@ -40,7 +40,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
+export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
 /** No school, employers, organizations or skills: nothing to find shared ground with. */
 export function profileIsEmpty(me: Me) {
   const p = me.profile
@@ -52,11 +52,11 @@ export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
-export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; budget: Budget; feedCapDays: number }
+export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number }
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
-export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null }
+export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
 
 export const api = {
   checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),

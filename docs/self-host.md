@@ -108,7 +108,7 @@ Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog un
 
 ## Your users' data
 
-If other people use your copy, you are the controller of their data under the GDPR, not Agisse. Your users' CVs and profiles live in your database and storage, and go to the AI provider and other services you configure. Write your own privacy policy: agisse.xyz's [privacy policy](/privacy) and [Data flow](/data-flow) show what the code does, but name agisse.xyz's processors and owner, not yours. Running it only for yourself on your own computer is personal use, which the GDPR doesn't cover.
+If other people use your copy, you are the controller of their data under the GDPR, not Agisse. Your users' CVs and profiles live in your database and storage, and go to the AI provider and other services you configure. Write your own privacy policy: agisse.xyz's [privacy policy](/privacy) and [Data flow](/data-flow) show what the code does, but name agisse.xyz's processors and owner, not yours. You also keep your own [record of processing](/records-of-processing); agisse.xyz's can be a starting point. Running it only for yourself on your own computer is personal use, which the GDPR doesn't cover.
 
 ## Name and logo
 
