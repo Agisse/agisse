@@ -1,10 +1,10 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
 import { AlertCircle, ArrowRight, BriefcaseBusiness, Check, ChevronRight, Pencil, Search, UserRound } from 'lucide-react'
 import type { JobStatus } from '../../shared/types'
 import { EMPTY_FEED_PREFS } from '../../shared/listings'
 import { api, profileIsEmpty, type Me } from '../lib/api'
-import { formatDate, useResource } from '../lib/hooks'
+import { formatDate, remembered, useResource } from '../lib/hooks'
 import { dueItems } from '../lib/followup'
 import { weekCounts } from '../lib/week'
 import { InviteCard } from '../components/InviteCard'
@@ -104,16 +104,17 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
   // The one primary: the next first-run step, else the first thing due (then left out of the list).
   const first = nextStep ? undefined : due[0]
   const rest = first ? due.slice(1) : due
+  // Until the lists answer, this browser's last answer decides whether Coming up's placeholder draws, so it doesn't vanish under the seeker.
+  const [hadMore] = useState(() => remembered('coming-up', ['some', 'none'], 'none') === 'some')
+  useEffect(() => {
+    if (!loading) remembered('coming-up', ['some', 'none'], 'none', rest.length ? 'some' : 'none')
+  }, [loading, rest.length])
   const personHref = (p: { id: string; search: { id: string } | null }) => (p.search ? `/s/${p.search.id}#p-${p.id}` : '/contacts?view=contacted')
   const offers = allJobs.filter((j) => j.status === 'offer').length
-  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
     <main className="mx-auto flex w-full max-w-[960px] flex-col gap-8 px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-16">
-      <header className="flex flex-col gap-1 px-1">
-        <h1 className="m-0 text-[28px] leading-tight font-semibold tracking-tight text-balance text-foreground md:text-[32px]">{greeting(me.user.name)}</h1>
-        <p className="m-0 text-[15px] text-muted-foreground">{today}</p>
-      </header>
+      <h1 className="m-0 px-1 text-[28px] leading-tight font-semibold tracking-tight text-balance text-foreground md:text-[32px]">{greeting(me.user.name)}</h1>
 
       {error && (
         <Alert variant="destructive">
@@ -131,14 +132,11 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
         </Card>
       ) : checklist ? (
         <Card className="gap-0 rounded-2xl p-0">
-          <div className="flex flex-col gap-3 px-5 pt-5 pb-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="m-0 text-xl font-semibold tracking-tight">Get started</h2>
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {steps.filter((s) => s.done).length} of {steps.length} done
-              </span>
-            </div>
-            <Progress value={(steps.filter((s) => s.done).length / steps.length) * 100} aria-label="Getting started progress" />
+          <div className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-4">
+            <h2 className="m-0 text-xl font-semibold tracking-tight">Get started</h2>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {steps.filter((s) => s.done).length} of {steps.length} done
+            </span>
           </div>
           <ol className="m-0 list-none border-t border-border p-0" aria-label="Getting started">
             {steps.map((s) => {
@@ -209,8 +207,8 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
         />
       )}
 
-      {/* Coming up: everything else due, soonest first. Hidden when nothing at all is due and the card above already says so. */}
-      {(loading || checklist || first || rest.length > 0) && (
+      {/* Coming up: everything else due, soonest first; hidden when there's nothing else. */}
+      {(loading ? hadMore : rest.length > 0) && (
         <section aria-labelledby="due-title" aria-busy={loading} className="flex flex-col gap-2">
           <SectionHead id="due-title">Coming up</SectionHead>
           <div className={GROUP}>
@@ -225,7 +223,7 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
                   <Skeleton className="h-3 w-12" />
                 </div>
               ))
-            ) : rest.length > 0 ? (
+            ) : (
               <ul className="m-0 list-none p-0">
                 {rest.map((d) => {
                   const w = when(d.at)
@@ -254,10 +252,6 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
                   )
                 })}
               </ul>
-            ) : (
-              <p className="m-0 px-4 py-4 text-[15px] text-muted-foreground">
-                {first ? 'Nothing else due.' : 'Nothing due. Set a date on an application and it shows up here when it comes close.'}
-              </p>
             )}
           </div>
         </section>
