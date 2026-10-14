@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - Today is a little quieter: no date under the greeting, no progress bar repeating "1 of 4 done", and no empty Coming up box when nothing else is due.
+- Your invite link shows on Today once you've finished Get started, so a new account sees one thing to do.
 - The job feed loads up to four times faster, most of all with no field picked.
 - The homepage and sign-in load less than half the code they used to: the rest of the app only downloads once you're signed in, alongside your account details instead of after them.
 - Usage analytics load after the page has, instead of before it.
