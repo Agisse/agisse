@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'wouter'
-import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Shield, Sun, UserRound, Users } from 'lucide-react'
+import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, UserRound, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
-import { useCopy } from '../lib/hooks'
+import { shareLink, useCopy } from '../lib/hooks'
 import { setTheme, useTheme, type Theme } from '../lib/theme'
 import { hasNews } from '../lib/whats-new'
 import posthog from '../lib/posthog'
@@ -167,13 +167,16 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
   const [loc, navigate] = useLocation()
   const theme = useTheme()
   const { copied, copy } = useCopy()
+  const shared = useCopy()
+  // Fetched when the menu opens, so the click can copy within the same gesture (Safari needs that).
+  const [shareUrl, setShareUrl] = useState<Promise<string | null> | null>(null)
   // Re-read on every page change, so the dot goes once What's new has been opened.
   const news = loc !== '/changelog' && hasNews()
   const label = `Account, ${email}${news ? ", something new in What's new" : ''}`
   const dot = <span aria-hidden="true" className="absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
   const initial = <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{email[0]?.toUpperCase()}</AvatarFallback>
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && !shareUrl && setShareUrl(api.referral().then((r) => `${location.origin}/?ref=${r.code}`, () => (setShareUrl(null), null)))}>
       {compact ? (
         <DropdownMenuTrigger className="-mr-1.5 grid size-11 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={label}>
           <span className="relative">
@@ -214,6 +217,15 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
           <DropdownMenuItem onClick={() => navigate('/changelog')}>
             <ScrollText aria-hidden="true" /> What's new
             {news && <span className="ml-auto size-2 rounded-full bg-primary"><span className="sr-only">, new</span></span>}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            closeOnClick={false}
+            onClick={() => {
+              posthog.capture('invite_link_shared', { source: 'account_menu' })
+              void shareUrl?.then((link) => link ? shareLink(link, shared.copy) : undefined)
+            }}
+          >
+            <Share2 aria-hidden="true" /> {shared.copied ? 'Link copied' : 'Share Agisse'}
           </DropdownMenuItem>
           {!trial && (
             <DropdownMenuItem
