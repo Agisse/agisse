@@ -44,15 +44,17 @@ function nextMonthStart() {
   return new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 1))
 }
 
-type Spend = { tokens: number; costUsd: number }
+type Spend = { tokens: number; costUsd: number; ourUsd: number }
 
-/** Provider spend since the 1st, per user (one user, or everyone). */
+/** Provider spend since the 1st, per user (one user, or everyone). Credit-paid rows count only toward `ourUsd`, not the allowance. */
 export async function spendThisMonth(db: Db, userId?: string) {
+  const own = sql`where ${schema.usage.creditEur} is null`
   const rows = await db
     .select({
       userId: schema.usage.userId,
-      tokens: sql<number>`sum(${schema.usage.tokens})`.mapWith(Number),
-      costUsd: sql<number>`sum(${schema.usage.costUsd})`.mapWith(Number),
+      tokens: sql<number>`sum(${schema.usage.tokens}) filter (${own})`.mapWith(Number),
+      costUsd: sql<number>`sum(${schema.usage.costUsd}) filter (${own})`.mapWith(Number),
+      ourUsd: sql<number>`sum(${schema.usage.costUsd})`.mapWith(Number),
     })
     .from(schema.usage)
     .where(and(gte(schema.usage.createdAt, monthStart()), userId ? eq(schema.usage.userId, userId) : undefined))
@@ -63,7 +65,7 @@ export async function spendThisMonth(db: Db, userId?: string) {
 /** Provider cost → what the user is charged in €: cost ÷ (1 − margin), so a margin of 1/3 charges cost × 1.5 (a 50% markup).
  *  Free OpenRouter models bill $0, so tokens also carry a small nominal price (TOKEN_EUR_PER_MILLION). */
 export function toBudget(env: Env, spend: Spend | undefined, budgetEur: number | null | undefined): Budget {
-  const cost = (spend?.costUsd ?? 0) * Number(env.USD_TO_EUR)
+  const cost = (spend?.ourUsd ?? 0) * Number(env.USD_TO_EUR)
   const tokenCharge = ((spend?.tokens ?? 0) / 1e6) * (Number(env.TOKEN_EUR_PER_MILLION) || 0)
   return { used: (spend?.costUsd ?? 0) * eurPerUsd(env) + tokenCharge, limit: budgetEur ?? Number(env.MONTHLY_BUDGET_EUR), cost, tokens: spend?.tokens ?? 0, resetsOn: nextMonthStart().toISOString() }
 }
@@ -82,9 +84,10 @@ export function creditFor(env: Money, creditEur: number | null | undefined, ownK
   return !ownKey && !trial && (creditEur ?? 0) > 0 && models.length ? { models, eurPerUsd: eurPerUsd(env) } : undefined
 }
 
-type Today = { usd: number; actions: number; mine: number; ownKey: boolean }
+type Today = { usd: number; actions: number; mine: number; ownKey: boolean; credit: boolean }
 
-/** Since UTC midnight: provider USD spent by everyone, and actions on this server's key (rows with tokens; own-key rows book none), by everyone and by this user. */
+/** Since UTC midnight: provider USD spent by everyone, and free actions on this server's key (rows with tokens and no credit drawn;
+ *  own-key rows book none), by everyone and by this user. */
 export async function spendToday(db: Db, userId: string): Promise<Today> {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
@@ -92,24 +95,25 @@ export async function spendToday(db: Db, userId: string): Promise<Today> {
   const [row] = await db
     .select({
       usd: sql<number>`coalesce(sum(${u.costUsd}), 0)`.mapWith(Number),
-      actions: sql<number>`count(*) filter (where ${u.tokens} > 0)`.mapWith(Number),
-      mine: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.userId} = ${userId})`.mapWith(Number),
+      actions: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.creditEur} is null)`.mapWith(Number),
+      mine: sql<number>`count(*) filter (where ${u.tokens} > 0 and ${u.creditEur} is null and ${u.userId} = ${userId})`.mapWith(Number),
       ownKey: sql<boolean>`exists (select 1 from ${schema.aiKey} where ${schema.aiKey.userId} = ${userId})`,
+      credit: sql<boolean>`exists (select 1 from ${schema.user} where ${schema.user.id} = ${userId} and ${schema.user.creditEur} > 0)`,
     })
     .from(u)
     .where(gte(u.createdAt, today))
-  return row ?? { usd: 0, actions: 0, mine: 0, ownKey: false }
+  return row ?? { usd: 0, actions: 0, mine: 0, ownKey: false, credit: false }
 }
 
 /** Why AI is paused for this user until midnight UTC, if it is. The USD cap stops everyone; the free-action limits
  *  (OpenRouter's free models allow a fixed number of requests per day per account, shared by every seeker on this key)
- *  skip seekers with their own key. */
+ *  skip seekers with their own key or one-time credit left. */
 export function pauseFor(env: Partial<Record<'GLOBAL_DAILY_USD_CAP' | 'FREE_DAILY_ACTIONS' | 'FREE_DAILY_ACTIONS_ALL', string>>, t: Today): Budget['paused'] {
   const cap = Number(env.GLOBAL_DAILY_USD_CAP) || 0
   const all = Number(env.FREE_DAILY_ACTIONS_ALL) || 0
   const mine = Number(env.FREE_DAILY_ACTIONS) || 0
   if (cap && t.usd >= cap) return 'cap'
-  if (t.ownKey) return undefined
+  if (t.ownKey || t.credit) return undefined
   if (all && t.actions >= all) return 'free'
   if (mine && t.mine >= mine) return 'you'
   return undefined
@@ -168,6 +172,7 @@ export async function charge(db: Db, userId: string, kind: typeof schema.usage.$
       kind,
       tokens: meter.tokens,
       costUsd: meter.costUsd,
+      creditEur: draw || null,
       task: g?.task,
       model: g?.model,
       prompt: g?.prompt,
