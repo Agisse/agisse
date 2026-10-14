@@ -15,8 +15,10 @@ export const APP_CSP = [
   "connect-src 'self' https://*.posthog.com https://tiles.openfreemap.org https://nominatim.openstreetmap.org https://openrouter.ai",
   "worker-src 'self' blob:",
   'frame-src https://challenges.cloudflare.com',
+  // Forms post only here, or to Overleaf ("Open in Overleaf" on the CV). MCP consent posts by fetch, then navigates by script, which this doesn't cover.
+  "form-action 'self' https://www.overleaf.com",
   base,
 ].join('; ')
 
 // The docs are VitePress, whose pages carry inline scripts, so only the base rules apply there.
-export const DOCS_CSP = base
+export const DOCS_CSP = `${base}; form-action 'self'`

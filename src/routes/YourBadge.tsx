@@ -24,6 +24,10 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
   const [unsaved, setUnsaved] = useState(false)
   // Saved from a blank profile: point on to the next first-run step.
   const [firstSave, setFirstSave] = useState(false)
+  // Links such as the verdict's "Your own OpenRouter key" land on their section; an SPA navigation doesn't scroll to a hash.
+  useEffect(() => {
+    document.getElementById(location.hash.slice(1))?.scrollIntoView()
+  }, [])
   const [more, setMore] = useState(() => moreCount(p) > 0)
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => {
     setSaved(false)
