@@ -324,7 +324,6 @@ function PostingForm({ me, jobs, careers, busy, hasResume, onSubmit, onEvaluate,
             </button>
           )}
         </div>
-        <p className="field__hint">Check fit scores it against your CV.</p>
         <p className="jobs-add__alt">
           <button type="button" className="btn btn--quiet btn--sm" onClick={() => setMode('board')}>Or check a company's careers page</button>
           {me.adzuna && <button type="button" className="btn btn--quiet btn--sm" onClick={() => setMode('city')}>Or search by city</button>}
