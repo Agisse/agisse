@@ -246,6 +246,13 @@
       "when": 1791997041968,
       "tag": "0034_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792000229124,
+      "tag": "0035_admin_action",
+      "breakpoints": true
     }
   ]
 }
