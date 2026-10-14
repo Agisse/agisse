@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useCopy, useResource } from '../lib/hooks'
 import { Copy, Check } from 'lucide-react'
-import { api, type AccessStatus, type AdminAction, type AdminToday, type AdminUser, type Invite } from '../lib/api'
+import { api, type AccessStatus, type AdminAction, type AdminToday, type AdminUser, type Invite, type LiveSwitch } from '../lib/api'
 import { BudgetMeter } from '../components/BudgetMeter'
 import { MIN_N, type Bucket, type QualityReport } from '../../shared/quality'
 
@@ -99,6 +99,7 @@ export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: 
       </li>)}
     </ul>}
     <Actions />
+    <Limits onChange={() => void load()} />
     <Quality />
   </main>
 }
@@ -340,6 +341,51 @@ function Actions() {
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`)
 
 /** How generated outputs fare per task, prompt version and model; loaded when opened. Same data as `npm run quality`. */
+const SWITCH_LABELS: Record<LiveSwitch['key'], string> = {
+  FREE_DAILY_ACTIONS: 'Free AI actions per account, per day',
+  FREE_DAILY_ACTIONS_ALL: 'Free AI actions for everyone, per day',
+  GLOBAL_DAILY_USD_CAP: 'AI spend for everyone, per day ($)',
+  MONTHLY_BUDGET_EUR: 'Monthly allowance per account (€)',
+}
+
+/** The daily limits and the monthly allowance, changed without a redeploy (worker/lib/settings.ts). */
+function Limits({ onChange }: { onChange: () => void }) {
+  const [switches, setSwitches] = useState<LiveSwitch[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const load = () => api.settings().then((r) => setSwitches(r.switches), (e) => setError(e instanceof Error ? e.message : 'Could not load the limits.'))
+  const saved = async () => { await load(); onChange() }
+  return <details className="quality" onToggle={(e) => { if (e.currentTarget.open && !switches) void load() }}>
+    <summary className="admin-page__section">Limits</summary>
+    <p className="admin-page__hint">Applies within a minute, no redeploy. 0 means no limit.</p>
+    {error && <p className="field__error" role="alert">{error}</p>}
+    {switches?.map((s) => <SwitchForm key={`${s.key}:${s.value}`} s={s} onSaved={saved} />)}
+  </details>
+}
+
+function SwitchForm({ s, onSaved }: { s: LiveSwitch; onSaved: () => Promise<void> }) {
+  const [value, setValue] = useState(s.value)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const save = async (n: number | null) => {
+    setBusy(true)
+    setError(null)
+    try { await api.setSetting(s.key, n); await onSaved() }
+    catch (err) { setError(err instanceof Error ? err.message : 'Could not save.') }
+    finally { setBusy(false) }
+  }
+  const n = Number(value)
+  return <form className="admin-page__switch" onSubmit={(e) => { e.preventDefault(); if (value.trim() && Number.isFinite(n) && n >= 0) void save(n) }}>
+    <label htmlFor={`switch-${s.key}`}>{SWITCH_LABELS[s.key]}</label>
+    <div className="admin-page__budget-edit">
+      <input id={`switch-${s.key}`} className="field__input tnum" type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)} />
+      <button className="btn btn--sm" disabled={busy || value === s.value}>Save</button>
+      {s.changedBy && <button type="button" className="btn btn--sm btn--quiet" disabled={busy} onClick={() => void save(null)}>Use default</button>}
+    </div>
+    {s.changedBy && <small>Changed by {s.changedBy} on {new Date(s.changedAt!).toLocaleDateString()}</small>}
+    {error && <small className="field__error" role="alert">{error}</small>}
+  </form>
+}
+
 function Quality() {
   const [report, setReport] = useState<QualityReport | null>(null)
   const [error, setError] = useState<string | null>(null)
