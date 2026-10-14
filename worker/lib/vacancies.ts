@@ -122,8 +122,10 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
   const jev = vf.score
   // Cold start (no embedding yet): the degree's words against the posting's text, rank/(rank+1) so it stays in 0–1.
   // Target industries ("Tech", "Research") are left out: they match employer names and pulled the feed off-field (npm run eval:feed).
-  const words = degreeQuery(degree)
-  const text = words ? sql`ts_rank_cd(${v.search}, to_tsquery('simple', ${words}), 32)` : sql`0`
+  // Ranked only for the roles the words match (the search index finds those), not every open role. No words: no hits.
+  const tsq = sql`to_tsquery('simple', ${degreeQuery(degree)})`
+  const hits = db.select({ url: v.url, rank: sql<number>`ts_rank_cd(${v.search}, ${tsq}, 32)`.as('rank') }).from(v).where(and(sql`${v.search} @@ ${tsq}`, ...vacancyFilters(f))).as('degree_hits')
+  const text = sql`coalesce(${hits.rank}, 0)`
   // greatest/least skip nulls, so the cosine needs its own guard or a missing embedding reads as a perfect fit.
   const cosine = sql`case when ${v.embedding} is not null and ${pe} is not null then greatest(0, least(1, ((1 - (${v.embedding} <=> ${pe})) - 0.72) / 0.2)) end`
   const fit = sql<number>`coalesce(${jev}, ${cosine}, ${text})`
@@ -151,6 +153,7 @@ export async function searchVacancies(db: Db, userId: string, f: VacancyQuery, s
       })
       .from(v)
       .leftJoin(vf, and(eq(vf.userId, userId), eq(vf.url, v.url)))
+      .leftJoin(hits, eq(hits.url, v.url))
       .where(and(...where))
       .orderBy(...order, asc(v.url))
       .limit(PAGE + 1)
