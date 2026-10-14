@@ -33,6 +33,8 @@ jobs:
       - run: npm run lint
       - name: Checks (*.check.ts)
         run: npm run check
+      - name: Initial JS within 10% of scripts/bundle-budget.json
+        run: npx tsx scripts/bundle-size.ts 0 --check
 
   gitleaks:
     runs-on: ubuntu-latest
