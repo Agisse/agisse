@@ -37,3 +37,10 @@ export function inlineParts(text: string): ({ kind: 'text' | 'code' | 'bold'; te
       return { kind: 'text', text: part }
     })
 }
+
+/** Changes whenever the release's entries do, so a new `[Unreleased]` entry counts as news too. */
+export function releaseKey(r: Release): string {
+  let h = 0
+  for (const c of r.changes.join('\n')) h = (Math.imul(31, h) + c.codePointAt(0)!) | 0
+  return `${r.version}:${(h >>> 0).toString(36)}`
+}
