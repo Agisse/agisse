@@ -149,16 +149,20 @@ globalThis.fetch = (input, init) => {
 
 app.get('/api/health', (c) => c.json({ ok: true }))
 
+/** Data that is the same for every account, kept in this colo's edge cache. Never use it for anything per user. */
+async function edgeCached<T>(c: Context<{ Bindings: Env; Variables: Variables }>, key: string, seconds: number, load: () => Promise<T>): Promise<T> {
+  const req = new Request(new URL(key, c.req.url))
+  const hit = await caches.default.match(req)
+  if (hit) return hit.json()
+  const data = await load()
+  c.executionCtx.waitUntil(caches.default.put(req, Response.json(data, { headers: { 'Cache-Control': `public, max-age=${seconds}` } })))
+  return data
+}
+
 // The homepage's live count of open roles. Public, so it sits above the session guard; the edge cache keeps it to one query an hour.
-app.get('/api/public/stats', async (c) => {
-  const key = new Request(new URL('/api/public/stats', c.req.url))
-  const hit = await caches.default.match(key)
-  if (hit) return hit
-  const stats = await openVacancyStats(c.get('db'))
-  const res = c.json(stats, 200, { 'Cache-Control': 'public, max-age=3600' })
-  c.executionCtx.waitUntil(caches.default.put(key, res.clone()))
-  return res
-})
+app.get('/api/public/stats', async (c) =>
+  c.json(await edgeCached(c, '/api/public/stats', 3600, () => openVacancyStats(c.get('db'))), 200, { 'Cache-Control': 'public, max-age=3600' }),
+)
 
 // Sign-up is open and every account starts on the waitlist (pending, one free search) until approved.
 // A personal invite skips the waitlist (auth.ts user.create hook); it is claimed before Better Auth runs, so one code opens one account.
@@ -1380,8 +1384,9 @@ app.get('/api/vacancies', async (c) => {
 })
 
 app.get('/api/vacancies/facets', async (c) => {
+  // Counts over the whole feed, the same for everyone: edge-cached, while the route stays behind the session guard.
   c.header('cache-control', 'private, max-age=600')
-  return c.json(await vacancyFacets(c.get('db')))
+  return c.json(await edgeCached(c, '/_cache/vacancy-facets', 600, () => vacancyFacets(c.get('db'))))
 })
 
 // The extension's job-page badge, on click: is this page's posting on the seeker's board, and how well does the CV cover it.
