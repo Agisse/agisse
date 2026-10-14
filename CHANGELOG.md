@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Agisse next to career-ops, Simplify and Jobright, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
 - How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
 - How Agisse scores a job, in the docs (`/docs/methodology`): what the 1–5 score weighs, why below 4.0 means a long shot, how the feed is ordered, and what the scores can't know.
 - The Hired Wall: got the job with Agisse's help? Share your story on GitHub, and choose whether your name, only the role, or only the count shows. A job at Offer links to it once, until you open or hide the link.
