@@ -44,3 +44,6 @@ tmp/
 eval/fixtures/private/
 eval/results/*
 !eval/results/*-baseline.json
+
+# npm run local / npx agisse
+agisse-data/

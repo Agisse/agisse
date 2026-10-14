@@ -1,13 +1,43 @@
 ---
 title: Self-host
-description: Run your own copy of Agisse on Cloudflare's free plan and a free Neon database, with your own AI key or your users' keys.
+description: Run your own copy of Agisse, on your computer with one command or on Cloudflare's free plan, with your own AI key or your users' keys.
 ---
 
 # Self-host
 
-Agisse runs on Cloudflare's free plan plus a free [Neon](https://neon.tech) Postgres database. You need Node 24 (what CI uses), a Cloudflare account and a Neon database.
+Two ways to run your own copy. Both run the same app; only the setup differs.
 
-## 1. Configure
+- **On your computer:** one command, for trying it, a home server, or one student association.
+- **On Cloudflare:** a public deploy on Cloudflare's free plan and a free [Neon](https://neon.tech) Postgres database.
+
+## On your computer
+
+You need Node 20 or later, or Bun.
+
+```sh
+npx github:Agisse/agisse
+```
+
+Agisse runs on `http://localhost:3000` and keeps everything in `./agisse-data/`: the database (an embedded Postgres), uploaded CVs and a secret made on the first run. From a clone, `npm install && npm run build && npm run local` does the same.
+
+- **AI:** each user connects their own key under Profile → AI. To give everyone the server's key, start it with `OPENROUTER_API_KEY` set. The other [optional keys](#optional-keys) work the same way, except the `VITE_*` ones, which are set when the app is built.
+- **Jobs:** the feed starts empty. Stop Agisse, run `npx github:Agisse/agisse import-feed` to load public roles from Arbeitnow, and start it again. Run it again to refresh.
+- **Settings:** `PORT` and `AGISSE_DATA` change the port and the folder. With `DATABASE_URL`, Agisse uses your Neon database instead of the embedded one.
+
+What it lacks next to Cloudflare:
+
+- no edge cache, so the feed's filter counts run their queries on every request;
+- rate limits count per process and reset on restart;
+- one Agisse per data folder;
+- no email without `RESEND_API_KEY`: emails print to the console;
+- backups are copies of `agisse-data/`, taken while Agisse is stopped;
+- no admin yet on the embedded database: every account stays a trial account, as there's no SQL editor to run [Become the admin](#_4-become-the-admin) in. With `DATABASE_URL`, use Neon's.
+
+## On Cloudflare
+
+You need Node 24 (what CI uses), a Cloudflare account and a Neon database.
+
+### 1. Configure
 
 ```sh
 git clone https://github.com/Agisse/agisse.git && cd agisse
@@ -18,7 +48,43 @@ cp .env.example .env
 Fill in `.env`:
 
 - **Required:** `DATABASE_URL` (your Neon connection string), `BETTER_AUTH_SECRET` (`openssl rand -base64 32`) and `SELF_HOST_DOMAIN` (a domain on your Cloudflare account, or `workers.dev` for the free `*.workers.dev` address). Leave `ADMIN_EMAIL` empty until step 4.
-- **Optional:** each key turns one feature on, and Agisse works without it.
+- **Optional:** the [optional keys](#optional-keys) below.
+
+### 2. Check it locally
+
+```sh
+cp .env .dev.vars         # the Worker reads its secrets from .dev.vars in dev
+npm run db:migrate        # creates the tables in DATABASE_URL
+npx tsx --env-file=.env worker/index.check.ts
+npm run dev               # http://localhost:5173
+```
+
+`worker/index.check.ts` boots the Worker with your keys, signs up a synthetic `@example.com` user, hits the main routes and deletes the user again. It stops at the first route that fails and names it.
+
+### 3. Deploy
+
+```sh
+npx wrangler login
+npm run self-host
+```
+
+`npm run self-host` creates the `agisse-resumes` R2 bucket, runs the migrations, builds for `SELF_HOST_DOMAIN` and deploys with the Worker secrets from `.env`. Build-time keys (`VITE_*`, `SENTRY_AUTH_TOKEN`) never leave your machine. Run it again to update.
+
+The agisse.xyz routes in `wrangler.jsonc` stay untouched: `SELF_HOST_DOMAIN` replaces them at build time.
+
+### 4. Become the admin
+
+Sign up on your copy with your own email, then run this once in your database (for example the Neon SQL editor):
+
+```sql
+UPDATE "user" SET is_admin = true, access_status = 'approved' WHERE lower(email) = 'you@example.com';
+```
+
+Set `ADMIN_EMAIL` to the same address in `.env` and run `npm run self-host` again. You approve other accounts at `/admin`.
+
+## Optional keys
+
+Each key turns one feature on, and Agisse works without it.
 
 | Key | Turns on |
 |---|---|
@@ -31,38 +97,6 @@ Fill in `.env`:
 | `TURNSTILE_SECRET_KEY` + `VITE_TURNSTILE_SITE_KEY` | Bot protection on sign-in |
 | `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics |
 | `VITE_LOGO_DEV_TOKEN` | Company logos (otherwise monograms) |
-
-## 2. Check it locally
-
-```sh
-cp .env .dev.vars         # the Worker reads its secrets from .dev.vars in dev
-npm run db:migrate        # creates the tables in DATABASE_URL
-npx tsx --env-file=.env worker/index.check.ts
-npm run dev               # http://localhost:5173
-```
-
-`worker/index.check.ts` boots the Worker with your keys, signs up a synthetic `@example.com` user, hits the main routes and deletes the user again. It stops at the first route that fails and names it.
-
-## 3. Deploy
-
-```sh
-npx wrangler login
-npm run self-host
-```
-
-`npm run self-host` creates the `agisse-resumes` R2 bucket, runs the migrations, builds for `SELF_HOST_DOMAIN` and deploys with the Worker secrets from `.env`. Build-time keys (`VITE_*`, `SENTRY_AUTH_TOKEN`) never leave your machine. Run it again to update.
-
-The agisse.xyz routes in `wrangler.jsonc` stay untouched: `SELF_HOST_DOMAIN` replaces them at build time.
-
-## 4. Become the admin
-
-Sign up on your copy with your own email, then run this once in your database (for example the Neon SQL editor):
-
-```sql
-UPDATE "user" SET is_admin = true, access_status = 'approved' WHERE lower(email) = 'you@example.com';
-```
-
-Set `ADMIN_EMAIL` to the same address in `.env` and run `npm run self-host` again. You approve other accounts at `/admin`.
 
 ## The job feed
 

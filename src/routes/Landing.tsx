@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 const SIGN_UP = '/sign-in?mode=sign-up'
 const track = (position: string) => () => posthog.capture('landing_cta_clicked', { position })
 
-type Stats = { open: number; companies: number; countries: number }
+type Stats = { open: number; companies: number; countries: number; stars?: number | null; hired?: number | null }
 
 const WRAP = 'mx-auto w-full max-w-[1080px] px-4 sm:px-8'
 /** The Worker sets it when PUBLIC_LAUNCH=1; known before the first paint, so nothing shifts. */
@@ -129,6 +129,13 @@ export function Landing() {
               </div>
             ))}
           </div>
+          {LAUNCH && (
+            <p className="mt-6 text-center text-sm">
+              <a href="/docs/compare/" className="text-primary underline-offset-4 hover:underline">
+                See comparisons
+              </a>
+            </p>
+          )}
         </section>
 
         <section id="faq" aria-labelledby="faq-title" className={cn(WRAP, 'mt-28 grid gap-8 sm:mt-40 md:grid-cols-[1fr_2fr] md:gap-16')}>
@@ -136,7 +143,7 @@ export function Landing() {
             Questions
           </h2>
           <div className="divide-y divide-border border-y border-border">
-            {FAQ.map(([q, a]) => (
+            {(LAUNCH ? LAUNCH_FAQ : FAQ).map(([q, a]) => (
               <details key={q} className="group">
                 <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 font-medium [&::-webkit-details-marker]:hidden">
                   {q}
@@ -169,7 +176,7 @@ export function Landing() {
             <span>Made in Europe, for Europe</span>
           </div>
           <nav aria-label="Footer" className="-mx-2 flex flex-wrap">
-            {FOOTER.map(([href, label]) => (
+            {(LAUNCH ? launchFooter(stats) : FOOTER).map(([href, label]) => (
               <a key={href} href={href} className="rounded-md px-2 py-2.5 text-muted-foreground no-underline hover:text-foreground">
                 {label}
               </a>
@@ -442,6 +449,23 @@ const FAQ: [string, string][] = [
   ['What does “Agisse” mean?', 'It is French: the present subjunctive of agir, to act. As in « il faut que j’agisse », I have to act.'],
 ]
 
+const Doc = ({ href, children }: { href: string; children: ReactNode }) => (
+  <a href={href} className="text-primary underline-offset-4 hover:underline">
+    {children}
+  </a>
+)
+
+// The objections a launch visitor brings, at most eight ("why not an auto-apply bot" is answered under "does it apply for me"). Shown with PUBLIC_LAUNCH.
+const LAUNCH_FAQ: [string, ReactNode][] = [
+  ['How is the score made?', <>Agisse lists what a posting asks for and checks each point against your CV. Below 4.0 out of 5 it calls the role a long shot and names the gaps. <Doc href="/docs/methodology">How the score works</Doc></>],
+  ['Does it apply for me?', 'No, on purpose. Auto-apply bots flood recruiters, who then filter harder. Agisse drafts; you submit and send, from your own accounts.'],
+  ['Is it free, and how is it funded?', 'Yes, it’s free: no paid plan, no ads, and your data is never sold. Try it on free AI models. For real use, connect your own OpenRouter key and pay OpenRouter directly. The hosting costs little.'],
+  ['Where does my data live?', <>In a database in the EU. With your own AI key, requests go straight to your provider. Download your data or delete your account in Profile at any time. <Doc href="/docs/data-flow">What goes where</Doc></>],
+  ['Who’s behind it?', '[founder name], [one line about you]. Agisse is an open-source project, not a company.'],
+  ['Can I use it from Claude, ChatGPT or Codex?', <>From Claude, Codex, Cursor and other MCP clients: sign in with your Agisse account and they can read your feed and tracker. <Doc href="/docs/mcp">Set it up</Doc></>],
+  ['Is it open source, and what isn’t open?', <>All the code is open source (AGPL). The job data on agisse.xyz isn’t: the hosted service collects and maintains it. Your own copy starts with an empty feed. <Doc href="/docs/self-host">Run it yourself</Doc></>],
+]
+
 const FOOTER: [string, string][] = [
   ['/docs/', 'Docs'],
   ['/docs/mcp', 'MCP'],
@@ -451,3 +475,32 @@ const FOOTER: [string, string][] = [
   ['/docs/imprint', 'Imprint'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
+
+// MCP and the extension sit in the docs' own menu. Manifesto joins once its docs page exists; the changelog is the repo's file (the flag is on only once the repo is public).
+const LAUNCH_FOOTER: [string, string][] = [
+  ['/docs/', 'Docs'],
+  ['/docs/methodology', 'Methodology'],
+  ['/docs/compare/', 'Compare'],
+  ['/docs/privacy', 'Privacy'],
+  ['/docs/terms', 'Terms'],
+  ['/docs/imprint', 'Imprint'],
+  ['https://github.com/Agisse/agisse/blob/main/CHANGELOG.md', 'Changelog'],
+  ['https://github.com/Agisse/agisse', 'GitHub'],
+  ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
+]
+
+/** The launch footer with GitHub's live numbers (N5). A number GitHub didn't give, or a zero, isn't shown. */
+function launchFooter(stats: Stats | null): [string, ReactNode][] {
+  return LAUNCH_FOOTER.flatMap(([href, label]): [string, ReactNode][] => {
+    if (label !== 'GitHub') return [[href, label]]
+    const stars = stats?.stars ? (
+      <span className="tabular-nums">
+        {' '}
+        <span aria-hidden="true">★</span> {stats.stars.toLocaleString('en')}
+        <span className="sr-only"> stars</span>
+      </span>
+    ) : null
+    const hired: [string, ReactNode][] = stats?.hired ? [[`${href}/blob/main/HIRED.md`, `${stats.hired} hired with Agisse`]] : []
+    return [[href, <>GitHub{stars}</>], ...hired]
+  })
+}

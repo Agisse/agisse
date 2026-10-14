@@ -1120,6 +1120,7 @@
 .verdict--do_not_apply .verdict__label { color: var(--red); }
 .verdict__tldr { margin-top: 4px; font-size: var(--fs-16); }
 .verdict__note { margin-top: 4px; font-size: var(--fs-14); color: var(--ink-2); }
+.verdict__how { margin-top: var(--space-2); }
 
 /* Requirement and legitimacy rows share one ruled layout: the call on the left, the reading on the right. */
 .reqs { display: grid; list-style: none; margin: 0; padding: 0; }
@@ -1978,7 +1979,8 @@
 @media (max-width: 640px) {
   .feed-bar__menus { overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; width: calc(100% + 32px); }
   .feed-menu__panel { position: fixed; top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; max-width: none; max-height: 65vh; box-shadow: inset 0 0 0 1px var(--rule-soft), var(--shadow-lg); }
-  .feed-views { width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .feed-head__views { flex: 1 1 100%; flex-wrap: nowrap; }
+  .feed-views { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
   .feed-views button { flex: 1 0 auto; padding: 0 12px; }
   .feed-list { grid-template-columns: 40px minmax(0, 1fr); }
   .feed-row { grid-template-columns: subgrid; row-gap: var(--space-2); }
