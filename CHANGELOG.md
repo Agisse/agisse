@@ -40,6 +40,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- `docs/self-host-local.md`: the design for `npx agisse`, which will run Agisse on one computer with an embedded Postgres (PGlite), and the local stand-in for each Cloudflare binding. All migrations apply on PGlite as they are.
 - Hashed build files (`/assets/*`, `/docs/assets/*`) are served without running the Worker, with their headers in `public/_headers`; a missing one is a 404 instead of the app's HTML. Self-hosted zones keep the Worker's http → https and www redirects for every other path.
 - The admin guest list shows placeholder rows while accounts load, instead of a "Loading accounts…" line and filter counts of 0.
 - `GOVERNANCE.md` describes Agisse as it is: a free, open-source project led by its founder, with no company or association behind it. The plan for a Belgian association is dropped.
