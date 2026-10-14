@@ -4,6 +4,8 @@ Agisse finds the best people to contact at a target company for a specific role,
 
 Agisse is open source under the [AGPL-3.0](LICENSE). Use it free at [agisse.xyz](https://agisse.xyz) (bring your own AI key, or pay for Pro and use ours), or run your own copy: see [Self-host](#self-host).
 
+Hired with Agisse: [0 stories](HIRED.md). Got the job? Share yours there.
+
 ## Stack
 
 - **Client**: Vite + React 19, plain CSS with design tokens (`src/styles/`), [wouter](https://github.com/molefrog/wouter) for routing, [lucide-react](https://lucide.dev) icons, self-hosted Barlow / Barlow Condensed.

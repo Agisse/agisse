@@ -1,0 +1,35 @@
+name: I got hired
+description: Used Agisse and got the job? Add your story to the Hired Wall.
+title: "Hired: "
+labels: [hired]
+body:
+  - type: markdown
+    attributes:
+      value: Congratulations! This issue is public under your GitHub account, so share only what you're happy for anyone to read. No offer letters, salaries or other people's names.
+  - type: dropdown
+    id: show
+    attributes:
+      label: What HIRED.md may show
+      options:
+        - My GitHub handle and the role
+        - The role only
+        - Only the count
+    validations:
+      required: true
+  - type: input
+    id: role
+    attributes:
+      label: The role
+      description: "For example: graduate civil engineer, Germany. Name the employer only if you want to. Skip it if you chose Only the count."
+  - type: textarea
+    id: story
+    attributes:
+      label: What helped
+      description: Optional. A line or two on what Agisse did for you, or what it got wrong.
+  - type: checkboxes
+    id: own
+    attributes:
+      label: Your story
+      options:
+        - label: I'm the person who got hired. If I withdraw this later, it still counts as "Story withdrawn".
+          required: true
