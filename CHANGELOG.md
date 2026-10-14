@@ -19,6 +19,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - Today is a little quieter: no date under the greeting, no progress bar repeating "1 of 4 done", and no empty Coming up box when nothing else is due.
 - The job feed loads up to four times faster, most of all with no field picked.
+- An open role in the job feed no longer names its fields twice: they stay as tags under the description.
 - The homepage and sign-in load less than half the code they used to: the rest of the app only downloads once you're signed in, alongside your account details instead of after them.
 - Usage analytics load after the page has, instead of before it.
 - The homepage and sign-in no longer download the app's sidebar and menus.
