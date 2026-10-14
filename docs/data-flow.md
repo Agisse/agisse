@@ -43,7 +43,7 @@ Deleting an account removes the user's own rows (foreign keys cascade) and their
 | Public ATS boards (Greenhouse, Lever, Ashby, …) | The daily closed-posting check | The board's public listing URL |
 | Resend | Account email (`RESEND_API_KEY`) | The recipient's email address and the message |
 | Google | Sign in with Google (`GOOGLE_CLIENT_ID`) | The standard OAuth exchange |
-| Sentry | Worker errors (`SENTRY_DSN`) | Error details |
+| Sentry | Worker errors (`SENTRY_DSN`) | Error details, without request bodies or cookies |
 
 ### From the browser
 
@@ -53,7 +53,7 @@ Deleting an account removes the user's own rows (foreign keys cascade) and their
 | OpenFreeMap | The world map | Map tile requests, and the user's IP address |
 | logo.dev | Company logos (`VITE_LOGO_DEV_TOKEN`) | A company's domain, and the user's IP address |
 | Cloudflare Turnstile | The sign-up and sign-in forms (`TURNSTILE_SECRET_KEY`) | The bot check, and the user's IP address |
-| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked |
+| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked, with the account id (never the name or email). No session recordings |
 | The browser's speech recognition | Mock interview, where the browser has it | The answer's audio, handled by the browser vendor |
 
 Where the browser has no speech recognition (Firefox), the answer's audio goes once to the Worker, which has a model transcribe it and keeps only the text.

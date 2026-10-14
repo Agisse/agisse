@@ -85,7 +85,15 @@ type Variables = {
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Sentry wraps everything else, so it must be the first middleware registered.
-app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 1.0, enableLogs: true })))
+// Request bodies and cookies never go to Sentry: a body can hold a CV, a note or an own AI key.
+const scrub = <E extends { request?: { data?: unknown; cookies?: unknown } }>(event: E) => {
+  if (event.request) {
+    delete event.request.data
+    delete event.request.cookies
+  }
+  return event
+}
+app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 1.0, enableLogs: true, sendDefaultPii: false, beforeSend: scrub, beforeSendTransaction: scrub })))
 
 // agisse.xyz's zone redirects http → https and www → apex itself; this stays for self-hosted zones without
 // those rules (hashed build files skip the Worker, see wrangler.jsonc). Local dev stays on http.

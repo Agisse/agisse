@@ -53,13 +53,14 @@ export default function App() {
   const [location, navigate] = useLocation()
   const identifiedUserId = useRef<string | null>(null)
 
-  const identifyUser = useCallback((user: Pick<Me['user'], 'id' | 'name' | 'email'>) => {
+  const identifyUser = useCallback((user: Pick<Me['user'], 'id'>) => {
     if (identifiedUserId.current === user.id) return
 
     const persistedUserId = posthog.get_property('$user_id')
     if (typeof persistedUserId === 'string' && persistedUserId !== user.id) posthog.reset()
 
-    posthog.identify(user.id, { email: user.email, name: user.name })
+    // The id only: PostHog never gets a seeker's name or email.
+    posthog.identify(user.id)
     identifiedUserId.current = user.id
   }, [])
 
