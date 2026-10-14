@@ -160,7 +160,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : me.budget.paused && me.budget.paused !== 'cap' ? 'Runs on free models. Your own OpenRouter key keeps you going today.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
         {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
       </section>
 
@@ -377,7 +377,7 @@ function UsagePanel({ me }: { me: Me }) {
   return (
     <div className="profile__budget">
       <BudgetMeter budget={me.budget} label="Budget this month" />
-      <p className="profile__note">{eur.format(remaining)} left · resets {resets}</p>
+      {!me.budget.paused && <p className="profile__note">{eur.format(remaining)} left · resets {resets}</p>}
     </div>
   )
 }
