@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ArrowRight, Check, Copy, ExternalLink, Plus, Send, X } from 'lucide-react'
 import '../styles/landing.css'
 import posthog from '../lib/posthog'
-import { BoothSignMark } from '../components/Shell'
+import { BoothSignMark } from '../components/BoothSignMark'
 import { Button } from '../components/ui/button'
 import { cn } from '@/lib/utils'
 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldLabel, FieldSeparator } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { BoothSignMark } from '../components/Shell'
+import { BoothSignMark } from '../components/BoothSignMark'
 import posthog from '../lib/posthog'
 
 type Mode = 'sign-in' | 'sign-up'

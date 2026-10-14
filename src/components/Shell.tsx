@@ -6,6 +6,7 @@ import { useCopy } from '../lib/hooks'
 import { setTheme, useTheme, type Theme } from '../lib/theme'
 import { hasNews } from '../lib/whats-new'
 import posthog from '../lib/posthog'
+import { BoothSignMark } from './BoothSignMark'
 import { cn } from '@/lib/utils'
 import {
   Sidebar,
@@ -43,13 +44,6 @@ const ALSO: Record<string, string[]> = { '/jobs': ['/board', '/scout'], '/contac
 function useActive(href: string) {
   const [loc] = useLocation()
   return href === '/' ? loc === '/' : [href, ...(ALSO[href] ?? [])].some((p) => loc.startsWith(p))
-}
-
-/** The wordmark's mark, shared with the homepage. */
-export function BoothSignMark({ className }: { className?: string }) {
-  return (
-    <img className={cn('booth-sign__mark', className)} src="/favicon.svg" alt="" aria-hidden="true" />
-  )
 }
 
 type Section = { href: string; label: string; icon: typeof House; badge?: number; trialHidden?: boolean }
