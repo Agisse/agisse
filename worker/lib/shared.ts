@@ -29,7 +29,8 @@ export async function loadResumeText(db: Db, userId: string) {
 }
 
 export async function loadProfile(db: Db, userId: string): Promise<Profile | null> {
-  const row = await db.query.profile.findFirst({ where: eq(schema.profile.userId, userId) })
+  // Only `data`: the row also holds the full résumé text, which most callers don't need.
+  const row = await db.query.profile.findFirst({ where: eq(schema.profile.userId, userId), columns: { data: true } })
   return row ? { ...EMPTY_PROFILE, ...row.data } : null
 }
 
