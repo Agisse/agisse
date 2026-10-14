@@ -80,6 +80,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
+          {!user.isAdmin && <AccountData user={user} onDeleted={() => setUsers((current) => current.filter((item) => item.id !== user.id))} />}
         </div>
       </li>)}
     </ul>}
@@ -107,6 +108,31 @@ function AccountsGhost() {
       <div className="admin-page__actions"><span className="feed-ghost admin-page__ghost-btn" /></div>
     </li>)}
   </ul><p className="sr-only" role="status">Loading accounts</p></>
+}
+
+/** A user's GDPR request by email: the same export and erasure they have in Profile, each confirmed first and logged. */
+function AccountData({ user, onDeleted }: { user: AdminUser; onDeleted: () => void }) {
+  const [armed, setArmed] = useState<'export' | 'delete' | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const erase = async () => {
+    setBusy(true)
+    setError(null)
+    try { await api.deleteAccount(user.id); onDeleted() }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not delete the account.'); setBusy(false) }
+  }
+  if (!armed) return <>
+    <button type="button" className="btn btn--sm btn--quiet" onClick={() => setArmed('export')}>Export data…</button>
+    <button type="button" className="btn btn--sm btn--quiet" onClick={() => setArmed('delete')}>Delete…</button>
+  </>
+  return <div className="admin-page__confirm" role="group" aria-label={`${armed === 'export' ? 'Export' : 'Delete'} ${user.name}'s data`}>
+    <span>{armed === 'export' ? `Download everything ${user.name} saved? This is logged.` : `Erase ${user.name}'s account, CV and everything saved? It cannot be undone, and it is logged.`}</span>
+    {armed === 'export'
+      ? <a className="btn btn--sm" href={`/api/admin/users/${encodeURIComponent(user.id)}/export`} download onClick={() => setArmed(null)}>Download</a>
+      : <button type="button" className="btn btn--sm btn--danger" onClick={() => void erase()} disabled={busy}>{busy ? 'Deleting…' : 'Delete forever'}</button>}
+    <button type="button" className="btn btn--sm btn--quiet" onClick={() => setArmed(null)} disabled={busy}>Cancel</button>
+    {error && <span className="field__error" role="alert">{error}</span>}
+  </div>
 }
 
 function BudgetForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; onSave: (budgetEur: number | null) => void }) {
