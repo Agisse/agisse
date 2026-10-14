@@ -3,6 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { captcha, jwt } from 'better-auth/plugins'
 import { eq, and, isNull } from 'drizzle-orm'
 import { mails } from './lib/email'
+import { eraseOutsideCascade } from './lib/retention'
 import { newReferralCode, readCookie, resolveReferral, waitlistPosition } from './lib/waitlist'
 import { mcp } from '@better-auth/mcp'
 import type { Db } from './db'
@@ -122,7 +123,7 @@ export function createAuth(env: Env, db: Db, origin: string) {
         enabled: true,
         // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here.
         beforeDelete: async (user) => {
-          await Promise.all([env.RESUMES.delete(`resumes/${user.id}.pdf`), ...[schema.oauthAccessToken, schema.oauthRefreshToken, schema.oauthConsent].map((t) => db.delete(t).where(eq(t.userId, user.id)))])
+          await eraseOutsideCascade(db, env.RESUMES, [user.id])
         },
       },
       additionalFields: {

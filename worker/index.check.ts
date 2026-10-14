@@ -13,7 +13,11 @@ const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new
 const vars = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\s*\/\/.*$/gm, '')).vars as Record<string, string>
 const databaseUrl = process.env.DATABASE_URL
 const files = new Map<string, unknown>()
-const RESUMES = { put: async (key: string, body: unknown) => void files.set(key, body), delete: async (key: string) => void files.delete(key) }
+const RESUMES = {
+  put: async (key: string, body: unknown) => void files.set(key, body),
+  get: async (key: string) => (files.has(key) ? { arrayBuffer: async () => new TextEncoder().encode(String(files.get(key))).buffer } : null),
+  delete: async (key: string) => void files.delete(key),
+}
 const env = { ...vars, DATABASE_URL: databaseUrl ?? 'postgresql://user:password@db.example.com/none', BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'index-check-secret-index-check-secret', ASSETS: { fetch: () => new Response('app shell') }, RESUMES } as unknown as Env
 // Node has no Cache API; edgeCached() then always misses.
 Object.assign(globalThis, { caches: { default: { match: async () => undefined, put: async () => {} } } })
@@ -73,6 +77,21 @@ if (!databaseUrl) {
     await db.update(schema.user).set({ isAdmin: true }).where(eq(schema.user.id, user!.id))
     ;(env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL = email
     check((await call('GET', '/api/vacancies')).status === 200, 'admin past the daily cap')
+    // An admin exports and deletes another account (a GDPR request by email): same export, same erasure, both logged.
+    const other = crypto.randomUUID()
+    await db.insert(schema.user).values({ id: other, name: 'Index Check Other', email: `index-check-other-${other.slice(0, 8)}@example.com` })
+    await db.insert(schema.oauthConsent).values({ id: crypto.randomUUID(), clientId: 'index-check', userId: other, scopes: ['openid'] })
+    files.set(`resumes/${other}.pdf`, '%PDF-1.7 other')
+    const exported = await call('GET', `/api/admin/users/${other}/export`)
+    check(exported.status === 200 && (exported.json?.user as { id?: string })?.id === other && !!exported.json?.resume, 'admin export', exported.status)
+    check((await call('DELETE', `/api/admin/users/${user!.id}`)).status === 400, 'admin cannot delete an admin account here')
+    check((await call('DELETE', `/api/admin/users/${other}`)).status === 200, 'admin delete')
+    check(!files.has(`resumes/${other}.pdf`), 'admin delete removes the CV PDF')
+    const [left] = await db.select({ n: sql<number>`(select count(*) from "user" where id = ${other}) + (select count(*) from oauth_consent where user_id = ${other})` }).from(sql`(select 1) one`)
+    check(Number(left?.n) === 0, 'admin delete leaves no user or OAuth rows', left)
+    const log = await db.select({ action: schema.adminAction.action }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))
+    check(log.map((l) => l.action).sort().join() === 'delete,export', 'admin export and delete are logged', log)
+    await db.delete(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.
     await db.insert(schema.feedDay).values([{ userId: user!.id, day: sql`current_date - 30`, pages: 1 }, { userId: user!.id, day: sql`current_date - 31`, pages: 1 }])

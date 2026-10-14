@@ -385,6 +385,16 @@ export const feedDay = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 )
 
+// What an admin did to an account in /admin (export, delete): who, what, when. No content. The target has no foreign key,
+// so the line outlives a deleted account.
+export const adminAction = pgTable('admin_action', {
+  id: text('id').primaryKey(),
+  adminId: text('admin_id').references(() => user.id, { onDelete: 'set null' }),
+  action: text('action').notNull(),
+  targetId: text('target_id').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
 // Every Exa response (people, web, contents, company), keyed by `${kind}:${request body}`. Rows older than 7 days are
 // refetched but never deleted: the table doubles as the corpus of everything Exa ever returned.
 // The seeker's story bank (shared/stories.ts): STAR stories reused across applications and interviews.

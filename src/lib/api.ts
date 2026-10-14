@@ -76,6 +76,7 @@ export const api = {
   setAccess: (id: string, status: AccessStatus) => request<{ user: { id: string; accessStatus: AccessStatus } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   /** null = back to the default monthly budget. */
   setBudget: (id: string, budgetEur: number | null) => request<{ user: { id: string; budgetEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ budgetEur }) }),
+  deleteAccount: (id: string) => request<{ ok: true }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   setReferralCredit: (id: string, referralCreditEur: number | null) => request<{ user: { id: string; referralCreditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ referralCreditEur }) }),
   saveProfile: (profile: Profile) => request<{ profile: Profile }>('/api/profile', { method: 'PUT', body: JSON.stringify(profile) }),
   uploadResume: (file: File) =>
