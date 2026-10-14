@@ -67,6 +67,8 @@ declare global {
   interface Env {
     /** Unset: Sentry stays off. */
     SENTRY_DSN?: string
+    /** Set only by the local entry (`local/server.ts`): its PGlite or Postgres database instead of Neon over HTTP. */
+    DB?: Db
   }
 }
 
@@ -120,7 +122,7 @@ const authCache = new Map<string, Auth>()
 // Also covers the MCP endpoint and its OAuth discovery routes, which live outside /api.
 const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
   const url = c.env.DATABASE_URL
-  if (!dbCache || dbCache.url !== url) dbCache = { url, db: createDb(url) }
+  if (!dbCache || dbCache.url !== url) dbCache = { url, db: c.env.DB ?? createDb(url) }
   const origin = new URL(c.req.url).origin
   let auth = authCache.get(origin)
   if (!auth) {
@@ -2287,7 +2289,7 @@ export default {
   fetch: app.fetch,
   // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed.
   async scheduled(_event: ScheduledController, env: Env) {
-    const db = createDb(env.DATABASE_URL)
+    const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
   },
