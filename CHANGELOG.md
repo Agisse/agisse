@@ -31,7 +31,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Eval fixtures use made-up employers, universities and people. `scripts/fixtures.check.ts` fails when a committed fixture, result or the seed links outside `example.com`, or, with a dev database, names an employer from the feed.
 - CI fails when the initial JS grows more than 10% over `scripts/bundle-budget.json`.
 - Performance baseline in the docs (`/docs/performance`) and `eval/results/perf-baseline.json`; `scripts/bundle-size.ts` measures the initial bundle, and API responses carry a `Server-Timing` header with database round trips.
-- `PUBLIC_LAUNCH` (Worker var, `"0"` by default): `"1"` turns on the launch-day homepage, starting with an "Open source · Not for profit · Made in Europe" line in the hero.
+- `PUBLIC_LAUNCH` (Worker var, `"0"` by default): `"1"` turns on the launch-day homepage, starting with an "Open source · Free · Made in Europe" line in the hero.
 - CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
 - Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.
 - Issue forms for bugs, feature ideas and self-host help, and a pull request template.
