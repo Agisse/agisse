@@ -2,9 +2,19 @@
 
 All notable changes to Agisse are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+Each version lists what changes for people using Agisse first. Changes that only matter to contributors or self-hosters go under **For contributors and self-hosters**, which the in-app "What's new" page leaves out.
+
 ## [Unreleased]
 
-### Added
+### Changed
+
+- Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
+- The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.
+- Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.
+- An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
+- An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved.
+
+### For contributors and self-hosters
 
 - CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
 - Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.
@@ -19,17 +29,9 @@ All notable changes to Agisse are listed here. The format follows [Keep a Change
 - `npm run self-host` deploys your own copy: R2 bucket, migrations, build and deploy, with `SELF_HOST_DOMAIN` in place of the agisse.xyz routes.
 - A data-flow page in the docs: what Agisse stores, where, and which outside service sees what.
 - `scripts/import-feed.ts`, a reference feed provider: it loads the early-career roles from Arbeitnow's public API into the job feed, so a self-hosted copy has a working feed. Run it daily from cron.
-
-### Changed
-
-- Without any AI key, model features now say "Connect your AI key in Profile" instead of failing with a provider error, so a self-hosted copy can run on users' own keys alone.
 - Builds load the Sentry plugin only when `SENTRY_AUTH_TOKEN` is set; self-hosted builds contact no telemetry service by default.
 - `OPENROUTER_API_KEY`, `EXA_API_KEY` and `SENTRY_DSN` are optional secrets now; only `DATABASE_URL` and `BETTER_AUTH_SECRET` are required to deploy.
 - Emails go out from `EMAIL_FROM` when it is set, so a self-hosted copy can send through its own Resend domain. The default stays `hello@agisse.xyz`.
 - With no open roles at all, the job feed says no feed is connected, offers "Add a job", and links the feed contract for whoever runs the copy. The filters and views it can't use are hidden.
-- The feed's field labels now read "Operations & logistics" and "Policy & public sector", so supply-chain and public-sector graduates find their field.
-- Until the feed provider has embedded a seeker's profile, the feed ranks roles by the words of their degree instead of scoring every role as a perfect fit. Roles without an embedding no longer count as a perfect fit either.
-- An empty Contacted list now links to People's search and names the Mark contacted button, instead of only saying nobody is there yet.
-- An account still on the waitlist opens Jobs on the free feed instead of the posting check, which only opens once the account is approved.
 
 [Unreleased]: https://github.com/Agisse/agisse/commits/main
