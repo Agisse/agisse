@@ -66,7 +66,7 @@ Set `ADMIN_EMAIL` to the same address in `.env` and run `npm run self-host` agai
 
 ## The job feed
 
-Your copy starts with an empty job feed. The feed shows what the `vacancy` table holds, and agisse.xyz fills it with its own provider, which is private. Write your own rows by following the [feed contract](/feed-contract). Everything else works without a feed: pasted postings, public ATS boards, the Arbeitnow feed, Adzuna, people search and prep.
+The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. Your copy starts with an empty feed; fill it with your own provider by following the [feed contract](/feed-contract), or with the [Arbeitnow importer](/feed-contract#a-reference-provider). Everything else works without a feed: pasted postings, public ATS boards, the Arbeitnow feed, Adzuna, people search and prep.
 
 ## Telemetry
 

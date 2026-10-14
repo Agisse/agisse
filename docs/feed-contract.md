@@ -5,7 +5,9 @@ description: The three tables a feed provider writes so Agisse can show and rank
 
 # Feed contract
 
-Agisse's job feed reads three tables. Agisse never writes them: a separate **feed provider** does, on its own schedule. agisse.xyz's own provider is private and not part of this repository. A self-hosted copy works without one; the feed is then empty, and the rest of Agisse (pasted postings, the job board, Adzuna and ATS lookups, prep) is unaffected.
+Agisse's job feed reads three tables. Agisse never writes them: a separate **feed provider** does, on its own schedule.
+
+The code is open source (AGPL). The job data on agisse.xyz is not: the hosted service collects and maintains it with its own provider, which is private and not part of this repository. A self-hosted copy starts with an empty feed; fill it with your own provider or the [Arbeitnow importer](#a-reference-provider). Without either, the rest of Agisse (pasted postings, the job board, Adzuna and ATS lookups, prep) works as usual.
 
 This page is the interface a provider has to meet. The column lists are checked against the Drizzle schema (`worker/db/schema.ts`) by `worker/db/feed-contract.check.ts`, so they can't drift.
 
