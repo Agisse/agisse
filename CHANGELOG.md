@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
 - Scores and drafts never lean on your age, gender, nationality, religion, health or photo, even when your CV mentions them. Every prompt that scores you or writes for you now says so, and the methodology page explains it.
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
