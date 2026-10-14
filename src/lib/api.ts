@@ -20,6 +20,12 @@ export class ApiError extends Error {
   }
 }
 
+/** Accepts the bare code or the whole invite link pasted into the field. */
+export const inviteCode = (raw: string) => {
+  const s = raw.trim()
+  try { return new URL(s).searchParams.get('invite') ?? s } catch { return s }
+}
+
 /** The caller pressed Cancel: not an error to show. */
 export const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
 
@@ -52,6 +58,7 @@ export type Invite = { code: string; note: string; createdAt: string; usedAt: st
 
 export const api = {
   checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),
+  redeemInvite: (code: string) => request<{ ok: true }>('/api/me/invite', { method: 'POST', body: JSON.stringify({ code }) }),
   referral: () => request<{ code: string; referrals: number; invitesLeft: number | null; waitlist: { position: number; total: number } | null }>('/api/referral'),
   invites: () => request<{ invites: Invite[] }>('/api/admin/invites'),
   createInvite: (note: string) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note }) }),
