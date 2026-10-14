@@ -72,6 +72,15 @@ export function useCopy() {
   return { copied, copy }
 }
 
+/** The share sheet on phones, the clipboard elsewhere. */
+export async function shareLink(link: string, copy: (text: string) => Promise<void>) {
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    await navigator.share({ title: 'Agisse', text: 'I got you into the Agisse beta. Job search with AI on your side.', url: link }).catch(() => {})
+    return
+  }
+  await copy(link)
+}
+
 /** Items at the same company, in first-seen order: several roles at one company read as one entry. */
 export function groupByCompany<T extends { company: string }>(items: T[]) {
   const groups = new Map<string, T[]>()

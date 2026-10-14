@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Check, Copy } from 'lucide-react'
 import { api, ApiError, inviteCode } from '../lib/api'
-import { useCopy, useResource } from '../lib/hooks'
+import { shareLink, useCopy, useResource } from '../lib/hooks'
 import posthog from '../lib/posthog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,11 +15,7 @@ export function InviteCard() {
   const link = `${window.location.origin}/?ref=${code}`
   const share = async () => {
     posthog.capture('invite_link_shared', { waitlisted: !!waitlist, referrals })
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-      await navigator.share({ title: 'Agisse', text: 'I got you into the Agisse beta. Job search with AI on your side.', url: link }).catch(() => {})
-      return
-    }
-    await copy(link)
+    await shareLink(link, copy)
   }
   const text = waitlist
     ? `You're #${waitlist.position} of ${waitlist.total} on the waitlist. Every friend who joins with your link moves you up.`

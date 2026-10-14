@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models".
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
 - How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
 - How Agisse scores a job, in the docs (`/docs/methodology`): what the 1–5 score weighs, why below 4.0 means a long shot, how the feed is ordered, and what the scores can't know.
@@ -63,12 +64,15 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
 - In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
+- In `/admin`, an administrator can export or delete an account for a user who asks by email: the same file as Download my data and the same erasure as Delete account, each confirmed first and logged (who, what, when; no content).
 - `/admin` says under its heading what everyone used today on the server's AI key: dollars spent against `GLOBAL_DAILY_USD_CAP` and free actions against `FREE_DAILY_ACTIONS_ALL`.
 - A GDPR article 30 record of processing for agisse.xyz in the docs (`/docs/records-of-processing`), which self-hosters can use as a starting point for their own.
 - The self-host guide says who is responsible for users' data on your copy (you, as the GDPR controller) and that you need your own privacy policy and record of processing.
 - The Content Security Policy adds `form-action`: forms post only to Agisse itself and to Overleaf. `csp.check.ts` fails when a `<form action>` in `src/` points anywhere else.
+- `/admin` shows per account how many AI actions it used this month, and how many of the last 30 days it reached the free daily limit (`FREE_DAILY_ACTIONS`). Counts only.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).

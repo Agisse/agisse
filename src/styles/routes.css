@@ -9,7 +9,7 @@
 .admin-page__filter { text-transform: capitalize; }
 .admin-page__filter span { margin-left: 2px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .admin-page__list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-soft); }
-.admin-page__row { display: grid; grid-template-columns: minmax(0, 1fr) 130px minmax(220px, 280px) auto; align-items: center; gap: var(--space-5); padding: var(--space-4) 0; border-bottom: 1px solid var(--rule-soft); }
+.admin-page__row { display: grid; grid-template-columns: minmax(0, 1fr) 130px minmax(220px, 280px) fit-content(300px); align-items: center; gap: var(--space-5); padding: var(--space-4) 0; border-bottom: 1px solid var(--rule-soft); }
 .admin-page__identity { display: grid; min-width: 0; }
 .admin-page__identity strong { font-size: var(--fs-16); }
 .admin-page__identity span { overflow-wrap: anywhere; }
@@ -21,7 +21,8 @@
 .admin-page__cost { color: var(--ink-2); }
 .admin-page__budget-edit { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .admin-page__budget-edit .field__input { min-width: 0; width: 120px; padding-block: 4px; }
-.admin-page__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2); max-width: 300px; }
+.admin-page__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2); }
+.admin-page__confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); flex-basis: 100%; font-size: var(--fs-14); }
 /* Placeholder rows: each bar is padded to the height of the real line, so the rows don't move when accounts arrive. */
 .admin-page__ghost .feed-ghost { box-sizing: border-box; background-clip: content-box; }
 .admin-page__ghost .admin-page__ghost-name { width: 60%; height: 25px; padding-block: 6px; }

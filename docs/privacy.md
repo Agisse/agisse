@@ -62,6 +62,7 @@ Agisse uses only what is strictly necessary to keep you signed in. Analytics run
 - Waitlist sign-ups that never become active: deleted on request, or after 12 months of inactivity.
 - Analytics and error reports: as long as the provider's retention period, at most 12 months.
 - Backups roll over within 30 days of deletion.
+- When we export or delete an account because you asked us to: a note of which account, which action and when, with no content, kept as proof that we did it.
 
 ## Your rights
 

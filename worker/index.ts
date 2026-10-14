@@ -46,6 +46,7 @@ import {
   newMeter,
   userStyle,
   spendThisMonth,
+  freeLimitDays,
   spendToday,
   toBudget,
   toJob,
@@ -55,7 +56,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
-import { deleteStaleWaitlist } from './lib/retention'
+import { deleteStaleWaitlist, eraseAccounts } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
@@ -362,10 +363,11 @@ app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
-  const [users, used, capped, today] = await Promise.all([
-    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true } }),
+  const [users, used, capped, freeCapped, today] = await Promise.all([
+    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db),
+    freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
   ])
   return c.json({
@@ -376,7 +378,9 @@ app.get('/api/admin/users', async (c) => {
       createdAt: u.createdAt.toISOString(),
       reviewedAt: u.reviewedAt?.toISOString() ?? null,
       budget: toBudget(c.env, used.get(u.id), u.budgetEur),
+      actions: used.get(u.id)?.actions ?? 0,
       feedCapDays: capped.get(u.id) ?? 0,
+      freeLimitDays: freeCapped.get(u.id) ?? 0,
     })),
   })
 })
@@ -413,14 +417,38 @@ app.patch('/api/admin/users/:id', async (c) => {
   return c.json({ user })
 })
 
+// GDPR requests that reach the owner by email: the same export as Download my data, and the same erasure as Delete
+// account (worker/lib/retention.ts). Each is logged in admin_action: who, what, when; no content.
+const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete', targetId: string) =>
+  c.get('db').insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: c.get('userId'), action, targetId })
+
+app.get('/api/admin/users/:id/export', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  const id = c.req.param('id')
+  const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, id), columns: { id: true } })
+  if (!target) return c.json({ error: 'Account not found.' }, 404)
+  const [data] = await Promise.all([exportUserData(c.get('db'), c.env.RESUMES, id), logAdminAction(c, 'export', id)])
+  return c.json(data, 200, { 'content-disposition': `attachment; filename="agisse-data-${id}-${data.exportedAt.slice(0, 10)}.json"` })
+})
+
+app.delete('/api/admin/users/:id', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  const id = c.req.param('id')
+  const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, id), columns: { isAdmin: true } })
+  if (!target) return c.json({ error: 'Account not found.' }, 404)
+  if (target.isAdmin) return c.json({ error: 'An administrator account can only be deleted from its own Profile.' }, 400)
+  await Promise.all([eraseAccounts(c.get('db'), c.env.RESUMES, [id]), logAdminAction(c, 'delete', id)])
+  return c.json({ ok: true })
+})
+
 app.get('/api/admin/invites', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email })
+    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
     .from(schema.invite)
     .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
     .orderBy(desc(schema.invite.createdAt))
-  return c.json({ invites: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
+  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null })) })
 })
 
 app.post('/api/admin/invites', async (c) => {
@@ -430,7 +458,7 @@ app.post('/api/admin/invites', async (c) => {
   // 9 random bytes = 12 URL-safe characters.
   const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
   const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null } })
+  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
 })
 
 app.delete('/api/admin/invites/:code', async (c) => {
@@ -544,7 +572,7 @@ async function trialUsed(db: Db, userId: string) {
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const { id, name, email, isAdmin, budgetEur } = c.get('user')
+  const { id, name, email, isAdmin, budgetEur, creditEur, creditGrantedEur } = c.get('user')
   const [{ profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
     loadMeProfile(db, userId),
     loadBudget(db, c.env, userId, budgetEur),
@@ -552,7 +580,7 @@ app.get('/api/me', async (c) => {
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
 })
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
