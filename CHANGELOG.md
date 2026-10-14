@@ -42,6 +42,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- The README opens with what Agisse is today (the feed, the apply-or-skip score, warm intros, prep) instead of People alone, and no longer mentions a paid Pro plan. Short versions in Dutch, French, German, Spanish, Italian and Polish sit next to it; `scripts/readme-translations.check.ts` says which ones to update when the English intro changes.
 - The README and `/docs/self-host` show both ways to self-host: on your computer with `npx github:Agisse/agisse` (Node 20+ or Bun, embedded Postgres), or on Cloudflare with `npm run self-host`, and what the first one lacks.
 - Installing the `npx agisse` package takes 174 MB instead of 545 MB: front-end packages are `devDependencies` now, since Vite bundles them into the built app anyway.
 - `npm pack` builds the `npx agisse` package: the built app, local mode as one file (`dist/agisse.mjs`) and the migrations, about 3.3 MB. Not on npm yet (#117).
