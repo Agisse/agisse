@@ -120,7 +120,7 @@ function BudgetForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; on
   }
   return <form className="admin-page__budget" onSubmit={submit}>
     <BudgetMeter budget={user.budget} />
-    <small className="admin-page__cost tnum">Our cost {user.budget.cost.toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 })} · {user.actions === 1 ? '1 action' : `${user.actions.toLocaleString()} actions`} · {user.budget.tokens.toLocaleString()} tokens</small>
+    <small className="admin-page__cost tnum">Our cost {user.budget.cost.toLocaleString(undefined, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 4 })} · {user.actions === 1 ? '1 action' : `${user.actions.toLocaleString()} actions`} · {user.budget.tokens.toLocaleString()} tokens{user.creditGrantedEur !== null && ` · ${eur(user.creditEur ?? 0)} of ${eur(user.creditGrantedEur)} credit left`}</small>
     <div className="admin-page__budget-edit">
       <label className="sr-only" htmlFor={`budget-${user.id}`}>Monthly budget in euros for {user.name}</label>
       <input id={`budget-${user.id}`} className="field__input tnum" type="number" min={0} step={0.5} value={value} onChange={(e) => setValue(e.target.value)} />
