@@ -46,7 +46,7 @@ export function Landing() {
 
       <main>
         <section aria-labelledby="home-title" className={cn(WRAP, 'pt-16 pb-12 text-center sm:pt-28 sm:pb-16')}>
-          {LAUNCH && <p className="mb-5 text-sm font-medium text-muted-foreground">Open source · Not for profit · Made in Europe</p>}
+          {LAUNCH && <p className="mb-5 text-sm font-medium text-muted-foreground">Open source · Free · Made in Europe</p>}
           <h1 id="home-title" className="mx-auto max-w-[22ch] text-[2.5rem] leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
             Land your first job in Europe. <span className="text-muted-foreground sm:block">With AI on your side.</span>
           </h1>
