@@ -572,7 +572,7 @@ async function trialUsed(db: Db, userId: string) {
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const { id, name, email, isAdmin, budgetEur } = c.get('user')
+  const { id, name, email, isAdmin, budgetEur, creditEur, creditGrantedEur } = c.get('user')
   const [{ profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
     loadMeProfile(db, userId),
     loadBudget(db, c.env, userId, budgetEur),
@@ -580,7 +580,7 @@ app.get('/api/me', async (c) => {
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
 })
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */

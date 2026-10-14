@@ -40,7 +40,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
+export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
 /** No school, employers, organizations or skills: nothing to find shared ground with. */
 export function profileIsEmpty(me: Me) {
   const p = me.profile

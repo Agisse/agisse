@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models".
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
 - How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
 - How Agisse scores a job, in the docs (`/docs/methodology`): what the 1–5 score weighs, why below 4.0 means a long shot, how the feed is ordered, and what the scores can't know.
