@@ -26,6 +26,8 @@ type Props = {
   onSavePrefs: (prefs: FeedPrefs) => Promise<unknown>
   /** A role was marked applied from the "Applied to X?" prompt. */
   onApplied: () => void
+  /** Waitlisted: tailoring and marking applied open once the account is approved. */
+  trial: boolean
 }
 
 type View = 'match' | 'soon' | 'new' | 'deadline'
@@ -112,7 +114,7 @@ function Checks({ labels, counts, chosen, onToggle }: { labels: Record<string, s
 }
 
 /** "Jobs for you": the scraped early-career European vacancies, filtered by the seeker's dealbreakers and ranked by fit. */
-export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSavePrefs, onApplied }: Props) {
+export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSavePrefs, onApplied, trial }: Props) {
   const [prefs, setPrefs] = useState<FeedPrefs>(() => ({ ...EMPTY_FEED_PREFS, ...profile?.jobFeed }))
   const [query, setQuery] = useState(prefs.query)
   const [view, setView] = useState<View>('match')
@@ -286,7 +288,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
       exhausted={exhausted}
       onToggle={() => setExpanded(expanded === v.url ? null : v.url)}
       onSave={onSave}
-      onTailor={() => {
+      onTailor={trial ? undefined : () => {
         posthog.capture('feed_tailor_clicked', { source: sourceOf(v), score: v.score, has_deadline: Boolean(v.deadline) })
         onEvaluate(listingOf(v), sourceOf(v), { then: 'cv' })
       }}
@@ -298,7 +300,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
         posthog.capture('feed_similar_clicked', { from: 'row' })
       }}
       onOpen={() => {
-        leftFor.current = v
+        if (!trial) leftFor.current = v
       }}
     />
   )
@@ -513,7 +515,7 @@ type RowProps = {
   exhausted: boolean
   onToggle: () => void
   onSave: OnSave
-  onTailor: () => void
+  onTailor?: () => void
   onHide: () => void
   onSimilar: () => void
   onOpen: () => void
@@ -602,7 +604,7 @@ function FeedRow({ v, sub, jobId, isNew, open, exhausted, onToggle, onSave, onTa
           )}
           <p className="feed-row__foot">
             <span>{checkedOpen(v.lastSeen)}</span>
-            <button type="button" className="btn btn--sm btn--primary" disabled={exhausted} onClick={onTailor} title="Checks fit, then opens your CV tailored to it">Tailor my CV</button>
+            {onTailor && <button type="button" className="btn btn--sm btn--primary" disabled={exhausted} onClick={onTailor} title="Checks fit, then opens your CV tailored to it">Tailor my CV</button>}
             <button type="button" className="btn btn--sm" onClick={onSimilar}>Similar roles</button>
             <button type="button" className="btn btn--quiet btn--sm" onClick={onHide}>Hide roles at {v.company}</button>
           </p>
