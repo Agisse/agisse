@@ -34,9 +34,9 @@
     { "pattern": "www.agisse.xyz", "custom_domain": true }
   ],
   "vars": {
-    // Comma-separated preference list. Paid entries (Haiku: best in the 2026-10-12 eval, ~$0.002 a call) go first on Agisse's key;
-    // the ":free" ones, plus auto-discovered ":free" models, are the fallback.
-    "OPENROUTER_MODELS": "anthropic/claude-haiku-5.5,nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
+    // Comma-separated preference list for Agisse's key: free models only (owner, 2026-10-14), then auto-discovered ":free" ones.
+    // If Agisse's key ever pays for a model again, put Haiku first ("anthropic/claude-haiku-5.5"), never "openrouter/auto".
+    "OPENROUTER_MODELS": "nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
     // Paid models below run only on a seeker's own OpenRouter key.
     // "Smart" model setting: tried first, then paid models under SMART_MAX_USD_PER_M ($ per 1M output tokens), then the free chain.
     "OPENROUTER_CHECK_MODELS": "google/gemini-3.8-flash",
@@ -55,6 +55,10 @@
     "USD_TO_EUR": "0.86",
     // Kill switch: total provider spend per UTC day across every user. Past it all AI features pause until midnight.
     "GLOBAL_DAILY_USD_CAP": "15",
+    // Actions per UTC day on this server's key, per account and for everyone ("0" = no limit). Seekers with their own key skip both.
+    // OpenRouter's free models allow 1,000 requests a day per OpenRouter account (50 before $10 of credits); one action can take a few attempts.
+    "FREE_DAILY_ACTIONS": "15",
+    "FREE_DAILY_ACTIONS_ALL": "600",
     // Local dev overrides this to "development" via .dev.vars if you add one; deployed always sends "production".
     "SENTRY_ENVIRONMENT": "production",
     // "1" turns on the launch-day homepage. The owner flips it; until then the launch sections ship dark.

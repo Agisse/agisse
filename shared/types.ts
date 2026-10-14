@@ -155,7 +155,7 @@ export type AiProvider = 'openrouter' | 'openai' | 'anthropic' | 'gemini' | 'mis
 /** The seeker's own AI key as the browser sees it: never the key itself. */
 export type AiKeyInfo = { provider: AiProvider; model: string; last4: string }
 
-export type Budget = { used: number; limit: number; cost: number; tokens: number; resetsOn: string; paused?: boolean }
+export type Budget = { used: number; limit: number; cost: number; tokens: number; resetsOn: string; paused?: 'cap' | 'free' | 'you' }
 
 export type ContactedPerson = Person & { search: Pick<Search, 'id' | 'company' | 'role'> | null }
 

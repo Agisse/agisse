@@ -11,6 +11,7 @@ import { isAdminEmail, createAuth, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
 import { qualityReport } from './lib/quality'
+import { APP_CSP, DOCS_CSP } from './lib/csp'
 import { draftOutreach, draftPrep, extractProfileFromResume, runSearch } from './lib/pipeline'
 import { answerQuestion, checkApplication, cvPlain, cvText, draftCover, draftEmail, evaluateJob, findPosting, insertJob, missingKeywords, postingKey, pushStatus, saveJob, sharedPosting, tailorCv } from './lib/jobs'
 import { answerFeedback, interviewQuestions, offerBrief, payCheck, roleKey } from './lib/interview'
@@ -87,8 +88,16 @@ type Variables = {
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Sentry wraps everything else, so it must be the first middleware registered.
+// Request bodies and cookies never go to Sentry: a body can hold a CV, a note or an own AI key.
+const scrub = <E extends { request?: { data?: unknown; cookies?: unknown } }>(event: E) => {
+  if (event.request) {
+    delete event.request.data
+    delete event.request.cookies
+  }
+  return event
+}
 // Errors are always sent; a trace costs ~6–11 ms and 5–20 kB per request (docs/performance.md), so one in ten is traced.
-app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1, enableLogs: true })))
+app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1, enableLogs: true, sendDefaultPii: false, beforeSend: scrub, beforeSendTransaction: scrub })))
 
 // agisse.xyz's zone redirects http → https and www → apex itself; this stays for self-hosted zones without
 // those rules (hashed build files skip the Worker, see wrangler.jsonc). Local dev stays on http.
@@ -107,6 +116,8 @@ app.use('*', async (c, next) => {
   c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   c.header('X-Frame-Options', 'SAMEORIGIN')
   c.header('Permissions-Policy', 'camera=(self), geolocation=(), microphone=(self)')
+  // Vite's dev server injects inline scripts of its own, so dev pages go without.
+  if (!(import.meta as { env?: { DEV?: boolean } }).env?.DEV && c.res.headers.get('Content-Type')?.startsWith('text/html')) c.header('Content-Security-Policy', c.req.path.startsWith('/docs') ? DOCS_CSP : APP_CSP)
 })
 
 // Cloudflare's free Workers rate limiter (per colo, approximate): credential endpoints per IP, everything else per signed-in user below.
@@ -2282,7 +2293,13 @@ app.notFound(async (c) => {
   if (asset.status === 404) asset = await c.env.ASSETS.fetch(new URL('/', c.req.url))
   if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
   // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
-  const res = Number(c.env.PUBLIC_LAUNCH) === 1 ? new HTMLRewriter().on('html', { element: (el) => void el.setAttribute('data-launch', '') }).transform(asset) : asset
+  // The crawler copy of the headline follows Landing's launch headline.
+  const res = Number(c.env.PUBLIC_LAUNCH) === 1
+    ? new HTMLRewriter()
+        .on('html', { element: (el) => void el.setAttribute('data-launch', '') })
+        .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. Act where you fit.') })
+        .transform(asset)
+    : asset
   const home = c.req.path === '/'
   // index.html carries the homepage as plain HTML for crawlers; anyone else would see it flash before the app.
   const out = home && !/session_token=/.test(c.req.header('Cookie') ?? '') ? res : new HTMLRewriter().on('#root', { element: (el) => void el.setInnerContent('') }).transform(res)

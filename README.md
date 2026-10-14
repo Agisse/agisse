@@ -159,6 +159,8 @@ Non-secret settings live in `wrangler.jsonc` → `vars`:
 - `MONTHLY_BUDGET_EUR` — default allowance per user per calendar month, in €. The admin can override it per account at `/admin`.
 - `PRICE_MARGIN` — share of a user's spend kept as margin. Users are charged provider cost ÷ (1 − margin), so `0.333333` charges cost × 1.5 (a 50% markup) and a €10 allowance costs at most about €6.67 (plus the overshoot of the one request that crosses the line).
 - `TOKEN_EUR_PER_MILLION` — nominal € charged per million OpenRouter tokens, since the free models bill $0. Kept generous (`0.05`: the €2 default ≈ 40M tokens).
+- `GLOBAL_DAILY_USD_CAP` — kill switch: total provider spend per UTC day, across everyone. Past it, AI pauses for every account until midnight UTC.
+- `FREE_DAILY_ACTIONS` / `FREE_DAILY_ACTIONS_ALL` — AI actions per UTC day on the server's key, per account and for everyone (`0` = no limit). OpenRouter's free models allow a fixed number of requests per day per OpenRouter account, shared by every user of the key, and one action can take a few attempts. Accounts with their own key skip both.
 - `USD_TO_EUR` — conversion for provider costs, which arrive in USD (OpenRouter `usage.cost`, Exa `costDollars`). Update it when the rate drifts.
 
 Every paid request (search rounds, notes, résumé import) is booked in the `usage` table with its tokens and USD cost, failed attempts included.

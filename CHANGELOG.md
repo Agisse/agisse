@@ -18,13 +18,19 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Analytics know you by your account id only, never your name or email, and never record your screen. Error reports leave out what you typed or uploaded.
+- Your contact details stay out of AI requests: email addresses, phone numbers, birth dates, street addresses and national ID numbers in your CV are swapped for placeholders before a model sees it, and put back in what it writes.
+- Agisse's pages now tell your browser which scripts may run (a Content Security Policy), so a script slipped into a page doesn't run.
 - Posting and contact links must be web links (`http` or `https`), from the app, the extension and MCP alike.
 - A CV upload is stored only if the file really is a PDF (its first bytes), not just labelled as one.
 - Scores and drafts never lean on your age, gender, nationality, religion, health or photo, even when your CV mentions them. Every prompt that scores you or writes for you now says so, and the methodology page explains it.
+- Agisse's free AI now has a daily limit per account, so a busy day can't use it up for everyone. Past it, Agisse says so and points to connecting your own OpenRouter key, which has no Agisse limit.
+- Agisse's own AI key now runs on free models only. For stronger models, connect your own OpenRouter key in Profile → AI.
 - Your monthly AI allowance now goes about a third further: Agisse counts what the AI costs plus 50%, not plus 100%.
 - Agisse opens a little faster: it now checks your session with one request instead of two in a row.
 - The homepage is a little quieter: two links that repeated the button or menu next to them are gone.
 - Today is a little quieter: no date under the greeting, no progress bar repeating "1 of 4 done", and no empty Coming up box when nothing else is due.
+- Your invite link shows on Today once you've finished Get started, so a new account sees one thing to do.
 - Setting up your account ends on your roles: after the last question, "See my roles" opens the feed your answers shaped, instead of one more screen asking where to start.
 - Creating an account asks for three things, not four: the invite code field opens from "Have an invite code?" under the form, and stays open when you arrive with an invite link.
 - The job feed loads up to four times faster, most of all with no field picked.
@@ -56,6 +62,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - With `PUBLIC_LAUNCH=1`, the homepage links the comparison pages: "See comparisons" under the co-pilot table, and Compare in the footer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.
 - `GOVERNANCE.md` describes the roles (participant, contributor after three merged PRs, reviewer or area owner by invitation), RFCs in Discussions for big changes, and that sponsors never steer the roadmap. `MAINTAINERS.md` lists who reviews what.
+- With `PUBLIC_LAUNCH=1`, the homepage gets its launch headline and closing line, and one trust line under the button (free with your own AI key, open source, made in Europe) replaces the line above the headline and the beta line. The crawler copy of the headline in `index.html` follows.
 - With `PUBLIC_LAUNCH=1`, the homepage footer links Docs, Methodology, the legal pages and GitHub; MCP and the browser extension stay one click away in the docs.
 - With `PUBLIC_LAUNCH=1`, the homepage's questions become the ones a first-time visitor asks: how the score is made, whether it applies for you (and why not), cost and funding, where your data lives, who's behind it, AI clients, and what's open source.
 - The README opens with what Agisse is today (the feed, the apply-or-skip score, warm intros, prep) instead of People alone, and no longer mentions a paid Pro plan. Short versions in Dutch, French, German, Spanish, Italian and Polish sit next to it; `scripts/readme-translations.check.ts` says which ones to update when the English intro changes.
