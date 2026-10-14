@@ -73,7 +73,7 @@ if (!databaseUrl) {
     await db.update(schema.feedDay).set({ pages: FEED_DAILY_PAGES }).where(eq(schema.feedDay.userId, user!.id))
     const capped = await call('GET', '/api/vacancies')
     check(capped.status === 429 && capped.json?.error === FEED_CAP_MESSAGE, 'feed page past the daily cap', capped)
-    check((await feedCapDays(db)).get(user!.id) === 1, 'a capped day counts once for /admin')
+    check((await feedCapDays(db, FEED_DAILY_PAGES)).get(user!.id) === 1, 'a capped day counts once for /admin')
     // Admins are exempt.
     await db.update(schema.user).set({ isAdmin: true }).where(eq(schema.user.id, user!.id))
     ;(env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL = email
@@ -109,8 +109,13 @@ if (!databaseUrl) {
       const listed = ((await call('GET', '/api/admin/settings')).json?.switches as Array<{ key: string; value: string; changedBy: string | null }>).find((s) => s.key === 'FREE_DAILY_ACTIONS_ALL')
       check(listed?.value === '7' && listed.changedBy === 'Index Check', 'switch lists value and who changed it', listed)
       check((await call('DELETE', '/api/admin/settings/FREE_DAILY_ACTIONS_ALL')).status === 200 && (await cap()) === before, 'switch back to the default')
+      // The feed cap too: "0" lifts it, so the capped day above no longer counts in /admin.
+      const capDays = async () => ((await call('GET', '/api/admin/users')).json?.users as Array<{ id: string; feedCapDays: number }>).find((u) => u.id === user!.id)?.feedCapDays
+      check((await call('PUT', '/api/admin/settings/FEED_DAILY_PAGES', { value: 0.5 })).status === 400, 'switch: whole pages only')
+      check((await call('PUT', '/api/admin/settings/FEED_DAILY_PAGES', { value: 0 })).status === 200 && (await capDays()) === 0, 'feed cap switch applies', await capDays())
+      check((await call('DELETE', '/api/admin/settings/FEED_DAILY_PAGES')).status === 200 && (await capDays()) === 1, 'feed cap back to the default')
     } finally {
-      await db.delete(schema.setting).where(eq(schema.setting.key, 'FREE_DAILY_ACTIONS_ALL'))
+      await db.delete(schema.setting).where(sql`${schema.setting.key} in ('FREE_DAILY_ACTIONS_ALL', 'FEED_DAILY_PAGES')`)
     }
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.

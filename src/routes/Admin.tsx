@@ -309,6 +309,7 @@ const SWITCH_LABELS: Record<LiveSwitch['key'], string> = {
   FREE_DAILY_ACTIONS_ALL: 'Free AI actions for everyone, per day',
   GLOBAL_DAILY_USD_CAP: 'AI spend for everyone, per day ($)',
   MONTHLY_BUDGET_EUR: 'Monthly allowance per account (€)',
+  FEED_DAILY_PAGES: 'Feed pages per account, per day',
 }
 
 /** The daily limits and the monthly allowance, changed without a redeploy (worker/lib/settings.ts). */

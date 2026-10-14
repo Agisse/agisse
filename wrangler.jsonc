@@ -61,6 +61,8 @@
     // OpenRouter's free models allow 1,000 requests a day per OpenRouter account (50 before $10 of credits); one action can take a few attempts.
     "FREE_DAILY_ACTIONS": "15",
     "FREE_DAILY_ACTIONS_ALL": "600",
+    // Feed pages (30 roles each) per account per UTC day, so the hosted feed can't be copied in bulk ("0" = no cap). Admins skip it.
+    "FEED_DAILY_PAGES": "200",
     // Local dev overrides this to "development" via .dev.vars if you add one; deployed always sends "production".
     "SENTRY_ENVIRONMENT": "production",
     // "1" turns on the launch-day homepage. The owner flips it; until then the launch sections ship dark.
