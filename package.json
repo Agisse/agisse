@@ -4,12 +4,24 @@
   "license": "AGPL-3.0-only",
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "agisse": "dist/agisse.mjs"
+  },
+  "files": [
+    "dist/client",
+    "!dist/client/**/*.map",
+    "dist/agisse.mjs",
+    "drizzle",
+    "!drizzle/meta/*_snapshot.json"
+  ],
   "scripts": {
     "predev": "npm run ext:zip && npm run docs:build",
     "dev": "vite",
     "build": "npm run ext:zip && npm run docs:build && npm run cf-typegen && tsc -b && vite build",
     "ext:zip": "rm -f public/agisse-extension.zip && cd extension && zip -qr ../public/agisse-extension.zip .",
     "local": "tsx local/server.ts",
+    "build:local": "rolldown -c local/rolldown.config.mjs",
+    "prepack": "npm run build && npm run build:local",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "lint": "oxlint",
