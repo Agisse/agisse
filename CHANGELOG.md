@@ -20,6 +20,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- `PUBLIC_LAUNCH` (Worker var, `"0"` by default): `"1"` turns on the launch-day homepage, starting with an "Open source · Non-profit · Made in Europe" line in the hero.
 - CI on every pull request: build with typecheck, lint, and every `*.check.ts`.
 - Security workflows: gitleaks on every pull request; CodeQL, OpenSSF Scorecard and dependency review once the repository is public.
 - Issue forms for bugs, feature ideas and self-host help, and a pull request template.

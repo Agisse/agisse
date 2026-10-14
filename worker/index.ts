@@ -2223,8 +2223,10 @@ app.delete('/api/shortlist/:id', async (c) => {
 
 app.notFound(async (c) => {
   if (c.req.path.startsWith('/api/')) return c.json({ error: 'Not found' }, 404)
-  const res = await c.env.ASSETS.fetch(c.req.raw)
-  if (!res.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return res
+  const asset = await c.env.ASSETS.fetch(c.req.raw)
+  if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
+  // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
+  const res = Number(c.env.PUBLIC_LAUNCH) === 1 ? new HTMLRewriter().on('html', { element: (el) => void el.setAttribute('data-launch', '') }).transform(asset) : asset
   const home = c.req.path === '/'
   // index.html carries the homepage as plain HTML for crawlers; anyone else would see it flash before the app.
   const out = home && !/session_token=/.test(c.req.header('Cookie') ?? '') ? res : new HTMLRewriter().on('#root', { element: (el) => void el.setInnerContent('') }).transform(res)
