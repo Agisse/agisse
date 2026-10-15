@@ -377,6 +377,13 @@
 .prep__sources {
   list-style: decimal inside;
 }
+/* Preflight makes svgs blocks, which put each STAR tick on its own line. */
+.prep__star svg {
+  display: inline;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
 
 /* Mock video interview */
 .mock {

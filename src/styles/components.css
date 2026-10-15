@@ -1,25 +1,5 @@
-/* Shared primitives for the legacy (non-shadcn) surfaces. They copy the look of src/components/ui:
+/* Shared primitives for the legacy (non-shadcn) surfaces, loaded with the signed-in shell. They copy the look of src/components/ui:
    10px controls, hairline borders, a blue 3px focus ring, near-flat cards. Colours come from tokens only. */
-
-/* ---------- Wordmark (sign-in and welcome) ---------- */
-
-.booth-sign {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: var(--fs-18);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  flex: none;
-}
-.booth-sign__mark {
-  width: 26px;
-  height: 26px;
-  flex: none;
-}
 
 /* ---------- Page frame ---------- */
 
