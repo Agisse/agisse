@@ -260,6 +260,13 @@
       "when": 1792008443433,
       "tag": "0036_usage_credit",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792015609994,
+      "tag": "0037_live_switches",
+      "breakpoints": true
     }
   ]
 }
