@@ -5,6 +5,8 @@ import type { AnswerDelivery, AnswerFeedback, InterviewQuestion, PracticeAnswer 
 import type { ProgressData } from '../../shared/progress'
 import type { AssessmentReport, CompanyAssessment, GameId, GameResult, ReportKind, SkillBenchmark, TrainingMode, TrainingSession } from '../../shared/assessments'
 import type { FeedPrefs, Listing, Vacancy, VacancyFacets, VacancySort } from '../../shared/listings'
+import type { Programme, ProgrammeFacets, ProgrammeFilters } from '../../shared/programmes'
+import { SOON_DAYS } from '../../shared/programmes'
 import type { QualityReport } from '../../shared/quality'
 import type { HelperBriefing, HelperMessage, HelperReply } from '../../shared/helper'
 import type { CvReviewSummary } from '../../shared/cv-review'
@@ -132,6 +134,17 @@ export const api = {
       { signal },
     ),
   vacancyFacets: () => request<VacancyFacets>('/api/vacancies/facets'),
+  programmes: (f: ProgrammeFilters, offset: number, signal?: AbortSignal) =>
+    request<{ programmes: Programme[]; more: boolean; total: number }>(
+      `/api/programmes?${new URLSearchParams({
+        q: f.q, kinds: f.kinds.join(','), countries: f.countries.join(','), fields: f.fields.join(','), languages: f.languages.join(','),
+        max_tuition: f.maxTuition == null ? '' : String(f.maxTuition), deadline_within: f.soon ? String(SOON_DAYS) : '', saved: f.saved ? '1' : '', offset: String(offset),
+      })}`,
+      { signal },
+    ),
+  programmeFacets: () => request<ProgrammeFacets>('/api/programmes/facets'),
+  programme: (url: string) => request<Programme>(`/api/programmes/one?${new URLSearchParams({ url })}`),
+  saveProgramme: (url: string, saved: boolean) => request<{ ok: true }>('/api/programmes/save', { method: 'POST', body: JSON.stringify({ url, saved }) }),
   stories: () => request<{ stories: Story[] }>('/api/stories'),
   saveStory: (story: Pick<Story, 'title' | 'text' | 'tags'>, id?: string) => request<{ story: Story }>(id ? `/api/stories/${id}` : '/api/stories', { method: id ? 'PUT' : 'POST', body: JSON.stringify(story) }),
   deleteStory: (id: string) => request<{ ok: true }>(`/api/stories/${id}`, { method: 'DELETE' }),

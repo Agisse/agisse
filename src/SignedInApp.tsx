@@ -29,6 +29,7 @@ const PracticeRunner = lazy(() => import('./features/assessments/components/Prac
 const PracticeRoute = lazy(() => import('./features/assessments/components/TrainingHub').then((m) => ({ default: m.PracticeRoute })))
 const ExtensionRoute = lazy(() => import('./routes/Extension').then((m) => ({ default: m.ExtensionRoute })))
 const ChangelogRoute = lazy(() => import('./routes/Changelog').then((m) => ({ default: m.ChangelogRoute })))
+const EducationRoute = lazy(() => import('./routes/Education').then((m) => ({ default: m.EducationRoute })))
 const ChatRoute = lazy(() => import('./routes/Chat').then((m) => ({ default: m.ChatRoute })))
 const Consent = lazy(() => import('./routes/Consent').then((m) => ({ default: m.Consent })))
 
@@ -51,6 +52,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
         <Route path="/contacts">{() => <MapRoute me={me} refreshMe={load} />}</Route>
         <Route path="/s/:id">{(params) => <MapRoute me={me} refreshMe={load} searchId={params.id} />}</Route>
         <Route path="/jobs">{() => <JobsRoute me={me} refreshMe={load} />}</Route>
+        <Route path="/education">{() => <EducationRoute />}</Route>
         {/* Old section URLs: Applications and Companies were folded into Jobs, Assistant into Today, Visited into People. */}
         <Route path="/board">{() => <Redirect to="/jobs?view=track&layout=board" replace />}</Route>
         <Route path="/desk">{() => <Redirect to="/" replace />}</Route>

@@ -61,6 +61,7 @@ import { exportUserData } from './lib/export'
 import { deleteInactiveAccounts, deleteStaleWaitlist, eraseAccounts, pruneAdminActions } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
+import { getProgramme, programmeFacets, saveProgramme, searchProgrammes } from './lib/programmes'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
 import { dueItems } from '../src/lib/followup'
@@ -301,7 +302,8 @@ app.all('/mcp', async (c) => {
 
 // What a pending account may do on its free try. Deleting is out so the try cannot be reset.
 const TRIAL_ROUTES = [
-  /^GET \/api\/(me|me\/export|searches|contacted|referral|vacancies|vacancies\/facets|jobs)$/,
+  /^GET \/api\/(me|me\/export|searches|contacted|referral|vacancies|vacancies\/facets|programmes|programmes\/facets|programmes\/one|jobs)$/,
+  /^POST \/api\/programmes\/save$/,
   // The feed and saving from it are plain database work; evaluating or tailoring stays closed (evaluateInto).
   /^GET \/api\/jobs\/[^/]+$/,
   /^POST \/api\/jobs$/,
@@ -1530,6 +1532,52 @@ app.get('/api/vacancies/facets', async (c) => {
   // Counts over the whole feed, the same for everyone: edge-cached, while the route stays behind the session guard.
   c.header('cache-control', 'private, max-age=600')
   return c.json(await edgeCached(c, '/_cache/vacancy-facets', 600, () => vacancyFacets(c.get('db'))))
+})
+
+const ProgrammeQuerySchema = z.object({
+  q: z.string().max(120).default(''),
+  kinds: z.array(z.enum(['master', 'mba', 'phd', 'phd_position'])).max(4),
+  countries: z.array(z.string().length(2)).max(40),
+  fields: z.array(z.string().max(40)).max(20),
+  languages: z.array(z.string().max(30)).max(16),
+  maxTuition: z.coerce.number().int().min(0).max(1_000_000).nullable(),
+  deadlineWithin: z.coerce.number().int().min(1).max(365).nullable(),
+  saved: z.boolean(),
+  offset: z.coerce.number().int().min(0).max(MAX_OFFSET).default(0),
+})
+
+// The Education tab: open programmes (a feed provider fills `programme`), ranked for this seeker. No model call.
+// Counted against the same daily page cap as the job feed.
+app.get('/api/programmes', async (c) => {
+  const q = (k: string) => c.req.query(k)
+  const parsed = ProgrammeQuerySchema.safeParse({
+    q: q('q'), kinds: list(q('kinds')), countries: list(q('countries')).map((x) => x.toUpperCase()), fields: list(q('fields')), languages: list(q('languages')),
+    maxTuition: q('max_tuition') || null, deadlineWithin: q('deadline_within') || null, saved: q('saved') === '1', offset: q('offset'),
+  })
+  if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid filters' }, 400)
+  const db = c.get('db')
+  const userId = c.get('userId')
+  const [allowed, profile] = await Promise.all([c.get('isAdmin') || countFeedPage(db, userId, feedDailyPages(c.env)), loadProfile(db, userId)])
+  if (!allowed) return c.json({ error: FEED_CAP_MESSAGE }, 429)
+  return c.json(await searchProgrammes(db, userId, parsed.data, profile?.degree))
+})
+
+app.get('/api/programmes/facets', async (c) => {
+  c.header('cache-control', 'private, max-age=600')
+  return c.json(await edgeCached(c, '/_cache/programme-facets', 600, () => programmeFacets(c.get('db'))))
+})
+
+app.get('/api/programmes/one', async (c) => {
+  const url = c.req.query('url') ?? ''
+  const found = url && (await getProgramme(c.get('db'), c.get('userId'), url))
+  return found ? c.json(found) : c.json({ error: 'That programme is not in Agisse.' }, 404)
+})
+
+app.post('/api/programmes/save', async (c) => {
+  const parsed = z.object({ url: z.string().min(1).max(2000), saved: z.boolean() }).safeParse(await c.req.json().catch(() => null))
+  if (!parsed.success) return c.json({ error: 'Invalid request' }, 400)
+  const ok = await saveProgramme(c.get('db'), c.get('userId'), parsed.data.url, parsed.data.saved)
+  return ok ? c.json({ ok: true }) : c.json({ error: 'That programme is not in Agisse.' }, 404)
 })
 
 // The extension's job-page badge, on click: is this page's posting on the seeker's board, and how well does the CV cover it.

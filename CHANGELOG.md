@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Education, a new tab for what comes after a degree that isn't a job: master's, MBA and PhD programmes and funded PhD positions. One search, filters for type, country, field, language and tuition, "Closing soon" and a Saved list, ordered by your degree. Each programme opens to its facts and one link: apply on the institution's own page.
 - Under a tailored CV, a cover letter and the feedback on a rehearsed answer, one quiet line when they were written on free models: your own OpenRouter key gives sharper results. With starter credit left, neither these nor the job score say "free models" any more, because credit runs on a paid model.
 - Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models". The monthly budget meter shows once the credit is used up.
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
@@ -79,6 +80,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- The Education tab reads a new `programme` table, written by a feed provider like `vacancy`; rows are archived with `closed_at`, never pruned. The columns are in [the education contract](docs/education-contract.md), checked against the schema by `worker/db/feed-contract.check.ts`. Saved programmes are in the data export.
 - Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed through `/api/admin/settings` without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
 - In `/admin`, an account at the free daily AI limit (`FREE_DAILY_ACTIONS`) shows "Reset today's free limit": its count for today starts again, logged like credit, export and delete. The limit for everyone stays.
 - In `/admin`, a folded "Recent actions" list shows the last 20 lines of the admin action log (who exported, deleted or gave credit to which account, and when). The daily job deletes lines older than 2 years.
