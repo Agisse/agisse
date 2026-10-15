@@ -28,7 +28,7 @@
     { "name": "AUTH_LIMITER", "namespace_id": "1701", "simple": { "limit": 10, "period": 60 } },
     { "name": "API_LIMITER", "namespace_id": "1702", "simple": { "limit": 60, "period": 60 } }
   ],
-  "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "agisse-resumes" }],
+  "r2_buckets": [{ "binding": "RESUMES", "bucket_name": "agisse-resumes-eu", "jurisdiction": "eu" }],
   "routes": [
     { "pattern": "agisse.xyz", "custom_domain": true },
     { "pattern": "www.agisse.xyz", "custom_domain": true }

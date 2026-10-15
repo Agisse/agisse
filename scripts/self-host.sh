@@ -8,7 +8,7 @@ for k in DATABASE_URL BETTER_AUTH_SECRET SELF_HOST_DOMAIN; do
   [ -n "$(val "$k")" ] || { echo "Set $k in .env first."; exit 1; }
 done
 
-npx wrangler r2 bucket create agisse-resumes || echo "Keeping the existing agisse-resumes bucket."
+npx wrangler r2 bucket create agisse-resumes-eu --jurisdiction eu || echo "Keeping the existing agisse-resumes-eu bucket."
 npm run db:migrate
 SELF_HOST_DOMAIN=$(val SELF_HOST_DOMAIN) npm run build
 
