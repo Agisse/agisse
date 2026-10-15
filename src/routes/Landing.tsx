@@ -175,6 +175,7 @@ export function Landing() {
           <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('close')} />}>
             Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>
+          {LAUNCH && <OnboardAgent />}
         </section>
       </main>
 
@@ -221,6 +222,32 @@ const TONE = {
   green: 'bg-[var(--green-tint)] text-[var(--green-ink)]',
   amber: 'bg-[var(--amber-tint)] text-[var(--amber)]',
   blue: 'bg-[var(--blue-soft)] text-[var(--blue-ink)]',
+}
+
+const AGENT_PROMPT = 'Read https://agisse.xyz/agent.md and set up my own Agisse.'
+
+/** Self-hosting in one prompt: copies a line for Claude Code, Codex or Cursor, which reads /agent.md and does the setup. */
+function OnboardAgent() {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    posthog.capture('landing_cta_clicked', { position: 'agent' })
+    navigator.clipboard.writeText(AGENT_PROMPT).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }, () => {})
+  }
+  return (
+    <div className="mt-4 flex flex-col items-center gap-3">
+      <Button variant="outline" className="h-12 rounded-full px-7 text-base" onClick={copy}>
+        {copied ? <Check data-icon="inline-start" aria-hidden="true" /> : <Copy data-icon="inline-start" aria-hidden="true" />}
+        {copied ? 'Copied. Paste it into your agent' : 'Onboard your agent'}
+      </Button>
+      <p className="text-sm text-balance text-muted-foreground">
+        Run your own copy: Claude Code, Codex or Cursor sets it up from <a href="/agent.md" className="underline underline-offset-4 hover:text-foreground">one prompt</a>.
+      </p>
+      <span className="sr-only" aria-live="polite">{copied ? 'Prompt copied' : ''}</span>
+    </div>
+  )
 }
 
 function Initials({ text, round }: { text: string; round?: boolean }) {
