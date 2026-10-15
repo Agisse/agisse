@@ -12,8 +12,8 @@ import { BoardColumns } from './Board'
 import { CompaniesView } from './Scout'
 import { Segmented } from '../components/Segmented'
 import posthog from '../lib/posthog'
-import { AssessmentPrep } from '../features/assessments/components/AssessmentPrep'
 import { SelectionProcess } from '../components/SelectionProcess'
+import { PrepGhost } from '../components/PrepGhost'
 import { OpenRoles, type OnSave } from '../components/OpenRoles'
 import { VacancyFeed } from '../components/VacancyFeed'
 import { isBlocked, type Listing } from '../../shared/listings'
@@ -22,6 +22,9 @@ import { Rate } from '../components/Rate'
 import { FreeModelNote } from '../components/FreeModelNote'
 import { JobWriting } from '../components/JobWriting'
 import { trackerCsv } from '../lib/csv'
+
+// The online-test prep pulls in every assessment game's definition; it loads with the Prepare tab.
+const AssessmentPrep = lazy(() => import('../features/assessments/components/AssessmentPrep').then((m) => ({ default: m.AssessmentPrep })))
 
 const VERDICT: Record<Recommendation, string> = { apply_now: 'Apply now', apply: 'Worth applying', do_not_apply: 'Long shot' }
 /** The next steps on a posting, likeliest first: the status each moves to, and the button that says so. */
@@ -591,7 +594,9 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         <>
           <SelectionProcess job={job} me={me} onSpend={onSpend} />
           <section id="online-test" aria-label="Online test">
-            <AssessmentPrep job={job} me={me} onSpend={onSpend} />
+            <Suspense fallback={<PrepGhost title="Online test" lines={1} status="Looking up the assessment…" />}>
+              <AssessmentPrep job={job} me={me} onSpend={onSpend} />
+            </Suspense>
           </section>
         </>
       ) : !ev && tab !== 'overview' ? (
