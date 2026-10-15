@@ -13,6 +13,8 @@ Most of what helps job seekers isn't code:
 
 Pick [an issue form](https://github.com/Agisse/agisse/issues/new/choose) and fill it in; we'll do the rest and credit you on the [contributors page](https://agisse.xyz/docs/contributors).
 
+Guides and other docs you contribute are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): anyone may reuse them with credit. Code, including practice questions in `shared/`, stays AGPL-3.0.
+
 ### On your CV
 
 A contribution is real work in public that anyone can check:
