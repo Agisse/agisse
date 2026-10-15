@@ -71,6 +71,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- In `/admin`, a folded "Recent actions" list shows the last 20 lines of the admin action log (who exported, deleted or gave credit to which account, and when). The daily job deletes lines older than 2 years.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.

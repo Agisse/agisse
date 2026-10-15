@@ -30,3 +30,6 @@ export async function eraseAccounts(db: Db, files: Pick<R2Bucket, 'delete'>, ids
   await eraseOutsideCascade(db, files, ids)
   await db.delete(schema.user).where(inArray(schema.user.id, ids))
 }
+
+// Owner decision (#178): /admin's action log is kept 2 years, also after the account it names is deleted.
+export const pruneAdminActions = (db: Db) => db.delete(schema.adminAction).where(lt(schema.adminAction.createdAt, sql`now() - interval '2 years'`))

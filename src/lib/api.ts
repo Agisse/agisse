@@ -56,6 +56,8 @@ export type AdminUser = { id: string; name: string; email: string; accessStatus:
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
+/** One line of /admin's action log; `target` is the account's email, null once it's deleted. */
+export type AdminAction = { action: string; at: string; admin: string | null; targetId: string; target: string | null }
 export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
 
 export const api = {
@@ -73,6 +75,7 @@ export const api = {
   feedback: (body: { task: RatedTask; refId: string; good: boolean; note?: string }) => request<{ ok: true }>('/api/feedback', { method: 'POST', body: JSON.stringify(body) }),
   adminUsers: () => request<{ users: AdminUser[]; today: AdminToday }>('/api/admin/users'),
   quality: () => request<{ report: QualityReport }>('/api/admin/quality'),
+  adminActions: () => request<{ actions: AdminAction[] }>('/api/admin/actions'),
   setAccess: (id: string, status: AccessStatus) => request<{ user: { id: string; accessStatus: AccessStatus } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   /** null = back to the default monthly budget. */
   setBudget: (id: string, budgetEur: number | null) => request<{ user: { id: string; budgetEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ budgetEur }) }),
