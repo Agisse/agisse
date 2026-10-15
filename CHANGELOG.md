@@ -20,6 +20,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Signing out now clears your assistant chats from this browser, so the next person on a shared computer can't read them.
 - What's new groups its changes into New, Improved and Fixed, with each change's name in bold, so it's quicker to scan.
 - The browser extension page puts the download button first, and shows each place the extension helps as one row with an icon.
 - Jobs opens sooner after sign-in: the app now fetches each other page on its first visit, instead of all of them up front.
@@ -30,6 +31,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
+- What an AI feature wrote for you, and any note you added to your thumbs-down, is now deleted after 90 days. The cost and the thumbs themselves stay. Saved people-search results are deleted after a week, once they're too old to reuse.
 - An account that hasn't been used for 24 months gets one email, and is deleted 30 days later unless you sign in.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
 - Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
