@@ -1,3 +1,4 @@
+import './styles/app.css'
 import './styles/routes.css'
 import { Link, Redirect, Route, Switch, useLocation } from 'wouter'
 import type { Me } from './lib/api'
