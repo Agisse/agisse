@@ -57,7 +57,7 @@ Before any model call, on any key, email addresses, phone numbers, labelled birt
 | OpenFreeMap | The world map | Map tile requests, and the user's IP address |
 | logo.dev | Company logos (`VITE_LOGO_DEV_TOKEN`) | A company's domain, and the user's IP address |
 | Cloudflare Turnstile | The sign-up and sign-in forms (`TURNSTILE_SECRET_KEY`) | The bot check, and the user's IP address |
-| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked, with the account id (never the name or email). No session recordings |
+| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked, with the account id (never the name or email). No session recordings. With `POSTHOG_PERSONAL_API_KEY`, deleting the account asks PostHog to delete that id's person and events |
 | The browser's speech recognition | Mock interview, where the browser has it | The answer's audio, handled by the browser vendor |
 
 Where the browser has no speech recognition (Firefox), the answer's audio goes once to the Worker, which has a model transcribe it and keeps only the text.
