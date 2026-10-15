@@ -73,11 +73,13 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Fixed
 
 - When an AI call fails, the server's logs and error reports no longer quote the model's answer, its refusal, or the part of your text a provider flagged; they keep the provider's short error message.
+- Without an email service set up, the server prints only an email's link, not who it was for or its subject; a failed send logs the email service's error name, not its message.
 - The feedback on a rehearsed answer shows Situation, Task, Action and Result on one line again, instead of one tick per line.
 
 ### For contributors and self-hosters
 
 - In `/admin`, an account at the free daily AI limit (`FREE_DAILY_ACTIONS`) shows "Reset today's free limit": its count for today starts again, logged like credit, export and delete. The limit for everyone stays.
+- The homepage loads 10 kB (gzipped) less JavaScript: icons and Base UI code that only signed-in pages use no longer travel with it. `vite.config.ts`'s first-paint chunk now lists only our own files and lets the bundler add the package code they use.
 - The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
