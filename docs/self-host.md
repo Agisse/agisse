@@ -7,6 +7,8 @@ description: Run your own copy of Agisse, on your computer with one command or o
 
 Two ways to run your own copy. Both run the same app; only the setup differs.
 
+The easiest: paste `Read https://agisse.xyz/agent.md and set up my own Agisse.` into Claude Code, Codex or Cursor, and it does the steps below with you.
+
 - **On your computer:** one command, for trying it, a home server, or one student association.
 - **On Cloudflare:** a public deploy on Cloudflare's free plan and a free [Neon](https://neon.tech) Postgres database.
 
