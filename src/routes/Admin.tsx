@@ -240,6 +240,7 @@ function Invites() {
   const [invites, setInvites] = useState<Invite[]>([])
   const [note, setNote] = useState('')
   const [credit, setCredit] = useState('')
+  const [days, setDays] = useState('')
   const [fresh, setFresh] = useState<Invite | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -258,14 +259,17 @@ function Invites() {
     if (!note.trim()) return setError('Say who the invite is for, so you know who joined.')
     const creditEur = euros(credit)
     if (creditEur === undefined) return setError('Give a credit between €0 and €100, or leave it empty.')
+    const expiresInDays = days.trim() ? Number(days) : null
+    if (expiresInDays !== null && !(Number.isInteger(expiresInDays) && expiresInDays >= 1 && expiresInDays <= 365)) return setError('Give an expiry between 1 and 365 days, or leave it empty.')
     setBusy('new')
     setError(null)
     try {
-      const { invite } = await api.createInvite(note.trim(), creditEur)
+      const { invite } = await api.createInvite(note.trim(), creditEur, expiresInDays)
       setInvites((current) => [invite, ...current])
       setFresh(invite)
       setNote('')
       setCredit('')
+      setDays('')
       await copy(invite.code, true)
     } catch (e) { setError(e instanceof Error ? e.message : 'Could not make the invite.') }
     finally { setBusy(null) }
@@ -282,7 +286,8 @@ function Invites() {
     finally { setBusy(null) }
   }
 
-  const open = invites.filter((i) => !i.usedAt && !i.revokedAt).length
+  const stateOf = (i: Invite) => i.usedAt ? 'used' : i.revokedAt ? 'withdrawn' : i.expiresAt && new Date(i.expiresAt) <= new Date() ? 'expired' : 'open'
+  const open = invites.filter((i) => stateOf(i) === 'open').length
 
   return <section className="invites" aria-labelledby="invites-title">
     <h2 id="invites-title" className="admin-page__section">Invites <span className="tnum">{open} open</span></h2>
@@ -291,10 +296,12 @@ function Invites() {
       <input id="invite-note" className="field__input" placeholder="Who is it for? e.g. Sara, thesis group" maxLength={120} value={note} onChange={(e) => setNote(e.target.value)} autoComplete="off" />
       <label className="sr-only" htmlFor="invite-credit">One-time AI credit in euros, optional</label>
       <input id="invite-credit" className="field__input tnum invites__credit" type="number" min={0} max={100} step={0.5} placeholder="Credit €" value={credit} onChange={(e) => setCredit(e.target.value)} />
+      <label className="sr-only" htmlFor="invite-days">Expires after this many days, optional</label>
+      <input id="invite-days" className="field__input tnum invites__credit invites__days" type="number" min={1} max={365} step={1} placeholder="Expires in days" value={days} onChange={(e) => setDays(e.target.value)} />
       <button className="btn btn--primary" disabled={busy === 'new'}>{busy === 'new' ? 'Making…' : 'Make invite link'}</button>
     </form>
     {fresh && <div className="invites__fresh" role="status">
-      <p>Link for <strong>{fresh.note}</strong>{copied === fresh.code ? ', copied to your clipboard. Send it yourself; it works once.' : '. Send it yourself; it works once.'}</p>
+      <p>Link for <strong>{fresh.note}</strong>{copied === fresh.code ? ', copied to your clipboard' : ''}. Send it yourself; it works once{fresh.expiresAt ? `, until ${shortDate(fresh.expiresAt)}` : ''}.</p>
       <div className="invites__link">
         <input className="tnum" readOnly value={inviteLink(fresh.code)} aria-label={`Invite link for ${fresh.note}`} onFocus={(e) => e.currentTarget.select()} />
         <button type="button" className="btn btn--sm btn--ink" onClick={() => void copy(fresh.code)}>{copied === fresh.code ? <><Check aria-hidden="true" /> Copied</> : <><Copy aria-hidden="true" /> Copy</>}</button>
@@ -303,11 +310,11 @@ function Invites() {
     {error && <p className="field__error" role="alert">{error}</p>}
     {invites.length > 0 && <ul className="invites__list">
       {invites.map((invite) => {
-        const state = invite.usedAt ? 'used' : invite.revokedAt ? 'withdrawn' : 'open'
+        const state = stateOf(invite)
         return <li key={invite.code} className={`invites__row invites__row--${state}`}>
-          <div className="invites__who"><strong>{invite.note}</strong><small>Made {shortDate(invite.createdAt)}{invite.creditEur ? ` · ${eur(invite.creditEur)} credit` : ''}</small></div>
-          <span className={`admin-page__status admin-page__status--${state === 'used' ? 'approved' : state === 'withdrawn' ? 'rejected' : 'pending'}`}>
-            {state === 'used' ? `Joined ${shortDate(invite.usedAt!)}` : state === 'withdrawn' ? 'Withdrawn' : 'Open'}
+          <div className="invites__who"><strong>{invite.note}</strong><small>Made {shortDate(invite.createdAt)}{invite.creditEur ? ` · ${eur(invite.creditEur)} credit` : ''}{state === 'open' && invite.expiresAt ? ` · until ${shortDate(invite.expiresAt)}` : ''}</small></div>
+          <span className={`admin-page__status admin-page__status--${state === 'used' ? 'approved' : state === 'open' ? 'pending' : 'rejected'}`}>
+            {state === 'used' ? `Joined ${shortDate(invite.usedAt!)}` : state === 'withdrawn' ? 'Withdrawn' : state === 'expired' ? 'Expired' : 'Open'}
           </span>
           <span className="invites__detail">{state === 'used' ? `${invite.usedByEmail ?? 'Account deleted'}${invite.creditEur && invite.creditUsedEur !== null ? ` · ${eur(invite.creditUsedEur)} of credit used` : ''}` : null}</span>
           <div className="admin-page__actions">

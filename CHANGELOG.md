@@ -86,6 +86,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - In `/admin`, an administrator's row shows how many people joined with their share link and how much of its credit they have spent.
+- In `/admin`, an invite can expire after a number of days (optional, 1–365; migration `0038` adds `invite.expires_at`). An expired invite opens nothing and its row says Expired.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
 - In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
 - In `/admin`, an administrator can export or delete an account for a user who asks by email: the same file as Download my data and the same erasure as Delete account, each confirmed first and logged (who, what, when; no content).
