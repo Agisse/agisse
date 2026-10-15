@@ -86,6 +86,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 - The self-host docs say what differs between agisse.xyz and your own copy, in one table: the same features, but the hosted feed, the managed AI key and the shared prep from everyone on agisse.xyz stay with the hosted service.
 - `SUPPORT.md` and the self-host docs say what help to expect: two supported ways to self-host, community help in Discussions on a best-effort basis, no response times.
+- `CONTRIBUTING.md` lists what isn't accepted: mass or automatic applications, sending messages for the user or automating LinkedIn, and scraping against a site's terms.
 - The feed contract asks providers to keep closed roles with `closed_at` set instead of deleting them, so their dates build a recruiting calendar. `vacancies.check.ts` shows a closed role leaves the feed and keeps its row.
 - The README is distilled to the intro, self-hosting, development and links. The feature-by-feature reference, settings and costs moved to [docs/internals](docs/internals.md). `agisse.xyz/agent.md` lets a coding agent (Claude Code, Codex, Cursor) set up a copy from one prompt; the landing shows "Onboard your agent" behind `PUBLIC_LAUNCH`.
 - Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed through `/api/admin/settings` without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.

@@ -23,6 +23,14 @@ npm run dev                      # http://localhost:5173
 - Anything bigger (a new feature, a new dependency, a schema change): open a Discussion first so we can agree on the shape before you write it.
 - Security issues: never in public. See [SECURITY.md](SECURITY.md).
 
+## What we don't accept
+
+Agisse helps people act for themselves, so these are refused, however well made:
+
+- mass applications or auto-submitting applications;
+- sending messages for the user, or automating LinkedIn;
+- scraping a site against its terms.
+
 ## Run it
 
 See "Run locally" in the [README](README.md). Only `DATABASE_URL`, `BETTER_AUTH_SECRET` and one AI key are needed; every other service is optional.
