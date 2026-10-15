@@ -5,13 +5,15 @@ description: The rules for using the Agisse beta.
 
 # Terms of use
 
-_Last updated: 11 October 2026_
+_Last updated: 15 October 2026_
 
-These terms apply when you use Agisse, run by Lennart Steen, Brussels, Belgium ("we"). By creating an account you agree to them. Questions: [hello@agisse.xyz](mailto:hello@agisse.xyz).
+These terms apply when you use Agisse at agisse.xyz, run by Lennart Steen, Brussels, Belgium ("we"). By creating an account you agree to them. Questions: [hello@agisse.xyz](mailto:hello@agisse.xyz). If you run your own copy, the [AGPL](https://github.com/Agisse/agisse/blob/main/LICENSE) applies to the code, and these terms don't.
+
+You must be at least 18 to use Agisse.
 
 ## A beta
 
-Agisse is an invite-only beta. Getting better every day. Features may change, break or disappear, and data could be lost. It is free during the beta. If we ever introduce paid plans, we will tell you first and you are never charged without agreeing.
+Agisse is in beta; full access is by invite. Getting better every day. Features may change, break or disappear, and data could be lost. Agisse is free. If this ever changes, we'll tell you first and never charge you without your agreement.
 
 ## No guarantees
 
@@ -20,7 +22,7 @@ Agisse helps you find roles, prepare and reach out. It does not guarantee interv
 ## Fair use
 
 - One account per person. Keep your sign-in details to yourself.
-- AI features have usage limits so the service stays free and fast for everyone. We may adjust them.
+- AI features and the job feed have usage limits so the service stays free and fast for everyone. We may adjust them.
 - Do not scrape, overload, reverse engineer or resell Agisse, and do not use it to harass, spam or deceive anyone.
 
 ## Your messages are yours
@@ -29,11 +31,11 @@ Agisse drafts messages, answers, CVs and cover letters. You decide what to send 
 
 ## Your content
 
-You keep ownership of your CV, profile and anything you write. You give us permission to store and process it only to provide Agisse to you, as described in the [privacy policy](/privacy).
+You keep ownership of your CV, profile and anything you write. You give us permission to store and process it only to provide Agisse to you and to check the quality of its answers, as described in the [privacy policy](/privacy).
 
 ## Invite links
 
-Your referral link and invites are personal. Share them with people you know; do not sell them, spam them or post them in bulk. We may reset links or remove invites that are misused.
+Your referral link and invites are personal. Share them with people you know; do not sell them, spam them or post them in bulk. We may remove invites that are misused.
 
 ## Ending things
 
