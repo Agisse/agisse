@@ -25,6 +25,8 @@ A contribution is real work in public that anyone can check:
 
 On LinkedIn, add it under Projects or Volunteer experience, with the same link.
 
+After three merged contributions, you can ask for a signed reference letter at [hello@agisse.xyz](mailto:hello@agisse.xyz). It lists what you did, with links.
+
 ## First screen in 10 minutes
 
 You need Node 24 (what CI uses) and a free [Neon](https://neon.tech) database (a new project or a branch; the app talks to Postgres through Neon's HTTP driver).
