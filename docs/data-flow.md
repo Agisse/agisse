@@ -11,7 +11,7 @@ This page describes what the code does: what is stored, where, and which outside
 
 | Data | Where | Notes |
 |---|---|---|
-| Account, sessions, sign-in method | Postgres: `user`, `session`, `account` | Passwords are hashed by Better Auth |
+| Account, sessions, sign-in method | Postgres: `user`, `session`, `account` | Passwords are hashed by Better Auth. An account unused for 24 months gets one email; 30 days later it's deleted unless its owner signed in (`worker/lib/retention.ts`) |
 | Profile and résumé text | Postgres: `profile` | The PDF's text is read in the browser (`src/lib/pdf-text.ts`) |
 | Original résumé PDF | R2: `resumes/<userId>.pdf` | One per user, replaced on re-upload |
 | Own AI key | Postgres: `ai_key` | AES-GCM encrypted, never sent back to the browser; only the last four characters are shown |
