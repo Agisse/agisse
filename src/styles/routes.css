@@ -1873,6 +1873,8 @@
   overflow: hidden;
 }
 .feed-row__excerpt--none { color: var(--ink-3); }
+/* Education: an institution's name can be long, so its Apply button wraps instead of overflowing on phones. */
+.edu-apply { height: auto; min-height: 32px; padding-block: 6px; white-space: normal; text-align: left; }
 .feed-row__foot { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--fs-13); color: var(--ink-3); }
 /* The date on the left, the actions grouped on the right; a trailing quiet button aligns its text, not its padding, to the edge. */
 .feed-row__foot > span { margin-right: auto; }

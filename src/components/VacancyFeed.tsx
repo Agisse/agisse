@@ -81,7 +81,7 @@ const listingOf = (v: Vacancy): Listing => ({ provider: 'feed', company: v.compa
 const sourceOf = (v: Vacancy) => (v.description && v.description.length >= 200 ? 'board' : 'city')
 
 /** A filter as a compact menu: a pill that opens a panel of choices. Esc and an outside click close it (see VacancyFeed). */
-function Menu({ label, on, children, wide }: { label: string; on: number; children: ReactNode; wide?: boolean }) {
+export function Menu({ label, on, children, wide }: { label: string; on: number; children: ReactNode; wide?: boolean }) {
   return (
     <details className="feed-menu" name="feed-menu">
       <summary className="chip" data-on={on > 0 || undefined}>
@@ -96,8 +96,18 @@ function Menu({ label, on, children, wide }: { label: string; on: number; childr
   )
 }
 
+/** Esc or a click outside closes an open menu under `root`; Esc hands focus back to its pill. For pointerdown and keydown. */
+export function closeMenus(root: HTMLElement | null, e: Event) {
+  for (const d of root?.querySelectorAll<HTMLDetailsElement>('details[open]') ?? []) {
+    const esc = e instanceof KeyboardEvent
+    if (esc ? e.key !== 'Escape' : d.contains(e.target as Node)) continue
+    d.open = false
+    if (esc) d.querySelector('summary')?.focus()
+  }
+}
+
 /** Checkbox choices with live counts, busiest first; chosen ones always show, empty ones hide. */
-function Checks({ labels, counts, chosen, onToggle }: { labels: Record<string, string>; counts?: Record<string, number>; chosen: string[]; onToggle: (k: string) => void }) {
+export function Checks({ labels, counts, chosen, onToggle }: { labels: Record<string, string>; counts?: Record<string, number>; chosen: string[]; onToggle: (k: string) => void }) {
   const keys = Object.keys(labels)
     .filter((k) => !counts || chosen.includes(k) || (counts[k] ?? 0) > 0)
     .sort((a, b) => (counts ? (counts[b] ?? 0) - (counts[a] ?? 0) : 0))
@@ -194,14 +204,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
     if (similar) window.scrollTo(0, 0)
     api.vacancyFacets().then(setFacets).catch(() => {})
     // Esc or a click outside closes an open filter or row menu; Esc hands focus back to its pill.
-    const close = (e: Event) => {
-      for (const d of root.current?.querySelectorAll<HTMLDetailsElement>('details[open]') ?? []) {
-        const esc = e instanceof KeyboardEvent
-        if (esc ? e.key !== 'Escape' : d.contains(e.target as Node)) continue
-        d.open = false
-        if (esc) d.querySelector('summary')?.focus()
-      }
-    }
+    const close = (e: Event) => closeMenus(root.current, e)
     // Back from a posting's page: ask once whether they applied.
     const back = () => {
       const v = leftFor.current

@@ -555,6 +555,75 @@ export const profileEmbedding = pgTable('profile_embedding', {
   updatedAt: timestamp('updated_at').notNull(),
 })
 
+// Master's, MBA and PhD programmes and funded PhD positions, written only by a feed provider (upsert on url;
+// docs/education-contract.md). Public facts, no personal data; the Education tab ranks them per seeker (worker/lib/programmes.ts).
+export const programme = pgTable(
+  'programme',
+  {
+    url: text('url').primaryKey(),
+    // edu:<scraper>, e.g. edu:uni, edu:euraxess
+    source: text('source').notNull(),
+    // master | mba | phd | phd_position (funded, with a deadline)
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    // MSc, MA, MBA, MiM, LLM, MPhil, PhD, ...
+    degree: text('degree'),
+    institution: text('institution').notNull(),
+    // Faculty or business school, when it differs from the institution.
+    school: text('school'),
+    domain: text('domain'),
+    country: text('country'),
+    city: text('city'),
+    // Keys of VACANCY_FUNCTIONS where they fit, else lowercase field names (economics, computer science).
+    fields: text('fields').array().notNull().default(sql`'{}'::text[]`),
+    // Teaching languages, lowercase English names.
+    languages: text('languages').array().notNull().default(sql`'{}'::text[]`),
+    durationMonths: integer('duration_months'),
+    // Per year, for international (non-EU) students; null when unknown.
+    tuitionEur: integer('tuition_eur'),
+    // full_time | part_time | online
+    studyMode: text('study_mode'),
+    startDate: date('start_date'),
+    deadline: date('deadline'),
+    // explicit | rolling | unknown, as on vacancy.
+    deadlineType: text('deadline_type').notNull().default('unknown'),
+    description: text('description'),
+    rankThe: integer('rank_the'),
+    rankQs: integer('rank_qs'),
+    rankFt: integer('rank_ft'),
+    firstSeen: date('first_seen').notNull(),
+    lastSeen: date('last_seen').notNull(),
+    // Set by the provider once a row is not seen for 60 days. Rows are archived, never pruned; only a takedown deletes one.
+    closedAt: date('closed_at'),
+    search: tsvector('search').generatedAlwaysAs(
+      sql`to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(institution, '') || ' ' || coalesce(left(description, 2000), ''))`,
+    ),
+    // GMAT, scholarships, funding, supervisor, ...
+    details: jsonb('details').$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (t) => [
+    index('programme_country_kind_idx').on(t.country, t.kind),
+    index('programme_deadline_idx').on(t.deadline),
+    index('programme_fields_idx').using('gin', t.fields),
+    index('programme_search_idx').using('gin', t.search),
+  ],
+)
+
+// Programmes a seeker saved in the Education tab. Goes only with a takedown of the programme.
+export const savedProgramme = pgTable(
+  'saved_programme',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    url: text('url')
+      .notNull()
+      .references(() => programme.url, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.url] })],
+)
+
 // A job posting the seeker pasted, evaluated against their CV; the tracker row for that application.
 export const job = pgTable(
   'job',
