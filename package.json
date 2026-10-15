@@ -80,7 +80,6 @@
     "drizzle-kit": "^0.31.11",
     "lucide-react": "^1.55.0",
     "maplibre-gl": "^6.13.0",
-    "motion": "^14.1.0",
     "oxlint": "^1.87.0",
     "pdfjs-dist": "^6.4.299",
     "playwright-core": "^1.64.0",
