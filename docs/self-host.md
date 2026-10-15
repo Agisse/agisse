@@ -100,6 +100,19 @@ Each key turns one feature on, and Agisse works without it.
 | `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics |
 | `VITE_LOGO_DEV_TOKEN` | Company logos (otherwise monograms) |
 
+## Hosted or self-hosted?
+
+Your copy has every feature the code has; agisse.xyz holds nothing back. What differs:
+
+| | agisse.xyz | Your copy |
+|---|---|---|
+| Features | All | All: the same code |
+| Job feed | The curated hosted feed | Empty until you add a provider or the Arbeitnow importer |
+| AI | Free models on agisse.xyz's key, or your own key | Your server key, or each user's own |
+| Setup | None: sign up | One command, or a Cloudflare deploy |
+| Shared prep (interview questions, test reports) | From every student on agisse.xyz | From your own users |
+| Your users' data | agisse.xyz is the controller | You are |
+
 ## The job feed
 
 The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. Your copy starts with an empty feed; fill it with your own provider by following the [feed contract](/feed-contract), or with the [Arbeitnow importer](/feed-contract#a-reference-provider). Everything else works without a feed: pasted postings, public ATS boards, the Arbeitnow feed, Adzuna, people search and prep.
