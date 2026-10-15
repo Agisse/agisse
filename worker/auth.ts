@@ -123,9 +123,9 @@ export function createAuth(env: Env, db: Db, origin: string) {
       // Profile › Your data. Rows cascade from user; the CV PDF lives in R2 and goes here.
       deleteUser: {
         enabled: true,
-        // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here.
+        // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here, with the PDF and the analytics person.
         beforeDelete: async (user) => {
-          await eraseOutsideCascade(db, env.RESUMES, [user.id])
+          await eraseOutsideCascade(env, db, [user.id])
         },
       },
       additionalFields: {
