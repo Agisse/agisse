@@ -73,6 +73,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Fixed
 
 - When an AI call fails, the server's logs and error reports no longer quote the model's answer, its refusal, or the part of your text a provider flagged; they keep the provider's short error message.
+- Without an email service set up, the server prints only an email's link, not who it was for or its subject; a failed send logs the email service's error name, not its message.
 - The feedback on a rehearsed answer shows Situation, Task, Action and Result on one line again, instead of one tick per line.
 
 ### For contributors and self-hosters
