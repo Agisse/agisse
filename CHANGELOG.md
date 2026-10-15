@@ -82,6 +82,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
+- In `/admin`, an administrator's row shows how many people joined with their share link and how much of its credit they have spent.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
 - In `/admin`, an invite can carry a one-time AI credit (optional, up to €100), shown on its row, and an administrator sets the credit each friend gets through their share link.
 - In `/admin`, an administrator can export or delete an account for a user who asks by email: the same file as Download my data and the same erasure as Delete account, each confirmed first and logged (who, what, when; no content).
