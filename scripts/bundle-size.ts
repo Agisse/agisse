@@ -4,7 +4,7 @@
 // CI: `--check` fails when the initial JS is more than 10% over scripts/bundle-budget.json. Raising that number is a
 // deliberate change in the PR that needs it, with the reason in the PR body. It also fails when a component in the
 // initial JS is missing from base.css's `@source` list, which would leave its Tailwind classes unstyled on first paint.
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { matchesGlob } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { SourceMapConsumer } from 'source-map-js'
@@ -19,6 +19,7 @@ const gz = (files: string[]) => kb(files.reduce((n, f) => n + gzipSync(readFileS
 
 /** Minified bytes per package (or per src/ file), from each chunk's sourcemap. */
 function modules(file: string, into: Map<string, number>) {
+  if (!existsSync(`${dir}${file}.map`)) return // the entry's stub and rolldown's runtime chunk, ~1 kB each, have no map
   const lines = readFileSync(dir + file, 'utf8').split('\n')
   const map = new SourceMapConsumer(JSON.parse(readFileSync(`${dir}${file}.map`, 'utf8')))
   let prev: { line: number; col: number; name: string } | null = null
