@@ -2350,7 +2350,7 @@ app.notFound(async (c) => {
   const res = Number(c.env.PUBLIC_LAUNCH) === 1
     ? new HTMLRewriter()
         .on('html', { element: (el) => void el.setAttribute('data-launch', '') })
-        .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. Act where you fit.') })
+        .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. <span class="text-muted-foreground sm:block">Act where you fit.</span>', { html: true }) })
         .transform(asset)
     : asset
   const home = c.req.path === '/'

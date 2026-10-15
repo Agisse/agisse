@@ -32,4 +32,16 @@ eq([noKey instanceof NoAiKey, auths.length], [true, 0], 'no key: NoAiKey without
 eq(await transcribe({ apiKey: '', model: 'a/audio', audio: 'x', format: 'webm' }).catch((e) => e instanceof NoAiKey), true, 'transcribe without a key')
 await generateStructured({ ...call, meter: { tokens: 0, costUsd: 0, byok: { provider: 'openrouter', key: 'sk-own', model: '' } } }).catch(() => {})
 eq(auths.length > 0 && auths.every((a) => a === 'Bearer sk-own'), true, 'own key used for every request')
+// A failed call logs and keeps no prompt or model text: not a moderation error's flagged input, not JSON.parse's quote of bad output.
+const secret = 'Jane Example, 1 Example Street'
+const bodies = [
+  new Response(JSON.stringify({ error: { message: 'Input was flagged', code: 403, metadata: { flagged_input: secret } } }), { status: 403 }),
+  new Response(JSON.stringify({ choices: [{ message: { content: `{"name": ${secret}}` } }] })),
+]
+globalThis.fetch = (async (url: string) => (String(url).endsWith('/chat/completions') && bodies.shift()) || new Response('{}', { status: 500 })) as unknown as typeof fetch
+const logged: unknown[] = []
+console.warn = console.error = (...a: unknown[]) => void logged.push(...a)
+const failed = await generateStructured({ ...call, apiKey: 'sk-server', preferredModels: ['a/one', 'a/two'] }).catch((e) => e)
+eq(JSON.stringify([logged, failed.attempts]).includes('Jane'), false, 'no prompt or output text in logs or attempts')
+eq(failed.attempts[0].error, '403 Input was flagged', "the provider's message is kept")
 console.log('openrouter ok')
