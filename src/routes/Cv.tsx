@@ -8,6 +8,7 @@ import { cvToLatex, withTemplate } from '../lib/latex'
 import { useStored } from '../features/interviews/useStored'
 import posthog from '../lib/posthog'
 import { Rate } from '../components/Rate'
+import { FreeModelNote } from '../components/FreeModelNote'
 
 /** "Grade: magna cum laude" → bold label, as in the LaTeX template. */
 const labelled = (s: string): ReactNode => {
@@ -215,6 +216,7 @@ export function CvRoute({ me, refreshMe, jobId }: { me: Me; refreshMe: () => Pro
           <p className="label label--muted no-print">Reworded from your résumé only. Read every line before you send it.</p>
           <div className="no-print">
             <Rate key={cv.createdAt} task="agisse_cv" refId={jobId} />
+            <FreeModelNote me={me} />
           </div>
           <article className="cv">
             <header>
