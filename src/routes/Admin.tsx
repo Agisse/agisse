@@ -1,12 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useCopy, useResource } from '../lib/hooks'
 import { Copy, Check } from 'lucide-react'
-import { api, type AccessStatus, type AdminToday, type AdminUser, type Invite } from '../lib/api'
+import { api, type AccessStatus, type AdminAction, type AdminToday, type AdminUser, type Invite } from '../lib/api'
 import { BudgetMeter } from '../components/BudgetMeter'
 import { MIN_N, type Bucket, type QualityReport } from '../../shared/quality'
 
 const order: Record<AccessStatus, number> = { pending: 0, approved: 1, rejected: 2 }
 
-export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> }) {
+export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: () => Promise<void> }) {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [today, setToday] = useState<AdminToday | null>(null)
   const [loading, setLoading] = useState(true)
@@ -82,11 +83,12 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
     {error && <p className="field__error" role="alert">{error}</p>}
     {loading ? <AccountsGhost /> : visible.length === 0 ? <p className="admin-page__empty">{filter === 'pending' ? 'No requests are waiting for approval.' : 'No accounts in this view.'}</p> : <ul className="admin-page__list">
       {visible.map((user) => <li className="admin-page__row" key={user.id}>
-        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small>{user.feedCapDays > 0 && <small>Hit the feed limit {times(user.feedCapDays)} in 30 days</small>}{user.freeLimitDays > 0 && <small>Hit the free AI limit {times(user.freeLimitDays)} in 30 days</small>}</div>
+        <div className="admin-page__identity"><strong>{user.name}</strong><span>{user.email}</span><small>Joined {new Date(user.createdAt).toLocaleDateString()}</small>{user.feedCapDays > 0 && <small>Hit the feed limit {times(user.feedCapDays)} in 30 days</small>}{user.freeLimitDays > 0 && <small>Hit the free AI limit {times(user.freeLimitDays)} in 30 days</small>}{!!user.joined?.count && <small>{user.joined.count} joined with their link{user.referralCreditEur || user.joined.creditUsedEur ? ` · ${eur(user.joined.creditUsedEur)} credit used` : ''}</small>}</div>
         <span className={`admin-page__status admin-page__status--${user.accessStatus}`}>{user.isAdmin ? 'Administrator' : user.accessStatus}</span>
         <BudgetForm key={user.budget.limit} user={user} busy={busyId === user.id} onSave={(n) => void setBudget(user, n)} />
         <div className="admin-page__actions">
           {user.isAdmin && <CreditForm key={user.referralCreditEur} user={user} busy={busyId === user.id} onSave={(n) => void setReferralCredit(user, n)} />}
+          {user.id === myId && <MyLink />}
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
@@ -96,6 +98,7 @@ export function Admin({ onBudgetChange }: { onBudgetChange: () => Promise<void> 
         </div>
       </li>)}
     </ul>}
+    <Actions />
     <Quality />
   </main>
 }
@@ -213,6 +216,14 @@ function CreditForm({ user, busy, onSave }: { user: AdminUser; busy: boolean; on
   </form>
 }
 
+/** The admin's own share link, the one the friend credit rides on. Loaded first, so the click copies at once. */
+function MyLink() {
+  const r = useResource(() => api.referral(), [])
+  const { copied, copy } = useCopy()
+  if (!r.data) return null
+  return <button type="button" className="btn btn--sm" onClick={() => void copy(`${window.location.origin}/?ref=${r.data!.code}`)}>{copied ? <><Check aria-hidden="true" /> Copied</> : <><Copy aria-hidden="true" /> Copy my link</>}</button>
+}
+
 /** Euros from an optional field: null when empty or 0, undefined when not a valid amount (over €100 included). */
 const euros = (value: string): number | null | undefined => {
   if (!value.trim()) return null
@@ -309,6 +320,21 @@ function Invites() {
       })}
     </ul>}
   </section>
+}
+
+const did: Record<string, string> = { export: 'exported the data of', delete: 'deleted', credit: 'gave credit to', reset: "reset today's free limit for" }
+
+/** The last 20 lines of the admin action log (who, what, when); loaded when opened. Kept 2 years. */
+function Actions() {
+  const [actions, setActions] = useState<AdminAction[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const load = () => { if (!actions) api.adminActions().then((r) => setActions(r.actions), (e) => setError(e instanceof Error ? e.message : 'Could not load the actions.')) }
+  return <details className="quality" onToggle={(e) => { if (e.currentTarget.open) load() }}>
+    <summary className="admin-page__section">Recent actions</summary>
+    {error && <p className="field__error" role="alert">{error}</p>}
+    {!actions && !error && <p role="status">Loading the actions…</p>}
+    {actions && (actions.length ? <ul className="quality__notes">{actions.map((a, i) => <li key={i}><small className="tnum">{new Date(a.at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</small> {a.admin ?? 'A former admin'} {did[a.action] ?? a.action} {a.target ?? (a.action === 'delete' ? 'an account' : 'a deleted account')}</li>)}</ul> : <p className="admin-page__empty">None yet.</p>)}
+  </details>
 }
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`)
