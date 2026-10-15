@@ -50,7 +50,7 @@ We never sell your data and never use it to advertise to you.
 | Google | Sign in with Google, if you choose it | USA |
 | Sentry | Error reports | USA |
 
-Where a processor offers one, it works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. An own OpenRouter key goes through OpenRouter under your own account. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation. Contact details in your CV (email address, phone number, birth date, street address and national ID number) are taken out before it is sent, where Agisse recognises them, and put back in the answer afterwards. Your name stays in, because drafts are signed with it.
+Where a processor offers one, it works under a data processing agreement. Some are outside the European Economic Area. Where they are, transfers rely on the EU–US Data Privacy Framework or the European Commission's Standard Contractual Clauses. AI requests on Agisse's key go to OpenRouter and the model providers it routes to, most of them in the USA. These transfers rely on OpenRouter's data processing agreement and the Standard Contractual Clauses, and Agisse's OpenRouter account refuses providers that train on prompts. If you connect your own OpenAI, Anthropic, Google or Mistral key, your AI requests go straight to that provider under your own agreement with them, not through OpenRouter. An own OpenRouter key goes through OpenRouter under your own account. What we send to an AI model is limited to what the feature needs, for example your CV text and a posting when you ask for an evaluation. Contact details in your CV (email address, phone number, birth date, street address and national ID number) are taken out before it is sent, where Agisse recognises them, and put back in the answer afterwards. Your name stays in, because drafts are signed with it.
 
 Job and company lookups also query Adzuna and Wikidata with the search terms only, never your name or CV.
 
@@ -67,7 +67,7 @@ Agisse sets a sign-in cookie, and a 30-day cookie that remembers an invite or re
 - Cached web search results: deleted after a week. Company facts: about a month.
 - Waitlist sign-ups that never become active: deleted on request, or after 12 months of inactivity.
 - Analytics and error reports: as long as the provider's retention period, at most 12 months. When you delete your account, we ask PostHog to delete the analytics tied to it. Error reports don't carry your account id.
-- Backups roll over within 30 days of deletion.
+- Database backups: deleted data leaves them within a day.
 - When we export or delete an account because you asked us to: a note of which account, which action and when, with no content, kept as proof that we did it.
 
 ## Your rights
