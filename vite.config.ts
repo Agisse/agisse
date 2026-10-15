@@ -8,14 +8,16 @@ import { sentryVitePlugin } from '@sentry/vite-plugin'
 const entry = new URL('./src/main.tsx', import.meta.url).pathname
 let firstPaint: Set<string> | undefined
 
-/** Everything src/main.tsx imports statically. Without this, modules the landing shares with lazy pages split into
- *  many small chunks, and the extra requests cost the landing ~160 ms of first paint on a throttled phone. */
+/** Our files that src/main.tsx imports statically; rolldown adds the package code they use. Without this, modules the
+ *  landing shares with lazy pages split into many small chunks, and the extra requests cost the landing ~160 ms of first
+ *  paint on a throttled phone. Packages stay out of the walk: a barrel such as lucide-react's index imports every icon,
+ *  and each icon some lazy page uses would join the landing. */
 function firstPaintChunk(id: string, ctx: { getModuleInfo(id: string): { importedIds: readonly string[] } | null }) {
   if (!firstPaint) {
     firstPaint = new Set()
     const todo = [entry]
     for (let next; (next = todo.pop()); ) {
-      if (firstPaint.has(next)) continue
+      if (firstPaint.has(next) || next.includes('/node_modules/')) continue
       firstPaint.add(next)
       todo.push(...(ctx.getModuleInfo(next)?.importedIds ?? []))
     }
