@@ -64,6 +64,8 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 
 **Landing heading in `index.html`, 2026-10-15.** The crawler copy in `index.html` now carries Landing's header and hero classes and text, so the first paint already shows the final heading at its final size, and React's copy of it is not a larger LCP candidate. Local preview with devtools throttling (150 ms, 1.6 Mbit/s, 4× CPU), three runs: LCP 3.66 s → 3.06 s, now equal to FCP. The next lever is FCP itself: the stylesheet.
 
+**The app's styles out of the first stylesheet, 2026-10-15.** `routes.css` styles only signed-in screens, so it now loads with the signed-in app and its shell instead of with every page. The landing's stylesheet: 219 → 148 kB, 37 → 25 kB gzipped. Same throttled preview, seven runs: FCP and LCP 3.07 s → 2.34 s. Screenshots of the landing, sign-in and six signed-in pages are pixel-identical before and after.
+
 **Lighthouse, local preview** (uncompressed, so relative only). Landing, sign-in, Home and Jobs all land at FCP about 14.3 s, because all four wait for the same script. Home has a CLS of 0.086, Jobs 0.012. Scaled to compressed transfer, Jobs would be around 5 s.
 
 **Requests before Home shows data.** Four steps, one after the other: the HTML, the script, `/api/auth/get-session`, then `/api/me`, and only then `/api/referral`, `/api/contacted`, `/api/jobs` and `/api/due` in parallel. The Jobs feed waits for `/api/vacancies` (about 400 ms locally) and `/api/vacancies/facets` (about 600 ms).
