@@ -7,7 +7,7 @@ import { Landing } from './routes/Landing'
 import { AccessDeclined } from './routes/AccessDeclined'
 import posthog from './lib/posthog'
 import { sessionHint } from './lib/hooks'
-import { Skeleton } from '@/components/ui/skeleton'
+import { PageSkeleton } from './components/PageSkeleton'
 
 // The signed-in app and its shell are their own chunks, so the homepage, sign-in and the declined screen don't download them.
 // A signed-in hint starts both downloads at once, next to /api/me instead of after it. The shell is small, so it
@@ -29,24 +29,6 @@ for (const key of ['ref', 'invite']) {
 }
 
 type Auth = { state: 'loading' } | { state: 'out' } | { state: 'declined' } | { state: 'in'; me: Me }
-
-/** Today's header and first card, shaped like the real ones, while /api/me answers. */
-function PageSkeleton() {
-  return (
-    <main className="mx-auto flex w-full max-w-[960px] flex-col gap-8 px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-16" aria-busy="true">
-      <span className="sr-only" role="status">Loading</span>
-      <div className="flex flex-col gap-1 px-1">
-        <Skeleton className="my-1 h-7 w-56 md:h-8" />
-        <Skeleton className="my-1 h-4 w-32" />
-      </div>
-      <div className="flex flex-col gap-3 rounded-2xl border border-border p-5">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-2/3" />
-        <Skeleton className="h-4 w-1/3" />
-      </div>
-    </main>
-  )
-}
 
 export default function App() {
   const [auth, setAuth] = useState<Auth>({ state: 'loading' })

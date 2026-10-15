@@ -9,7 +9,7 @@
 @source '../main.tsx';
 @source '../App.tsx';
 @source '../routes/{Landing,SignIn,AccessDeclined}.tsx';
-@source '../components/BoothSignMark.tsx';
+@source '../components/{BoothSignMark,PageSkeleton}.tsx';
 @source '../components/ui/{button,field,input,label,separator,skeleton,spinner}.tsx';
 
 /* Element resets live in the base layer so Tailwind utilities (shadcn) win over them. */
