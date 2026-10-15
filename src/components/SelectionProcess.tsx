@@ -289,7 +289,7 @@ export function FeedbackView({ feedback }: { feedback: AnswerFeedback }) {
   ]
   return (
     <>
-      <p className="prep__meta">
+      <p className="prep__meta prep__star">
         {STAR.map((k) => (
           <span key={k}>
             {feedback.star[k] ? <Check role="img" aria-label="covered" /> : <X role="img" aria-label="missing" />} {k[0]!.toUpperCase() + k.slice(1)}{' '}

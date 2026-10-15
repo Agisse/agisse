@@ -64,6 +64,10 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The job feed now has a daily limit per account: 200 pages (a page per filter change, search or Show more), and a list goes 20 pages deep. Plenty for looking; it keeps the hosted feed from being copied in bulk. The MCP server's `list_vacancies` counts against the same limit. Admins are exempt, and daily counts are deleted after 30 days.
 - The privacy policy now lists the geocoding, map-tile and logo services your browser contacts, and that your own AI key sends requests straight to that provider. Umami is gone from it, and Agisse's pages no longer load its script.
 
+### Fixed
+
+- The feedback on a rehearsed answer shows Situation, Task, Action and Result on one line again, instead of one tick per line.
+
 ### For contributors and self-hosters
 
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
