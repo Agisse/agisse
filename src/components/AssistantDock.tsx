@@ -1,10 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'wouter'
 import { Maximize2, X } from 'lucide-react'
 import { ThinkingOrb } from 'thinking-orbs'
-import { AssistantChat } from '@/components/AssistantChat'
 import { useAssistant } from '@/lib/assistant'
 import { useDark } from '@/lib/theme'
+
+// assistant-ui is the biggest part of the signed-in app; it loads when the orb is hovered, focused or opened.
+const loadChat = () => import('@/components/AssistantChat')
+const AssistantChat = lazy(() => loadChat().then((m) => ({ default: m.AssistantChat })))
 
 /** What the assistant can see besides the whole workspace; mirrors parsePage in worker/lib/helper.ts. */
 function pageLabel(path: string) {
@@ -22,7 +25,6 @@ export function AssistantDock() {
   const { me, open, setOpen, status, messages, newThread } = useAssistant()
   const [location] = useLocation()
   const button = useRef<HTMLButtonElement>(null)
-  const panel = useRef<HTMLDivElement>(null)
   const spent = me.budget.used >= me.budget.limit
   // The orb draws on a canvas, so it takes the dark-mode blue as a value.
   const blue = useDark() ? '#4d7bff' : '#1f45e0'
@@ -45,11 +47,10 @@ export function AssistantDock() {
     if (location === '/chat') setOpen(false)
   }, [location, setOpen])
 
-  // Focus the composer on open; give focus back to the orb on close.
+  // The composer takes focus when it mounts (autoFocus); give focus back to the orb on close.
   const wasOpen = useRef(open)
   useEffect(() => {
-    if (open) panel.current?.querySelector('textarea')?.focus()
-    else if (wasOpen.current) button.current?.focus()
+    if (!open && wasOpen.current) button.current?.focus()
     wasOpen.current = open
   }, [open])
 
@@ -66,12 +67,14 @@ export function AssistantDock() {
         aria-label={open ? 'Close the assistant' : 'Ask the assistant about this page (Ctrl+J)'}
         title="Ask the assistant (Ctrl+J)"
         onClick={() => setOpen(!open)}
+        onPointerEnter={loadChat}
+        onFocus={loadChat}
       >
         <ThinkingOrb state={status === 'submitted' ? 'working' : 'searching'} paused={spent} size={32} color={blue} aria-hidden="true" />
         {!open && status === 'ready' && messages.at(-1)?.role === 'assistant' && <span className="assistant-dock__dot" aria-hidden="true" />}
       </button>
       {open && (
-        <div ref={panel} id="assistant-dock" className="assistant-dock" role="dialog" aria-modal="false" aria-labelledby="assistant-dock-title">
+        <div id="assistant-dock" className="assistant-dock" role="dialog" aria-modal="false" aria-labelledby="assistant-dock-title">
           <header className="assistant-dock__head">
             <div>
               <h2 id="assistant-dock-title" className="label">Assistant</h2>
@@ -91,7 +94,9 @@ export function AssistantDock() {
               </button>
             </div>
           </header>
-          <AssistantChat compact showActions />
+          <Suspense fallback={<div aria-busy="true" />}>
+            <AssistantChat compact showActions />
+          </Suspense>
         </div>
       )}
     </>

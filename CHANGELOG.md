@@ -21,6 +21,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Jobs opens sooner after sign-in: the app now fetches each other page on its first visit, instead of all of them up front.
+- The assistant loads when you first hover, focus or open it, so Jobs and Home no longer wait for it after sign-in.
 - The homepage shows its final heading on the first paint, instead of a small plain copy that the app then swaps for the big one.
 - The homepage and sign-in paint sooner: they no longer download the signed-in app's styles (a third of the stylesheet).
 - The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
