@@ -5,6 +5,24 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 
+const entry = new URL('./src/main.tsx', import.meta.url).pathname
+let firstPaint: Set<string> | undefined
+
+/** Everything src/main.tsx imports statically. Without this, modules the landing shares with lazy pages split into
+ *  many small chunks, and the extra requests cost the landing ~160 ms of first paint on a throttled phone. */
+function firstPaintChunk(id: string, ctx: { getModuleInfo(id: string): { importedIds: readonly string[] } | null }) {
+  if (!firstPaint) {
+    firstPaint = new Set()
+    const todo = [entry]
+    for (let next; (next = todo.pop()); ) {
+      if (firstPaint.has(next)) continue
+      firstPaint.add(next)
+      todo.push(...(ctx.getModuleInfo(next)?.importedIds ?? []))
+    }
+  }
+  return firstPaint.has(id) ? 'index' : null
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   resolve: {
@@ -14,6 +32,9 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+  },
+  environments: {
+    client: { build: { rolldownOptions: { output: { codeSplitting: { groups: [{ name: firstPaintChunk }] } } } } },
   },
   plugins: [
     tailwindcss(),

@@ -1,31 +1,36 @@
 import './styles/app.css'
 import './styles/components.css'
 import './styles/routes.css'
+import { lazy, Suspense } from 'react'
 import { Link, Redirect, Route, Switch, useLocation } from 'wouter'
 import type { Me } from './lib/api'
 import { Shell } from './components/Shell'
-import { MapRoute } from './routes/Map'
-import { ProfileRoute } from './routes/YourBadge'
 import { DashboardRoute } from './routes/Dashboard'
 import { JobsRoute } from './routes/Jobs'
-import { CvRoute } from './routes/Cv'
-import { CvReviewRoute } from './routes/CvReview'
 import { PrepareHub } from './routes/Prepare'
-import { InterviewHub } from './features/interviews/InterviewHub'
-import { CasePrep } from './features/interviews/CasePrep'
-import { Banking } from './features/interviews/Banking'
-import { Admin } from './routes/Admin'
-import { PracticeRunner } from './features/assessments/components/PracticeRunner'
-import { PracticeRoute } from './features/assessments/components/TrainingHub'
-import { ExtensionRoute } from './routes/Extension'
-import { ChangelogRoute } from './routes/Changelog'
-import { ChatRoute } from './routes/Chat'
-import { Consent } from './routes/Consent'
 import { Welcome } from './routes/Welcome'
 import { NoteLimit } from './lib/hooks'
 import { AssistantProvider } from './lib/assistant'
 import { AssistantDock } from './components/AssistantDock'
 import { noteLimit } from '../shared/types'
+import { PageSkeleton } from './components/PageSkeleton'
+
+// Home, Jobs and onboarding are where people land; every other page is its own chunk, fetched on first visit.
+// PrepareHub stays: it frames lazy pages, and a lazy frame would fetch the two one after the other.
+const MapRoute = lazy(() => import('./routes/Map').then((m) => ({ default: m.MapRoute })))
+const ProfileRoute = lazy(() => import('./routes/YourBadge').then((m) => ({ default: m.ProfileRoute })))
+const CvRoute = lazy(() => import('./routes/Cv').then((m) => ({ default: m.CvRoute })))
+const CvReviewRoute = lazy(() => import('./routes/CvReview').then((m) => ({ default: m.CvReviewRoute })))
+const InterviewHub = lazy(() => import('./features/interviews/InterviewHub').then((m) => ({ default: m.InterviewHub })))
+const CasePrep = lazy(() => import('./features/interviews/CasePrep').then((m) => ({ default: m.CasePrep })))
+const Banking = lazy(() => import('./features/interviews/Banking').then((m) => ({ default: m.Banking })))
+const Admin = lazy(() => import('./routes/Admin').then((m) => ({ default: m.Admin })))
+const PracticeRunner = lazy(() => import('./features/assessments/components/PracticeRunner').then((m) => ({ default: m.PracticeRunner })))
+const PracticeRoute = lazy(() => import('./features/assessments/components/TrainingHub').then((m) => ({ default: m.PracticeRoute })))
+const ExtensionRoute = lazy(() => import('./routes/Extension').then((m) => ({ default: m.ExtensionRoute })))
+const ChangelogRoute = lazy(() => import('./routes/Changelog').then((m) => ({ default: m.ChangelogRoute })))
+const ChatRoute = lazy(() => import('./routes/Chat').then((m) => ({ default: m.ChatRoute })))
+const Consent = lazy(() => import('./routes/Consent').then((m) => ({ default: m.Consent })))
 
 /** Posting tabs before Overview · Apply · Prepare · Offer, and where each went. */
 const OLD_TAB: Record<string, string> = { write: 'apply', selection: 'prepare', assessment: 'prepare', pay: 'offer' }
@@ -39,6 +44,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
     <AssistantProvider me={me} refreshMe={load}>
     <Shell email={me.user.email} trial={!!me.trial} isAdmin={me.user.isAdmin} onSignOut={signOut}>
       <NoteLimit.Provider value={noteLimit(me.profile)}>
+      <Suspense fallback={<PageSkeleton />}>
       <Switch>
         <Route path="/">{() => <DashboardRoute me={me} refreshMe={load} />}</Route>
         <Route path="/sign-in">{() => <Redirect to="/" replace />}</Route>
@@ -85,6 +91,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
           )}
         </Route>
       </Switch>
+      </Suspense>
       {!me.trial && <AssistantDock />}
       </NoteLimit.Provider>
     </Shell>
