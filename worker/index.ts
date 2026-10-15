@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { requireMcpAuth } from '@better-auth/mcp'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { createDb, dbTiming, schema, type Db } from './db'
+import { forgetSwitches, isSwitch, switchRows, SWITCHES, withSwitches } from './lib/settings'
 import { isAdminEmail, createAuth, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
@@ -150,6 +151,8 @@ const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(asy
   }
   c.set('db', dbCache.db)
   c.set('auth', auth)
+  // Limits an admin changed in /admin override wrangler.jsonc's vars (worker/lib/settings.ts).
+  c.env = withSwitches(c.env, await switchRows(dbCache.db))
   // Database round trips and time (summed, so parallel queries can exceed total), visible in DevTools.
   const start = Date.now()
   const t = { queries: 0, ms: 0 }
@@ -456,6 +459,40 @@ app.patch('/api/admin/users/:id', async (c) => {
   ])
   if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.approved(c.env, target, new URL(c.req.url).origin))
   return c.json({ user })
+})
+
+// Live switches (worker/lib/settings.ts): the value in force and who changed it last; no row means the wrangler.jsonc default.
+app.get('/api/admin/settings', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  const s = schema.setting
+  const rows = await c.get('db').select({ key: s.key, value: s.value, updatedAt: s.updatedAt, by: schema.user.name }).from(s).leftJoin(schema.user, eq(schema.user.id, s.updatedBy))
+  const set = new Map(rows.map((r) => [r.key, r]))
+  return c.json({
+    switches: SWITCHES.map((key) => {
+      const row = set.get(key)
+      return { key, value: row?.value ?? String(c.env[key] ?? ''), changedBy: row ? (row.by ?? 'a deleted account') : null, changedAt: row?.updatedAt.toISOString() ?? null }
+    }),
+  })
+})
+
+app.put('/api/admin/settings/:key', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  const key = c.req.param('key')
+  if (!isSwitch(key)) return c.json({ error: 'Unknown setting.' }, 404)
+  const parsed = z.object({ value: z.number().min(0).max(100_000) }).safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success || (key.includes('ACTIONS') && !Number.isInteger(parsed.data.value))) return c.json({ error: 'Enter a number between 0 and 100,000 (whole numbers for actions; 0 = no limit).' }, 400)
+  const row = { value: String(parsed.data.value), updatedBy: c.get('userId'), updatedAt: new Date() }
+  await c.get('db').insert(schema.setting).values({ key, ...row }).onConflictDoUpdate({ target: schema.setting.key, set: row })
+  forgetSwitches()
+  return c.json({ ok: true })
+})
+
+// Back to the wrangler.jsonc default.
+app.delete('/api/admin/settings/:key', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  await c.get('db').delete(schema.setting).where(eq(schema.setting.key, c.req.param('key')))
+  forgetSwitches()
+  return c.json({ ok: true })
 })
 
 // GDPR requests that reach the owner by email: the same export as Download my data, and the same erasure as Delete
