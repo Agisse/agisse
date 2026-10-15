@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useCopy, useResource } from '../lib/hooks'
 import { Copy, Check } from 'lucide-react'
-import { api, type AccessStatus, type AdminToday, type AdminUser, type Invite } from '../lib/api'
+import { api, type AccessStatus, type AdminAction, type AdminToday, type AdminUser, type Invite } from '../lib/api'
 import { BudgetMeter } from '../components/BudgetMeter'
 import { MIN_N, type Bucket, type QualityReport } from '../../shared/quality'
 
@@ -87,6 +87,7 @@ export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: 
         </div>
       </li>)}
     </ul>}
+    <Actions />
     <Quality />
   </main>
 }
@@ -308,6 +309,21 @@ function Invites() {
       })}
     </ul>}
   </section>
+}
+
+const did: Record<string, string> = { export: 'exported the data of', delete: 'deleted', credit: 'gave credit to', reset: "reset today's free limit for" }
+
+/** The last 20 lines of the admin action log (who, what, when); loaded when opened. Kept 2 years. */
+function Actions() {
+  const [actions, setActions] = useState<AdminAction[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const load = () => { if (!actions) api.adminActions().then((r) => setActions(r.actions), (e) => setError(e instanceof Error ? e.message : 'Could not load the actions.')) }
+  return <details className="quality" onToggle={(e) => { if (e.currentTarget.open) load() }}>
+    <summary className="admin-page__section">Recent actions</summary>
+    {error && <p className="field__error" role="alert">{error}</p>}
+    {!actions && !error && <p role="status">Loading the actions…</p>}
+    {actions && (actions.length ? <ul className="quality__notes">{actions.map((a, i) => <li key={i}><small className="tnum">{new Date(a.at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</small> {a.admin ?? 'A former admin'} {did[a.action] ?? a.action} {a.target ?? (a.action === 'delete' ? 'an account' : 'a deleted account')}</li>)}</ul> : <p className="admin-page__empty">None yet.</p>)}
+  </details>
 }
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`)

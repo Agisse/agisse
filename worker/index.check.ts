@@ -8,6 +8,7 @@ import worker from './index.ts'
 import { createDb, schema } from './db/index.ts'
 import { FEED_CAP_MESSAGE, FEED_DAILY_PAGES, feedCapDays, MAX_OFFSET, pruneFeedDays } from './lib/vacancies.ts'
 import { freeLimitDays, spendThisMonth } from './lib/shared.ts'
+import { pruneAdminActions } from './lib/retention.ts'
 
 const check = (ok: boolean, what: string, got?: unknown) => { if (!ok) throw new Error(`${what}${got === undefined ? '' : `: got ${JSON.stringify(got)}`}`) }
 
@@ -96,6 +97,12 @@ if (!databaseUrl) {
     check(Number(left?.n) === 0, 'admin delete leaves no user or OAuth rows', left)
     const log = await db.select({ action: schema.adminAction.action }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     check(log.map((l) => l.action).sort().join() === 'credit,credit,delete,export', 'admin export, credit and delete are logged', log)
+    const listed = ((await call('GET', '/api/admin/actions')).json?.actions as Array<{ targetId: string; admin: string | null; target: string | null }> | undefined)?.filter((a) => a.targetId === other)
+    check(listed?.length === 4 && listed.every((a) => a.admin && a.target === null), "/admin lists the log, without a deleted account's email", listed)
+    // The daily cron keeps the log 2 years.
+    await db.insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: user!.id, action: 'export', targetId: other, createdAt: sql`now() - interval '2 years 1 day'` })
+    await pruneAdminActions(db)
+    check((await db.select({ id: schema.adminAction.id }).from(schema.adminAction).where(eq(schema.adminAction.targetId, other))).length === 4, 'pruneAdminActions keeps 2 years')
     await db.delete(schema.adminAction).where(eq(schema.adminAction.targetId, other))
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.
