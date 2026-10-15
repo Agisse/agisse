@@ -125,6 +125,10 @@ Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog un
 
 If other people use your copy, you are the controller of their data under the GDPR, not Agisse. Your users' CVs and profiles live in your database and storage, and go to the AI provider and other services you configure. Write your own privacy policy: agisse.xyz's [privacy policy](/privacy) and [Data flow](/data-flow) show what the code does, but name agisse.xyz's processors and owner, not yours. You also keep your own [record of processing](/records-of-processing); agisse.xyz's can be a starting point. Running it only for yourself on your own computer is personal use, which the GDPR doesn't cover.
 
+## Getting help
+
+Ask in [GitHub Discussions](https://github.com/agisse/agisse/discussions). Help comes from the community, on a best-effort basis, with no response times. Only the two ways above are supported.
+
 ## Name and logo
 
 The code is AGPL-3.0. The name and logo are not covered by the license: if you offer your copy to others, rename it (see `TRADEMARK.md`).
