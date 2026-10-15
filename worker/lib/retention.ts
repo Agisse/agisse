@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNull, lt, notExists, or, sql, type SQL } from 'drizzle-orm'
+import { and, eq, gt, inArray, isNotNull, isNull, lt, notExists, or, sql, type SQL } from 'drizzle-orm'
 import { schema, type Db } from '../db'
 import { mails } from './email'
 
@@ -70,3 +70,11 @@ export async function eraseAccounts(db: Db, files: Pick<R2Bucket, 'delete'>, ids
 
 // Owner decision (#178): /admin's action log is kept 2 years, also after the account it names is deleted.
 export const pruneAdminActions = (db: Db) => db.delete(schema.adminAction).where(lt(schema.adminAction.createdAt, sql`now() - interval '2 years'`))
+
+// Owner decision (#148): a model's output and the seeker's note on it are kept 90 days for quality work (worker/lib/quality.ts
+// reads 30 to 90 days). The row itself stays: budgets need its cost, and the rating counts without its note.
+export const pruneModelOutput = (db: Db) =>
+  db
+    .update(schema.usage)
+    .set({ output: null, note: null })
+    .where(and(lt(schema.usage.createdAt, sql`now() - interval '90 days'`), or(isNotNull(schema.usage.output), isNotNull(schema.usage.note))))
