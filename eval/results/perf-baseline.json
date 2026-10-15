@@ -126,6 +126,20 @@
         "fcpMs": [1060, 1953, 1944],
         "lcpMs": [2469, 2849, 2868]
       }
+    },
+    "landingLatest": {
+      "measuredAt": "2026-10-15",
+      "note": "agisse.xyz after the deploy of #202-#205, from the EU, Lighthouse 12 mobile, three runs; devtools = --throttling-method=devtools, one run",
+      "url": "https://agisse.xyz/",
+      "score": 99,
+      "fcpMs": [1703, 1699, 1701],
+      "lcpMs": [1703, 1699, 1701],
+      "tbtMs": [29, 20, 21],
+      "cls": 0,
+      "devtools": {
+        "fcpMs": [1359],
+        "lcpMs": [1359]
+      }
     }
   },
   "api": {

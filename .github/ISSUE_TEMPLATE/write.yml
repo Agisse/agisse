@@ -1,0 +1,46 @@
+name: Write a guide or practice questions
+description: No code needed. Share what you know about a country, a field or an application step.
+labels: [area:docs]
+body:
+  - type: markdown
+    attributes:
+      value: Write in plain English, in your own words. We'll turn it into a docs page or add it to the prep questions, and credit your GitHub handle. Never copy from paid question banks, other sites or real candidates, and leave out real people's names.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What you're writing
+      options:
+        - A country guide (how hiring works, visas, the CV employers expect)
+        - A field guide
+        - An application step (a test, an interview, an assessment centre)
+        - Interview practice questions
+    validations:
+      required: true
+  - type: input
+    id: topic
+    attributes:
+      label: Which country, field or step?
+      placeholder: "e.g. Belgium, nursing, or the video interview"
+    validations:
+      required: true
+  - type: textarea
+    id: draft
+    attributes:
+      label: Your draft
+      description: "For practice questions: one per line, each with a short tip. e.g. Why this hospital? Tip: name one thing about the ward and link it to your placement."
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Where a reader can check it
+      description: Official pages first, for example a government's own visa page.
+  - type: checkboxes
+    id: own
+    attributes:
+      label: Your words
+      options:
+        - label: I wrote this myself; nothing is copied from paid banks, other sites or real candidates.
+          required: true
+        - label: A guide may be published under CC BY 4.0; practice questions under AGPL-3.0, like the code.
+          required: true

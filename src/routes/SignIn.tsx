@@ -202,7 +202,7 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
         </p>
       )}
       <p className="-mt-2 text-center text-[0.8125rem] text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-foreground">
-        By continuing you agree to the <a href="/docs/terms">Terms</a> and <a href="/docs/privacy">Privacy Policy</a>.
+        By continuing you {mode === 'sign-up' && "confirm you're 18 or over and "}agree to the <a href="/docs/terms">Terms</a> and <a href="/docs/privacy">Privacy Policy</a>.
       </p>
     </AuthShell>
   )

@@ -1,0 +1,42 @@
+name: "Agisse told me to apply, but…"
+description: The score or verdict got it wrong for you. Tell us why.
+title: "Score: "
+labels: [area:scoring]
+body:
+  - type: markdown
+    attributes:
+      value: This issue is public. Don't paste your CV, your name, contact details or anything about another person. Describe yourself in general terms. How the score works is in the [methodology](https://agisse.xyz/docs/methodology).
+  - type: dropdown
+    id: said
+    attributes:
+      label: What Agisse said
+      options:
+        - Apply (4.0 or more)
+        - Skip (below 4.0)
+        - A match in the feed (0–100)
+    validations:
+      required: true
+  - type: input
+    id: score
+    attributes:
+      label: The score
+      placeholder: "e.g. 4.2, or 87"
+  - type: input
+    id: role
+    attributes:
+      label: The role
+      description: Title, level and country. A link to the posting if it's public.
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What it got wrong
+      description: What did it miss, or weigh too much?
+    validations:
+      required: true
+  - type: textarea
+    id: you
+    attributes:
+      label: Your background, in general terms
+      placeholder: "e.g. MSc civil engineering, one internship, fluent German"
