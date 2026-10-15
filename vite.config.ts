@@ -47,6 +47,7 @@ export default defineConfig({
       config: (worker) => {
         const domain = process.env.SELF_HOST_DOMAIN
         if (domain) worker.routes = domain === 'workers.dev' ? [] : [{ pattern: domain, custom_domain: true }]
+        if (domain) worker.vars = { ...worker.vars, APP_URL: domain === 'workers.dev' ? '' : `https://${domain}` }
       },
     }),
     // Uploads source maps on build so production stack traces show real file/line, not minified code.

@@ -9,10 +9,14 @@ declare global {
   }
 }
 
+// True when Resend accepted it.
 export async function sendEmail(env: Env, to: string, subject: string, lines: string[], cta?: { label: string; url: string }) {
   // Only the link, so a password reset works on a server without mail (npx agisse, npm run dev).
   // No address or subject: subjects carry names, and console lines reach Sentry as breadcrumbs.
-  if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', cta ? `${cta.label}: ${cta.url}` : 'no link')
+  if (!env.RESEND_API_KEY) {
+    console.log('email (no RESEND_API_KEY):', cta ? `${cta.label}: ${cta.url}` : 'no link')
+    return false
+  }
   const from = env.EMAIL_FROM?.trim() || 'hello@agisse.xyz'
   const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`].join('\n')
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
@@ -27,6 +31,7 @@ ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background
   // A lost email is not worth failing the request that triggered it; log for Sentry/observability.
   // Resend's error name only: its message can quote an address.
   if (!res.ok) console.error('resend failed', res.status, (await res.json().catch(() => null) as { name?: string } | null)?.name ?? '')
+  return res.ok
 }
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
@@ -51,6 +56,12 @@ export const mails = {
       `Hi ${firstName(to.name)},`,
       approved ? `${friend} just joined with your invite and is straight in.` : `${friend} just joined with your link, which moves you up the waitlist.`,
     ], { label: 'Open Agisse', url: origin }),
+  inactive: (env: Env, to: { email: string; name: string }, origin: string, deleteOn: Date) =>
+    sendEmail(env, to.email, 'Your Agisse account will be deleted', [
+      `Hi ${firstName(to.name)},`,
+      `You haven't used Agisse in two years, so we'll delete your account and everything in it on ${deleteOn.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
+      'To keep it, sign in before then. To keep a copy instead, use Download my data in Profile first.',
+    ], { label: 'Keep my account', url: origin }),
   resetPassword: (env: Env, to: { email: string; name: string }, url: string) =>
     sendEmail(env, to.email, 'Reset your Agisse password', [
       `Hi ${firstName(to.name)},`,

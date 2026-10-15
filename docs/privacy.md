@@ -58,6 +58,7 @@ Agisse uses only what is strictly necessary to keep you signed in. Analytics run
 ## How long we keep it
 
 - Account, profile, CV, searches, tracker and AI usage logs: as long as your account exists. They are deleted when you delete your account.
+- Accounts unused for 24 months: we email you once, and delete the account 30 days later unless you sign in.
 - Cached web search results: about a week. Company facts: about a month.
 - Waitlist sign-ups that never become active: deleted on request, or after 12 months of inactivity.
 - Analytics and error reports: as long as the provider's retention period, at most 12 months.
