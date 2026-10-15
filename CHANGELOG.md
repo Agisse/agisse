@@ -79,6 +79,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- The README is distilled to the intro, self-hosting, development and links. The feature-by-feature reference, settings and costs moved to [docs/internals](docs/internals.md). `agisse.xyz/agent.md` lets a coding agent (Claude Code, Codex, Cursor) set up a copy from one prompt; the landing shows "Onboard your agent" behind `PUBLIC_LAUNCH`.
 - Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed through `/api/admin/settings` without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
 - In `/admin`, an account at the free daily AI limit (`FREE_DAILY_ACTIONS`) shows "Reset today's free limit": its count for today starts again, logged like credit, export and delete. The limit for everyone stays.
 - In `/admin`, a folded "Recent actions" list shows the last 20 lines of the admin action log (who exported, deleted or gave credit to which account, and when). The daily job deletes lines older than 2 years.

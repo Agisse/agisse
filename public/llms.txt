@@ -42,3 +42,4 @@ Who it is for: students and graduates in their first few years of work looking f
 ## Optional
 
 - [Sign up](https://agisse.xyz/sign-in?mode=sign-up): create a free account
+- [Set up your own Agisse](https://agisse.xyz/agent.md): step-by-step instructions for a coding agent to self-host Agisse
