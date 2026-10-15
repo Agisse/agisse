@@ -2,12 +2,12 @@
 // Prep and answer countdowns, retakes, transcript, delivery metrics and feedback with one follow-up question.
 // The video never leaves the browser. The transcript comes from the browser's speech recognition, or, where there is
 // none (Firefox), from one audio upload that is transcribed and discarded.
-import { AskAssistant } from '@/components/AssistantChat'
+import { AskAssistant } from '@/components/AskAssistant'
 import { useEffect, useRef, useState } from 'react'
 import { Circle, Mic, Square, Video } from 'lucide-react'
 import { AiWorking } from './AiWorking'
 import { FeedbackView } from './SelectionProcess'
-import { ErrorNote } from '../features/assessments/components/AssessmentPrep'
+import { ErrorNote } from './ErrorNote'
 import { fillerCount, type AnswerDelivery, type AnswerFeedback, type InterviewQuestion } from '../../shared/interview'
 import { FIELDS, FIELD_QUESTIONS, MODE_INFO, deliveryNotes, formatFor, type FieldId, type MockFormat, type Mode } from '../../shared/interview-kit'
 import { bestStoryFor } from '../../shared/stories'

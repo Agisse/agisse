@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Under a tailored CV, a cover letter and the feedback on a rehearsed answer, one quiet line when they were written on free models: your own OpenRouter key gives sharper results. With starter credit left, neither these nor the job score say "free models" any more, because credit runs on a paid model.
 - Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models".
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
 - How it's scored, next to a job's 1–5 score: one quiet link to the page that explains the score and its limits.
@@ -19,6 +20,12 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Jobs opens sooner after sign-in: the app now fetches each other page on its first visit, instead of all of them up front.
+- The assistant loads when you first hover, focus or open it, so Jobs and Home no longer wait for it after sign-in.
+- The Prepare tab's online-test practice loads when you open that tab, so Jobs opens sooner after sign-in.
+- The homepage shows its final heading on the first paint, instead of a small plain copy that the app then swaps for the big one.
+- The homepage and sign-in paint sooner: they no longer download the signed-in app's styles (a third of the stylesheet).
+- The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
@@ -63,9 +70,15 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The job feed now has a daily limit per account: 200 pages (a page per filter change, search or Show more), and a list goes 20 pages deep. Plenty for looking; it keeps the hosted feed from being copied in bulk. The MCP server's `list_vacancies` counts against the same limit. Admins are exempt, and daily counts are deleted after 30 days.
 - The privacy policy now lists the geocoding, map-tile and logo services your browser contacts, and that your own AI key sends requests straight to that provider. Umami is gone from it, and Agisse's pages no longer load its script.
 
+### Fixed
+
+- When an AI call fails, the server's logs and error reports no longer quote the model's answer, its refusal, or the part of your text a provider flagged; they keep the provider's short error message.
+- The feedback on a rehearsed answer shows Situation, Task, Action and Result on one line again, instead of one tick per line.
+
 ### For contributors and self-hosters
 
 - Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed through `/api/admin/settings` without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
+- The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
@@ -78,6 +91,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - `/admin` shows per account how many AI actions it used this month, and how many of the last 30 days it reached the free daily limit (`FREE_DAILY_ACTIONS`). Counts only.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
+- With `PUBLIC_LAUNCH=1`, a founder's note (placeholders until launch day) takes the place of the paragraph under "A co-pilot, not an autopilot."
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).
 - With `PUBLIC_LAUNCH=1`, the homepage links the comparison pages: "See comparisons" under the co-pilot table, and Compare in the footer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.

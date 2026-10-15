@@ -128,9 +128,17 @@ function extractJson(text: string): unknown {
     const start = trimmed.indexOf('{')
     const end = trimmed.lastIndexOf('}')
     if (start === -1 || end === -1) throw new Error('no JSON object in response')
-    return JSON.parse(trimmed.slice(start, end + 1))
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1))
+    } catch {
+      // JSON.parse's own message quotes the text, which is model output; it would reach the logs and Sentry.
+      throw new Error('response is not valid JSON')
+    }
   }
 }
+
+/** The provider's error message only: the rest of an error body can quote the prompt (a moderation error's `flagged_input`). */
+const providerMessage = (body: string) => body.match(/"message"\s*:\s*"((?:[^"\\]|\\.){0,160})/)?.[1] ?? ''
 
 export async function generateStructured<T>(opts: {
   apiKey?: string
@@ -219,9 +227,9 @@ export async function generateStructured<T>(opts: {
         signal: AbortSignal.timeout(Math.floor(Math.min(share, remaining))),
       })
       if (!res.ok) {
-        const body = await res.text().catch(() => '')
-        attempts.push({ model, error: `${res.status} ${body.slice(0, 160)}` })
-        console.warn('[openrouter]', model, 'http', res.status, body.slice(0, 160))
+        const why = providerMessage(await res.text().catch(() => ''))
+        attempts.push({ model, error: `${res.status} ${why}` })
+        console.warn('[openrouter]', model, 'http', res.status, why)
         continue
       }
       const json = (await res.json()) as {
@@ -308,10 +316,11 @@ async function generateDirect<T>(
           }),
           signal: AbortSignal.timeout(remaining),
         })
-        if (!res.ok) throw new Error(`${res.status} ${(await res.text().catch(() => '')).slice(0, 160)}`)
+        if (!res.ok) throw new Error(`${res.status} ${providerMessage(await res.text().catch(() => ''))}`)
         const json = (await res.json()) as { model?: string; choices?: Array<{ message?: { content?: string | null; refusal?: string | null } }> }
         const msg = json.choices?.[0]?.message
-        if (msg?.refusal) throw new Error(`refused: ${msg.refusal.slice(0, 160)}`)
+        // The refusal is model output and may quote the CV, so only the fact is kept.
+        if (msg?.refusal) throw new Error('refused')
         content = msg?.content ?? undefined
         model = json.model ?? model
       }
@@ -360,7 +369,7 @@ export async function transcribe(opts: { apiKey?: string; model: string; audio: 
     }),
     signal: AbortSignal.timeout(60_000),
   })
-  if (!res.ok) throw new Error(`transcription failed: ${res.status} ${(await res.text().catch(() => '')).slice(0, 160)}`)
+  if (!res.ok) throw new Error(`transcription failed: ${res.status} ${providerMessage(await res.text().catch(() => ''))}`)
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string | null } }>; usage?: { total_tokens?: number; cost?: number } }
   if (opts.meter && !own) {
     opts.meter.tokens += json.usage?.total_tokens ?? 0
