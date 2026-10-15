@@ -2,8 +2,10 @@
 // and stylesheets from dist/client/index.html, gzipped, plus the biggest packages and files in that JS.
 // Usage: npx tsx scripts/bundle-size.ts [top=15]
 // CI: `--check` fails when the initial JS is more than 10% over scripts/bundle-budget.json. Raising that number is a
-// deliberate change in the PR that needs it, with the reason in the PR body.
+// deliberate change in the PR that needs it, with the reason in the PR body. It also fails when a component in the
+// initial JS is missing from base.css's `@source` list, which would leave its Tailwind classes unstyled on first paint.
 import { readFileSync } from 'node:fs'
+import { matchesGlob } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { SourceMapConsumer } from 'source-map-js'
 
@@ -51,6 +53,12 @@ if (process.argv.includes('--check')) {
   const budget = JSON.parse(readFileSync('scripts/bundle-budget.json', 'utf8')).initialJsGzipKb as number
   if (gz(js) > budget * 1.1) {
     console.error(`Initial JS is ${gz(js)} kB gzipped, more than 10% over the budget of ${budget} kB (scripts/bundle-budget.json).`)
+    process.exit(1)
+  }
+  const globs = [...readFileSync('src/styles/base.css', 'utf8').matchAll(/^@source '\.\.\/(.+)';$/gm)].map((m) => `src/${m[1]}`)
+  const missing = [...sizes.keys()].filter((f) => f.endsWith('.tsx') && !globs.some((g) => matchesGlob(f, g)))
+  if (missing.length) {
+    console.error(`In the initial JS but not in src/styles/base.css's @source list: ${missing.join(', ')}`)
     process.exit(1)
   }
 }

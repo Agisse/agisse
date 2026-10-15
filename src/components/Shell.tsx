@@ -1,3 +1,4 @@
+import '../styles/app.css'
 import '../styles/routes.css'
 import { Link, useLocation } from 'wouter'
 import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, UserRound, Users } from 'lucide-react'
