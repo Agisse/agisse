@@ -28,6 +28,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
+- An account that hasn't been used for 24 months gets one email, and is deleted 30 days later unless you sign in.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
 - Deleting your account also removes the connections you gave AI apps through MCP (their access tokens and your consent), which stayed behind before.
 - Under a job's score, one quiet line says Agisse runs on free models and links to connecting your own OpenRouter key, which gives sharper results.
@@ -78,6 +79,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- New var `APP_URL` (`wrangler.jsonc`; `SELF_HOST_DOMAIN` sets it, local mode uses `http://localhost:<port>`): the address in mail the daily cron sends. Together with `RESEND_API_KEY` it turns on the 24-month deletion of unused accounts; without either, nobody is warned and nobody is deleted.
 - The homepage loads 10 kB (gzipped) less JavaScript: icons and Base UI code that only signed-in pages use no longer travel with it. `vite.config.ts`'s first-paint chunk now lists only our own files and lets the bundler add the package code they use.
 - The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.

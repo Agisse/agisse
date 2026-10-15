@@ -2,7 +2,7 @@
 // Needs a (development) DATABASE_URL; without one it only says so. Creates synthetic @example.com accounts and deletes them.
 import { and, eq, inArray, like, lt, sql } from 'drizzle-orm'
 import { createDb, schema } from '../db/index.ts'
-import { deleteStaleWaitlist } from './retention.ts'
+import { deleteInactiveAccounts, deleteStaleWaitlist } from './retention.ts'
 
 const url = process.env.DATABASE_URL
 const db = url ? createDb(url) : null
@@ -38,5 +38,74 @@ if (!db || others?.length) {
   } finally {
     await db.delete(schema.user).where(inArray(schema.user.id, users.map((u) => u.id)))
     await db.delete(schema.oauthConsent).where(eq(schema.oauthConsent.clientId, 'retention-check'))
+  }
+}
+
+// deleteInactiveAccounts also works on the whole table: skip unless no other approved account is near 24 months unused.
+const olderApproved = db && (await db.select({ id: schema.user.id }).from(schema.user).where(and(eq(schema.user.accessStatus, 'approved'), lt(schema.user.createdAt, sql`now() - interval '23 months'`), sql`${schema.user.email} not like 'inactive-%@example.com'`)).limit(1))
+if (!db || olderApproved?.length) {
+  console.log(`inactive accounts ok (skipped: ${db ? 'this database has older approved accounts' : 'no DATABASE_URL'})`)
+} else {
+  const run = Date.now()
+  const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000)
+  const account = (key: string, extra: Partial<typeof schema.user.$inferInsert> = {}) =>
+    ({ id: `inactive-${run}-${key}`, name: 'Sam Example', email: `inactive-${run}-${key}@example.com`, accessStatus: 'approved' as const, createdAt: daysAgo(1100), ...extra })
+  const a = {
+    idle: account('idle'),
+    mailFails: account('mailfails'),
+    warnedIdle: account('warnedidle', { inactiveWarnedAt: daysAgo(40) }),
+    warnedBack: account('warnedback', { inactiveWarnedAt: daysAgo(40) }),
+    warnedRecent: account('warnedrecent', { inactiveWarnedAt: daysAgo(10) }),
+    session: account('session'),
+    mcp: account('mcp'),
+    admin: account('admin', { isAdmin: true }),
+    pending: account('pending', { accessStatus: 'pending' }),
+    fresh: account('fresh', { createdAt: daysAgo(30) }),
+  }
+  const users = Object.values(a)
+  const deleted = new Set<string>()
+  const files = { delete: async (key: string) => void deleted.add(key) }
+  const sent: string[] = []
+  const realFetch = globalThis.fetch
+  // Resend only: the Neon driver talks to the database over fetch too.
+  globalThis.fetch = (async (url: string, init: RequestInit) => {
+    if (!String(url).startsWith('https://api.resend.com/')) return realFetch(url, init)
+    const to = JSON.parse(String(init.body)).to as string
+    sent.push(to)
+    return new Response('{}', { status: to === a.mailFails.email ? 500 : 200 })
+  }) as typeof fetch
+  const mailEnv = (extra: object) => ({ APP_URL: 'https://example.com', ...extra }) as unknown as Env
+  const state = async () =>
+    new Map((await db.select({ id: schema.user.id, warned: schema.user.inactiveWarnedAt }).from(schema.user).where(like(schema.user.email, `inactive-${run}-%`))).map((u) => [u.id, u.warned]))
+  const check = (ok: boolean, what: string) => {
+    if (!ok) throw new Error(`inactive accounts: ${what}`)
+  }
+  try {
+    await db.insert(schema.user).values(users)
+    await db.insert(schema.session).values([a.warnedBack, a.session].map((u) => ({ id: `${u.id}-s`, token: `${u.id}-s`, userId: u.id, expiresAt: daysAgo(-20), updatedAt: daysAgo(10) })))
+    await db.insert(schema.oauthAccessToken).values({ id: `${a.mcp.id}-t`, token: `${a.mcp.id}-t`, clientId: 'inactive-check', userId: a.mcp.id, createdAt: daysAgo(30), expiresAt: daysAgo(29), scopes: ['openid'] })
+
+    // Without mail, nobody new is warned; an account warned before is still deleted on time.
+    await deleteInactiveAccounts(mailEnv({}), db, files)
+    let left = await state()
+    check(!left.has(a.warnedIdle.id) && deleted.has(`resumes/${a.warnedIdle.id}.pdf`), 'warned 40 days ago and unused since: deleted with its PDF')
+    check(!sent.length && left.get(a.idle.id) === null, 'no RESEND_API_KEY: nobody warned')
+
+    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db, files)
+    left = await state()
+    check(sent.sort().join() === [a.idle.email, a.mailFails.email].sort().join(), `mailed only the unused, unwarned accounts: ${sent.join()}`)
+    check(left.get(a.idle.id) instanceof Date, 'idle account marked as warned')
+    check(left.get(a.mailFails.id) === null, 'a failed email marks nothing')
+    for (const u of [a.warnedBack, a.warnedRecent, a.session, a.mcp, a.admin, a.pending, a.fresh, a.idle, a.mailFails]) check(left.has(u.id), `${u.id} kept`)
+
+    // A second run the same day sends nothing new and deletes nothing: the warning is 30 days old at the earliest.
+    sent.length = 0
+    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db, files)
+    check(sent.join() === a.mailFails.email && (await state()).size === users.length - 1, 'second run: only the failed email is tried again')
+    console.log('inactive accounts ok')
+  } finally {
+    globalThis.fetch = realFetch
+    await db.delete(schema.user).where(inArray(schema.user.id, users.map((u) => u.id)))
+    await db.delete(schema.oauthAccessToken).where(eq(schema.oauthAccessToken.clientId, 'inactive-check'))
   }
 }

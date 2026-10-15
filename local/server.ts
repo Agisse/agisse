@@ -147,6 +147,7 @@ const { vars } = JSON.parse(readFileSync(join(root, 'wrangler.jsonc'), 'utf8').r
 const env = {
   ...vars,
   ...process.env,
+  APP_URL: process.env.APP_URL ?? `http://localhost:${port}`,
   DATABASE_URL: process.env.DATABASE_URL ?? 'pglite',
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? readFileSync(secretFile, 'utf8'),
   ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? (existsSync(adminFile) ? readFileSync(adminFile, 'utf8') : undefined),
