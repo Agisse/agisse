@@ -374,6 +374,8 @@ function UsagePanel({ me }: { me: Me }) {
       </div>
     )
   }
+  // Starter credit left: the credit line under this panel says it all; the meter shows once it's used up.
+  if (!me.aiKey && me.credit && me.credit.left > 0) return null
   const remaining = Math.max(0, me.budget.limit - me.budget.used)
   const resets = new Date(me.budget.resetsOn).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })
   return (

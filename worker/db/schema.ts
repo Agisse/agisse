@@ -387,7 +387,7 @@ export const feedDay = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.day] })],
 )
 
-// What an admin did to an account in /admin (export, delete): who, what, when. No content. The target has no foreign key,
+// What an admin did to an account in /admin (export, delete, credit, reset): who, what, when. No content. The target has no foreign key,
 // so the line outlives a deleted account.
 export const adminAction = pgTable('admin_action', {
   id: text('id').primaryKey(),
