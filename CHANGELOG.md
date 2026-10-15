@@ -84,6 +84,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- Ways to help without code, first in `CONTRIBUTING.md`: guides, practice questions, README translation reviews and score feedback, with two new issue forms ("Write a guide or practice questions" and "Agisse told me to apply, but…").
 - With `PUBLIC_LAUNCH=1`, the homepage's plain-HTML copy also carries the launch line under the heading, so the beta line no longer flashes before the app draws.
 - The self-host docs say what differs between agisse.xyz and your own copy, in one table: the same features, but the hosted feed, the managed AI key and the shared prep from everyone on agisse.xyz stay with the hosted service.
 - `SUPPORT.md` and the self-host docs say what help to expect: two supported ways to self-host, community help in Discussions on a best-effort basis, no response times.

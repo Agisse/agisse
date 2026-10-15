@@ -2,6 +2,17 @@
 
 Thanks for helping. Agisse is small on purpose: one clear action per view, AI only where it helps. Contributions that remove things are as welcome as ones that add them.
 
+## No code needed
+
+Most of what helps job seekers isn't code:
+
+- **Guides:** how hiring works in a country (visas, the CV employers expect), in a field, or at one application step.
+- **Practice questions:** interview questions with a short tip, in your own words, for the prep pages.
+- **Translations:** review a translated README ([open reviews](https://github.com/Agisse/agisse/issues?q=is%3Aopen+label%3A%22good+first+issue%22+Review)). The app itself isn't translatable yet ([#236](https://github.com/Agisse/agisse/issues/236)).
+- **Score feedback:** Agisse told you to apply, or to skip, and it was wrong.
+
+Pick [an issue form](https://github.com/Agisse/agisse/issues/new/choose) and fill it in; we'll do the rest and credit you.
+
 ## First screen in 10 minutes
 
 You need Node 24 (what CI uses) and a free [Neon](https://neon.tech) database (a new project or a branch; the app talks to Postgres through Neon's HTTP driver).
