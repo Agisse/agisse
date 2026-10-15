@@ -9,7 +9,7 @@ import { ANSWER_TEXT_LIMIT, type AnswerFeedback, type PracticeAnswer } from '../
 import type { Job } from '../../shared/types'
 import { api, isAbort, type Me } from '../lib/api'
 import { useAbortable, useResource } from '../lib/hooks'
-import { ErrorNote } from '../features/assessments/components/AssessmentPrep'
+import { ErrorNote } from './ErrorNote'
 import posthog from '../lib/posthog'
 import { PrepGhost } from './PrepGhost'
 import { FreeModelNote } from './FreeModelNote'

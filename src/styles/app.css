@@ -1,0 +1,5 @@
+/* Every utility the signed-in app uses. Loaded with the Shell chunk, after base.css, so it also
+   re-declares the first paint's utilities in Tailwind's order. */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import './theme.css';

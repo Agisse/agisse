@@ -20,6 +20,12 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Jobs opens sooner after sign-in: the app now fetches each other page on its first visit, instead of all of them up front.
+- The assistant loads when you first hover, focus or open it, so Jobs and Home no longer wait for it after sign-in.
+- The Prepare tab's online-test practice loads when you open that tab, so Jobs opens sooner after sign-in.
+- The homepage shows its final heading on the first paint, instead of a small plain copy that the app then swaps for the big one.
+- The homepage and sign-in paint sooner: they no longer download the signed-in app's styles (a third of the stylesheet).
+- The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
@@ -72,6 +78,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - In `/admin`, a folded "Recent actions" list shows the last 20 lines of the admin action log (who exported, deleted or gave credit to which account, and when). The daily job deletes lines older than 2 years.
+- The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - Local mode (`npx agisse`, `npm run local`) uses the same model lists and budget numbers as Cloudflare, from `wrangler.jsonc`. Before, every AI button read "budget used up" there. Environment variables still override them.
