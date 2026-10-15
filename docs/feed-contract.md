@@ -63,7 +63,9 @@ The feed only shows a role while all three hold (`open()` in `worker/lib/vacanci
 2. `last_seen` is within the last 3 days,
 3. `deadline` is null or today or later.
 
-So a provider closes a role by setting `closed_at`, or simply by no longer refreshing `last_seen`. A provider that runs less often than every 3 days empties the feed. Agisse never deletes rows; agisse.xyz's provider prunes closed roles after 30 days.
+So a provider closes a role by setting `closed_at`, or simply by no longer refreshing `last_seen`. A provider that runs less often than every 3 days empties the feed.
+
+Keep closed rows, with `closed_at` set, instead of deleting them. They leave the feed, and their `first_seen` and `closed_at` show when a programme usually opens and how long it stays open. Agisse never deletes rows; delete one only for a takedown.
 
 ## A reference provider
 
