@@ -98,6 +98,7 @@ Each key turns one feature on, and Agisse works without it.
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Sign in with Google |
 | `TURNSTILE_SECRET_KEY` + `VITE_TURNSTILE_SITE_KEY` | Bot protection on sign-in |
 | `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics |
+| `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_API_URL` | Deleting an account also deletes its PostHog person and events |
 | `VITE_LOGO_DEV_TOKEN` | Company logos (otherwise monograms) |
 
 ## The job feed

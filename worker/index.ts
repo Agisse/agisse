@@ -513,7 +513,7 @@ app.delete('/api/admin/users/:id', async (c) => {
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, id), columns: { isAdmin: true } })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin) return c.json({ error: 'An administrator account can only be deleted from its own Profile.' }, 400)
-  await Promise.all([eraseAccounts(c.get('db'), c.env.RESUMES, [id]), logAdminAction(c, 'delete', id)])
+  await Promise.all([eraseAccounts(c.env, c.get('db'), [id]), logAdminAction(c, 'delete', id)])
   return c.json({ ok: true })
 })
 
@@ -2439,10 +2439,10 @@ export default {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
-    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(db, env.RESUMES))
+    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(env, db))
     await pruneAdminActions(db)
     await pruneModelOutput(db)
     await pruneExaCache(db)
-    console.log('inactive accounts', await deleteInactiveAccounts(env, db, env.RESUMES))
+    console.log('inactive accounts', await deleteInactiveAccounts(env, db))
   },
 } satisfies ExportedHandler<Env>
