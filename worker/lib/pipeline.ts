@@ -538,6 +538,7 @@ Rules:
     background: trim(data.background, 1200),
     linkedinPremium: false,
     smartModel: true,
+    shareOutcomes: true,
     jobFeed: EMPTY_PROFILE.jobFeed,
     answers: EMPTY_PROFILE.answers,
   }
