@@ -11,7 +11,17 @@ Most of what helps job seekers isn't code:
 - **Translations:** review a translated README ([open reviews](https://github.com/Agisse/agisse/issues?q=is%3Aopen+label%3A%22good+first+issue%22+Review)). The app itself isn't translatable yet ([#236](https://github.com/Agisse/agisse/issues/236)).
 - **Score feedback:** Agisse told you to apply, or to skip, and it was wrong.
 
-Pick [an issue form](https://github.com/Agisse/agisse/issues/new/choose) and fill it in; we'll do the rest and credit you.
+Pick [an issue form](https://github.com/Agisse/agisse/issues/new/choose) and fill it in; we'll do the rest and credit you on the [contributors page](https://agisse.xyz/docs/contributors).
+
+### On your CV
+
+A contribution is real work in public that anyone can check:
+
+- **Where:** under Projects or Volunteering, not as a job. For example: "Contributor, Agisse (open-source job-search tool), 2026".
+- **What:** one line on what you did: "Wrote the guide to graduate hiring in Belgium", "Reviewed the Dutch README".
+- **Proof:** a link to the merged pull request or the page.
+
+On LinkedIn, add it under Projects or Volunteer experience, with the same link.
 
 ## First screen in 10 minutes
 
