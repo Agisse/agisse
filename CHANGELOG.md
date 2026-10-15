@@ -20,6 +20,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- The homepage shows its final heading on the first paint, instead of a small plain copy that the app then swaps for the big one.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Download my data now includes the CV PDF you uploaded, inside the same file.
