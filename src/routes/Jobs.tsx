@@ -1,4 +1,4 @@
-import { AskAssistant } from '@/components/AssistantChat'
+import { AskAssistant } from '@/components/AskAssistant'
 import { AiWorking } from '@/components/AiWorking'
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
