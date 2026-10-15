@@ -113,6 +113,19 @@
         "cls": 0,
         "speedIndexMs": 1370
       }
+    },
+    "jobsLatest": {
+      "measuredAt": "2026-10-15",
+      "note": "vite preview behind a gzip proxy (transfer sizes like production), synthetic returning account, Lighthouse 12 mobile, three runs; devtools = --throttling-method=devtools",
+      "url": "/jobs?view=feed",
+      "score": 100,
+      "fcpMs": [642, 836, 836],
+      "lcpMs": [1379, 1414, 1413],
+      "cls": 0.009,
+      "devtools": {
+        "fcpMs": [1060, 1953, 1944],
+        "lcpMs": [2469, 2849, 2868]
+      }
     }
   },
   "api": {
