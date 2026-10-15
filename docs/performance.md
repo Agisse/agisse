@@ -11,7 +11,7 @@ Agisse should feel instant, also on a mid-range phone on 4G. This page has the t
 
 | What | Target | Baseline (2026-10-14) | Latest (2026-10-15) |
 |---|---|---|---|
-| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz | 2.3 s on agisse.xyz |
+| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz | 1.7 s on agisse.xyz (1.4 s with devtools throttling) |
 | Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) | 1.4 s locally, compressed (see below) |
 | Initial JS, gzipped | under 150 kB | 782 kB | 129 kB |
 | API round trips | no more than a route needs | `/api/me` 10, facets 7 | see API below |
@@ -63,6 +63,8 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 **Lighthouse, agisse.xyz signed out, 2026-10-15** (after the code splitting in #91–#95 and #98). Landing: score 98, FCP 1.7 s, LCP 2.3 s, TBT 27 ms, CLS 0. The LCP element is still the hero heading; 73% of its time is render delay, the wait for the app script to draw it, and the 41 kB stylesheet blocks the first paint for about 0.3 s. The docs: score 99, LCP 1.8 s.
 
 **Landing heading in `index.html`, 2026-10-15.** The crawler copy in `index.html` now carries Landing's header and hero classes and text, so the first paint already shows the final heading at its final size, and React's copy of it is not a larger LCP candidate. Local preview with devtools throttling (150 ms, 1.6 Mbit/s, 4× CPU), three runs: LCP 3.66 s → 3.06 s, now equal to FCP. The next lever is FCP itself: the stylesheet.
+
+**Lighthouse, agisse.xyz signed out, 2026-10-15 evening** (after #202–#205: the static heading and a 12 kB entry stylesheet). Landing, three runs: score 99, FCP 1.7 s, LCP 1.7 s, TBT 20–30 ms, CLS 0. LCP now equals FCP. With devtools throttling instead of the simulated default: FCP 1.4 s, LCP 1.4 s, under the target. The simulated number stays higher because Lighthouse's model counts the high-priority module scripts (132 kB entry) as blocking the first paint, though the browser runs them after it. Marking them `fetchpriority="low"` cut the simulated FCP from 1.8 to 0.8 s locally, but not the LCP, so it isn't shipped.
 
 **The app's styles out of the first stylesheet, 2026-10-15.** `routes.css` styles only signed-in screens, so it now loads with the signed-in app and its shell instead of with every page. The landing's stylesheet: 219 → 148 kB, 37 → 25 kB gzipped. Same throttled preview, seven runs: FCP and LCP 3.07 s → 2.34 s. Screenshots of the landing, sign-in and six signed-in pages are pixel-identical before and after.
 
