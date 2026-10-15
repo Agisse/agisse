@@ -562,6 +562,7 @@ const ProfileSchema = z.object({
   background: z.string().max(1200).default(''),
   linkedinPremium: z.boolean().default(false),
   smartModel: z.boolean().default(true),
+  shareOutcomes: z.boolean().default(true),
   jobFeed: z
     .object({
       query: z.string().trim().max(120).default(''),

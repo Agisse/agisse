@@ -367,8 +367,7 @@ export const usage = pgTable(
     prompt: text('prompt'), // promptVersion() of the system prompt
     failed: jsonb('failed').$type<string[]>(), // models that failed before the one that answered
     refId: text('ref_id'), // the job, person or search the output belongs to
-    // ponytail: kept forever; prune output past 90 days if Neon's 0.5 GB gets tight.
-    output: jsonb('output'), // exactly as generated, before the seeker's edits
+    output: jsonb('output'), // exactly as generated, before the seeker's edits; with note, cleared after 90 days (retention.ts)
     flags: jsonb('flags').$type<Record<string, number>>(), // what the code verifiers dropped
     rating: smallint('rating'), // seeker's thumbs: 1 or -1
     note: text('note'),
