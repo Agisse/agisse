@@ -24,6 +24,7 @@ Who it is for: students and graduates in their first few years of work looking f
 - [Browser extension](https://agisse.xyz/docs/extension): send a job posting or profile into Agisse in one click
 - [Methodology](https://agisse.xyz/docs/methodology): how the 1–5 score and the feed's match are made, the 4.0 line, and what they can't know
 - [Compare](https://agisse.xyz/docs/compare/): Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, from their own public pages, dated
+- [Contributors](https://agisse.xyz/docs/contributors): everyone who helped build Agisse, with code or without
 
 ## Selection processes and online tests
 
