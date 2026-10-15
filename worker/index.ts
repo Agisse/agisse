@@ -47,6 +47,7 @@ import {
   userStyle,
   spendThisMonth,
   freeLimitDays,
+  freeLimitToday,
   spendToday,
   toBudget,
   toJob,
@@ -363,11 +364,12 @@ app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
-  const [users, used, capped, freeCapped, today] = await Promise.all([
+  const [users, used, capped, freeCapped, limitedNow, today] = await Promise.all([
     db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true, referredBy: true } }),
     spendThisMonth(db),
     feedCapDays(db),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
+    freeLimitToday(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
   ])
   // Per admin share link: how many joined with it, and how much of the credit it gave them they've spent.
@@ -392,6 +394,7 @@ app.get('/api/admin/users', async (c) => {
       actions: used.get(u.id)?.actions ?? 0,
       feedCapDays: capped.get(u.id) ?? 0,
       freeLimitDays: freeCapped.get(u.id) ?? 0,
+      freeLimitToday: limitedNow.has(u.id),
     })),
   })
 })
@@ -402,8 +405,8 @@ app.get('/api/admin/quality', async (c) => {
   return c.json({ report: await qualityReport(c.get('db')) })
 })
 
-// What an admin does to someone else's account (export, delete, credit) is logged in admin_action: who, what, when; no content.
-const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete' | 'credit', targetId: string) =>
+// What an admin does to someone else's account (export, delete, credit, reset) is logged in admin_action: who, what, when; no content.
+const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete' | 'credit' | 'reset', targetId: string) =>
   c.get('db').insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: c.get('userId'), action, targetId })
 
 // The last 20 lines of that log, newest first: who, what, when, and the account's email while it still exists.
@@ -431,10 +434,12 @@ app.patch('/api/admin/users/:id', async (c) => {
       referralCreditEur: z.number().positive().max(100).nullable().optional(),
       // Added to the account's one-time credit (granted and left); logged.
       addCreditEur: z.number().positive().max(100).optional(),
+      // Today's free daily actions start again from now: the logged 'reset' line is the reset (spendToday counts after it).
+      resetFreeLimit: z.literal(true).optional(),
     })
     .safeParse(await c.req.json().catch(() => ({})))
   if (!parsed.success) return c.json({ error: 'Choose approved, rejected, or pending, a budget between €0 and €100,000, and a credit between €0 and €100.' }, 400)
-  const { status, budgetEur, referralCreditEur, addCreditEur } = parsed.data
+  const { status, budgetEur, referralCreditEur, addCreditEur, resetFreeLimit } = parsed.data
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, c.req.param('id')) })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin && status) return c.json({ error: 'The administrator account cannot be changed here.' }, 400)
@@ -447,6 +452,7 @@ app.patch('/api/admin/users/:id', async (c) => {
   const [[user]] = await Promise.all([
     c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, referralCreditEur: schema.user.referralCreditEur, creditEur: schema.user.creditEur }),
     addCreditEur && logAdminAction(c, 'credit', target.id),
+    resetFreeLimit && logAdminAction(c, 'reset', target.id),
   ])
   if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.approved(c.env, target, new URL(c.req.url).origin))
   return c.json({ user })

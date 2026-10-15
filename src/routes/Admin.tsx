@@ -54,6 +54,16 @@ export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: 
     finally { setBusyId(null) }
   }
 
+  const resetFreeLimit = async (user: AdminUser) => {
+    setBusyId(user.id)
+    setError(null)
+    try {
+      await api.resetFreeLimit(user.id)
+      setUsers((current) => current.map((item) => item.id === user.id ? { ...item, freeLimitToday: false } : item))
+    } catch (e) { setError(e instanceof Error ? e.message : 'Could not reset the free limit.') }
+    finally { setBusyId(null) }
+  }
+
   const visible = users.filter((u) => filter === 'all' || u.accessStatus === filter).sort((a, b) => order[a.accessStatus] - order[b.accessStatus] || b.createdAt.localeCompare(a.createdAt))
   const count = (status: AccessStatus) => users.filter((u) => u.accessStatus === status).length
 
@@ -82,6 +92,7 @@ export function Admin({ myId, onBudgetChange }: { myId: string; onBudgetChange: 
           {!user.isAdmin && user.accessStatus !== 'approved' && <button className="btn btn--primary" disabled={busyId === user.id} onClick={() => void setAccess(user, 'approved')}>Approve</button>}
           {!user.isAdmin && user.accessStatus !== 'rejected' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'rejected')}>Decline</button>}
           {!user.isAdmin && user.accessStatus === 'approved' && <button className="btn" disabled={busyId === user.id} onClick={() => void setAccess(user, 'pending')}>Revoke access</button>}
+          {user.freeLimitToday && <button type="button" className="btn btn--sm btn--quiet" disabled={busyId === user.id} onClick={() => void resetFreeLimit(user)}>Reset today's free limit</button>}
           {!user.isAdmin && <GiveCredit user={user} />}
           {!user.isAdmin && <AccountData user={user} onDeleted={() => setUsers((current) => current.filter((item) => item.id !== user.id))} />}
         </div>
