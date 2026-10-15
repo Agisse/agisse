@@ -1,5 +1,5 @@
 // Exa people search: the only discovery source. Public index, no LinkedIn access from our side.
-import { eq } from 'drizzle-orm'
+import { eq, lt } from 'drizzle-orm'
 import { schema, type Db } from '../db'
 import type { Meter } from './openrouter'
 
@@ -12,6 +12,9 @@ declare global {
 
 // Exa refreshes its people index weekly, so a week-old answer is as good as a fresh one.
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
+
+// Owner decision (#148): rows past the TTL are never served again, so the daily cron deletes them.
+export const pruneExaCache = (db: Db) => db.delete(schema.exaCache).where(lt(schema.exaCache.createdAt, new Date(Date.now() - CACHE_TTL_MS)))
 
 export type ExaPerson = {
   id: string
@@ -46,7 +49,6 @@ export function normalizeProfileUrl(url: string): string {
   }
 }
 
-// ponytail: no eviction beyond the TTL check; rows are kept on purpose as the corpus of what Exa returned. Add a periodic delete if the table outgrows Neon Free.
 /** Serves a stored answer younger than the TTL, else fetches and stores it. A hit costs nothing: the meter is only charged inside `fetcher`. */
 async function cached<T>(db: Db | undefined, key: string, fetcher: () => Promise<T>): Promise<T> {
   if (db) {
