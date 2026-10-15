@@ -110,9 +110,17 @@ export function Landing() {
             <h2 id="belief-title" className="text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
               A co-pilot, not an autopilot.
             </h2>
-            <p className="mt-5 text-lg text-pretty text-muted-foreground">
-              Bots that fire off hundreds of applications in your name get you ignored. Agisse does the research and the drafting, then hands you the wheel. You press every send.
-            </p>
+            {LAUNCH ? (
+              // The founder's note takes the paragraph's place (the table below says the same); the launch-day PR fills it and links the manifesto.
+              <figure className="mt-5">
+                <blockquote className="text-lg text-pretty text-muted-foreground">“[founder quote]”</blockquote>
+                <figcaption className="mt-3 text-sm font-medium">[photo] [founder name], who started Agisse</figcaption>
+              </figure>
+            ) : (
+              <p className="mt-5 text-lg text-pretty text-muted-foreground">
+                Bots that fire off hundreds of applications in your name get you ignored. Agisse does the research and the drafting, then hands you the wheel. You press every send.
+              </p>
+            )}
           </div>
           <div role="table" aria-label="Auto-apply bots compared with Agisse" className="mx-auto mt-12 max-w-3xl divide-y divide-border border-y border-border">
             <div role="row" className="grid grid-cols-2 gap-6 py-3 text-sm font-medium text-muted-foreground">

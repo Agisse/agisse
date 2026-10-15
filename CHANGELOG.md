@@ -82,6 +82,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 - `/admin` shows per account how many AI actions it used this month, and how many of the last 30 days it reached the free daily limit (`FREE_DAILY_ACTIONS`). Counts only.
 - CI checks that one account can't read, change or delete another's saved posting (`scripts/npx-smoke.sh`, two synthetic accounts).
 - `SECURITY.md` has a runbook for a data breach: stop it, rotate keys, write it down, tell the Belgian DPA within 72 hours when required, and tell the people affected.
+- With `PUBLIC_LAUNCH=1`, a founder's note (placeholders until launch day) takes the place of the paragraph under "A co-pilot, not an autopilot."
 - With `PUBLIC_LAUNCH=1`, the homepage footer links the changelog (`CHANGELOG.md` on GitHub).
 - With `PUBLIC_LAUNCH=1`, the homepage links the comparison pages: "See comparisons" under the co-pilot table, and Compare in the footer.
 - With `PUBLIC_LAUNCH=1`, the homepage footer shows the GitHub star count and, once there are stories, how many people were hired with Agisse (`HIRED.md`). Read from GitHub once an hour; nothing shows while the repo is private or GitHub doesn't answer.
