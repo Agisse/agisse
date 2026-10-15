@@ -9,12 +9,12 @@ Agisse should feel instant, also on a mid-range phone on 4G. This page has the t
 
 ## Targets
 
-| What | Target | Baseline (2026-10-14) |
-|---|---|---|
-| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz |
-| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) |
-| Initial JS, gzipped | under 150 kB | 782 kB |
-| API round trips | no more than a route needs | `/api/me` 10, facets 7 |
+| What | Target | Baseline (2026-10-14) | Latest (2026-10-15) |
+|---|---|---|---|
+| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz | 2.3 s on agisse.xyz |
+| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) | not measured |
+| Initial JS, gzipped | under 150 kB | 782 kB | 129 kB |
+| API round trips | no more than a route needs | `/api/me` 10, facets 7 | see API below |
 
 ## Measure it yourself
 
@@ -59,6 +59,8 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 | `src/routes/Jobs.tsx` | 59 |
 
 **Lighthouse, agisse.xyz signed out.** Landing: score 72, FCP 1.1 s, LCP 6.5 s, TBT 260 ms, CLS 0. The hero heading only paints after the full app script has loaded and run. PostHog also loads its session recorder and surveys on the landing page. The docs: score 100, LCP 1.5 s.
+
+**Lighthouse, agisse.xyz signed out, 2026-10-15** (after the code splitting in #91–#95 and #98). Landing: score 98, FCP 1.7 s, LCP 2.3 s, TBT 27 ms, CLS 0. The LCP element is still the hero heading; 73% of its time is render delay, the wait for the app script to draw it, and the 41 kB stylesheet blocks the first paint for about 0.3 s. The docs: score 99, LCP 1.8 s.
 
 **Lighthouse, local preview** (uncompressed, so relative only). Landing, sign-in, Home and Jobs all land at FCP about 14.3 s, because all four wait for the same script. Home has a CLS of 0.086, Jobs 0.012. Scaled to compressed transfer, Jobs would be around 5 s.
 
