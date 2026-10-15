@@ -22,6 +22,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
+- Creating an account now asks you to confirm you're 18 or over, in the line that links the terms.
 - Signing out now clears your assistant chats from this browser, so the next person on a shared computer can't read them.
 - What's new groups its changes into New, Improved and Fixed, with each change's name in bold, so it's quicker to scan.
 - The browser extension page puts the download button first, and shows each place the extension helps as one row with an icon.
