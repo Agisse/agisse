@@ -75,6 +75,12 @@ export default function App() {
   const signOut = async () => {
     await authClient.signOut()
     posthog.reset()
+    // Owner decision (#148): assistant chats stay in this browser until sign-out, so a shared computer doesn't keep them.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith('agisse.chats.')).forEach((k) => localStorage.removeItem(k))
+    } catch {
+      /* storage blocked: nothing was kept */
+    }
     identifiedUserId.current = null
     sessionHint('out')
     setAuth({ state: 'out' })
