@@ -131,11 +131,18 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
           </div>
         </details>
 
-        <label className="field--check profile__check" htmlFor="linkedinPremium">
-          <input id="linkedinPremium" type="checkbox" checked={p.linkedinPremium} onChange={(e) => set('linkedinPremium', e.target.checked)} />
-          <span>LinkedIn Premium</span>
-          <span className="field__hint">300-character notes</span>
-        </label>
+        <div className="profile__group">
+          <label className="field--check profile__check" htmlFor="linkedinPremium">
+            <input id="linkedinPremium" type="checkbox" checked={p.linkedinPremium} onChange={(e) => set('linkedinPremium', e.target.checked)} />
+            <span>LinkedIn Premium</span>
+            <span className="field__hint">300-character notes</span>
+          </label>
+          <label className="field--check profile__check" htmlFor="shareOutcomes">
+            <input id="shareOutcomes" type="checkbox" checked={p.shareOutcomes} onChange={(e) => set('shareOutcomes', e.target.checked)} />
+            <span>Count my tracker anonymously</span>
+            <span className="field__hint">Response times others see, only with 10+ people</span>
+          </label>
+        </div>
 
         <div className="profile__actions">
           <button type="submit" className="btn btn--primary" disabled={saving}>

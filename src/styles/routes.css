@@ -1600,59 +1600,6 @@
 .scout-row .booth-row__company { display: block; }
 .index-card__options-fields.how { margin-top: 0; }
 
-/* ---------- /extension: install and usage ---------- */
-.extension-page .how {
-  margin-top: var(--space-5);
-}
-.extension-page__never {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 6px;
-}
-.extension-page__never li {
-  display: flex;
-  gap: 12px;
-  font-size: var(--fs-14);
-  color: var(--ink-2);
-  line-height: 1.45;
-}
-.extension-page__help {
-  max-width: 52ch;
-  margin-top: var(--space-6);
-}
-.extension-page__help .extension-page__never {
-  padding-bottom: var(--space-4);
-}
-.extension-page__never li::before {
-  content: none; /* .how numbers its steps; this list is not a sequence */
-}
-.extension-page__never svg {
-  flex: none;
-  width: 16px;
-  height: 16px;
-  margin-top: 3px;
-}
-
-/* ---------- /changelog: what's new, newest first ---------- */
-.changelog-page section {
-  display: grid;
-  gap: var(--space-2);
-  max-width: 60ch;
-}
-.changelog-page ul {
-  margin: 0;
-  padding-left: 1.25em;
-  list-style: disc; /* preflight removes it; a grid would hide the markers */
-  font-size: var(--fs-15);
-  color: var(--ink-2);
-  line-height: 1.5;
-}
-.changelog-page li + li { margin-top: var(--space-2); }
-.changelog-page li::marker { color: var(--ink-3); }
-.changelog-page code { font-size: 0.9em; }
-
 /* ---------- /desk: one AI helper across the whole search ---------- */
 
 .helper-action__link { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-16); font-weight: 600; text-decoration: none; }
@@ -1912,6 +1859,7 @@
 
 .feed-row__detail { grid-column: 2 / -1; display: grid; gap: var(--space-3); max-width: 68ch; padding-bottom: var(--space-1); cursor: auto; }
 .feed-row__why { margin: 0; font-size: var(--fs-14); font-weight: 600; color: var(--green-ink); }
+.feed-row__why a { margin-left: var(--space-2); font-size: var(--fs-13); font-weight: 400; color: var(--ink-3); }
 .feed-row__sponsor { margin: 0; font-size: var(--fs-14); color: var(--ink-2); }
 .feed-row__excerpt {
   margin: 0;

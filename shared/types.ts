@@ -25,6 +25,8 @@ export type Profile = {
   linkedinPremium: boolean
   /** Smart = paid models within a price cap, only on the seeker's own OpenRouter key; Agisse's key always uses free models. */
   smartModel: boolean
+  /** Tracker status changes may count, anonymised and only with 10+ others, towards response figures other users see. */
+  shareOutcomes: boolean
   /** Dealbreakers for the "For you" job feed, saved each time the seeker runs it. */
   jobFeed: FeedPrefs
   /** Standard answers to application-form fields (notice, salary…), shown by the extension to copy. */
@@ -45,6 +47,7 @@ export const EMPTY_PROFILE: Profile = {
   background: '',
   linkedinPremium: false,
   smartModel: true,
+  shareOutcomes: true,
   jobFeed: EMPTY_FEED_PREFS,
   answers: EMPTY_ANSWERS,
 }

@@ -16,7 +16,7 @@ import { APP_CSP, DOCS_CSP } from './lib/csp'
 import { draftOutreach, draftPrep, extractProfileFromResume, runSearch } from './lib/pipeline'
 import { answerQuestion, checkApplication, cvPlain, cvText, draftCover, draftEmail, evaluateJob, findPosting, insertJob, missingKeywords, postingKey, pushStatus, saveJob, sharedPosting, tailorCv } from './lib/jobs'
 import { answerFeedback, interviewQuestions, offerBrief, payCheck, roleKey } from './lib/interview'
-import { fetchProfileText, normalizeProfileUrl } from './lib/exa'
+import { fetchProfileText, normalizeProfileUrl, pruneExaCache } from './lib/exa'
 import { bestMatch, companyKey, percentileOf, researchAssessment } from './lib/assessments'
 import { curatedFor, providerGame } from '../shared/assessment-catalog'
 import { ANSWER_FIELDS, EMPTY_ANSWERS, matchAnswer, type AnswerKey } from '../shared/answer-bank'
@@ -58,7 +58,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
-import { deleteInactiveAccounts, deleteStaleWaitlist, eraseAccounts, pruneAdminActions } from './lib/retention'
+import { deleteInactiveAccounts, deleteStaleWaitlist, eraseAccounts, pruneAdminActions, pruneModelOutput } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { getProgramme, programmeFacets, saveProgramme, searchProgrammes } from './lib/programmes'
@@ -515,7 +515,7 @@ app.delete('/api/admin/users/:id', async (c) => {
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, id), columns: { isAdmin: true } })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin) return c.json({ error: 'An administrator account can only be deleted from its own Profile.' }, 400)
-  await Promise.all([eraseAccounts(c.get('db'), c.env.RESUMES, [id]), logAdminAction(c, 'delete', id)])
+  await Promise.all([eraseAccounts(c.env, c.get('db'), [id]), logAdminAction(c, 'delete', id)])
   return c.json({ ok: true })
 })
 
@@ -564,6 +564,7 @@ const ProfileSchema = z.object({
   background: z.string().max(1200).default(''),
   linkedinPremium: z.boolean().default(false),
   smartModel: z.boolean().default(true),
+  shareOutcomes: z.boolean().default(true),
   jobFeed: z
     .object({
       query: z.string().trim().max(120).default(''),
@@ -2458,11 +2459,12 @@ app.notFound(async (c) => {
   if (asset.status === 404) asset = await c.env.ASSETS.fetch(new URL('/', c.req.url))
   if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
   // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
-  // The crawler copy of the headline follows Landing's launch headline.
+  // The crawler copy of the headline and the line under it follow Landing's launch hero.
   const res = Number(c.env.PUBLIC_LAUNCH) === 1
     ? new HTMLRewriter()
         .on('html', { element: (el) => void el.setAttribute('data-launch', '') })
         .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. <span class="text-muted-foreground sm:block">Act where you fit.</span>', { html: true }) })
+        .on('p.home__note', { element: (el) => void el.setInnerContent('<a href="/sign-in?mode=sign-up">Get started</a>. Free with your own AI key · Open source · Made in Europe.', { html: true }) })
         .transform(asset)
     : asset
   const home = c.req.path === '/'
@@ -2487,8 +2489,10 @@ export default {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
-    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(db, env.RESUMES))
+    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(env, db))
     await pruneAdminActions(db)
-    console.log('inactive accounts', await deleteInactiveAccounts(env, db, env.RESUMES))
+    await pruneModelOutput(db)
+    await pruneExaCache(db)
+    console.log('inactive accounts', await deleteInactiveAccounts(env, db))
   },
 } satisfies ExportedHandler<Env>

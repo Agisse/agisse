@@ -7,6 +7,8 @@ description: Run your own copy of Agisse, on your computer with one command or o
 
 Two ways to run your own copy. Both run the same app; only the setup differs.
 
+The easiest: paste `Read https://agisse.xyz/agent.md and set up my own Agisse.` into Claude Code, Codex or Cursor, and it does the steps below with you.
+
 - **On your computer:** one command, for trying it, a home server, or one student association.
 - **On Cloudflare:** a public deploy on Cloudflare's free plan and a free [Neon](https://neon.tech) Postgres database.
 
@@ -96,7 +98,21 @@ Each key turns one feature on, and Agisse works without it.
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Sign in with Google |
 | `TURNSTILE_SECRET_KEY` + `VITE_TURNSTILE_SITE_KEY` | Bot protection on sign-in |
 | `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics |
+| `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_API_URL` | Deleting an account also deletes its PostHog person and events |
 | `VITE_LOGO_DEV_TOKEN` | Company logos (otherwise monograms) |
+
+## Hosted or self-hosted?
+
+Your copy has every feature the code has; agisse.xyz holds nothing back. What differs:
+
+| | agisse.xyz | Your copy |
+|---|---|---|
+| Features | All | All: the same code |
+| Job feed | The curated hosted feed | Empty until you add a provider or the Arbeitnow importer |
+| AI | Free models on agisse.xyz's key, or your own key | Your server key, or each user's own |
+| Setup | None: sign up | One command, or a Cloudflare deploy |
+| Shared prep (interview questions, test reports) | From every student on agisse.xyz | From your own users |
+| Your users' data | agisse.xyz is the controller | You are |
 
 ## The job feed
 
@@ -109,6 +125,10 @@ Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog un
 ## Your users' data
 
 If other people use your copy, you are the controller of their data under the GDPR, not Agisse. Your users' CVs and profiles live in your database and storage, and go to the AI provider and other services you configure. Write your own privacy policy: agisse.xyz's [privacy policy](/privacy) and [Data flow](/data-flow) show what the code does, but name agisse.xyz's processors and owner, not yours. You also keep your own [record of processing](/records-of-processing); agisse.xyz's can be a starting point. Running it only for yourself on your own computer is personal use, which the GDPR doesn't cover.
+
+## Getting help
+
+Ask in [GitHub Discussions](https://github.com/agisse/agisse/discussions). Help comes from the community, on a best-effort basis, with no response times. Only the two ways above are supported.
 
 ## Name and logo
 

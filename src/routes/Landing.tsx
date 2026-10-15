@@ -175,6 +175,7 @@ export function Landing() {
           <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('close')} />}>
             Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>
+          {LAUNCH && <OnboardAgent />}
         </section>
       </main>
 
@@ -184,7 +185,7 @@ export function Landing() {
             <BoothSignMark className="size-6!" />
             <span className="font-semibold text-foreground">Agisse</span>
             <span aria-hidden="true">·</span>
-            <span>Made in Europe, for Europe</span>
+            <span>{LAUNCH ? 'On your side only: Agisse never works for employers.' : 'Made in Europe, for Europe'}</span>
           </div>
           <nav aria-label="Footer" className="-mx-2 flex flex-wrap">
             {(LAUNCH ? launchFooter(stats) : FOOTER).map(([href, label]) => (
@@ -221,6 +222,32 @@ const TONE = {
   green: 'bg-[var(--green-tint)] text-[var(--green-ink)]',
   amber: 'bg-[var(--amber-tint)] text-[var(--amber)]',
   blue: 'bg-[var(--blue-soft)] text-[var(--blue-ink)]',
+}
+
+const AGENT_PROMPT = 'Read https://agisse.xyz/agent.md and set up my own Agisse.'
+
+/** Self-hosting in one prompt: copies a line for Claude Code, Codex or Cursor, which reads /agent.md and does the setup. */
+function OnboardAgent() {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    posthog.capture('landing_cta_clicked', { position: 'agent' })
+    navigator.clipboard.writeText(AGENT_PROMPT).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }, () => {})
+  }
+  return (
+    <div className="mt-4 flex flex-col items-center gap-3">
+      <Button variant="outline" className="h-12 rounded-full px-7 text-base" onClick={copy}>
+        {copied ? <Check data-icon="inline-start" aria-hidden="true" /> : <Copy data-icon="inline-start" aria-hidden="true" />}
+        {copied ? 'Copied. Paste it into your agent' : 'Onboard your agent'}
+      </Button>
+      <p className="text-sm text-balance text-muted-foreground">
+        Run your own copy: Claude Code, Codex or Cursor sets it up from <a href="/agent.md" className="underline underline-offset-4 hover:text-foreground">one prompt</a>.
+      </p>
+      <span className="sr-only" aria-live="polite">{copied ? 'Prompt copied' : ''}</span>
+    </div>
+  )
 }
 
 function Initials({ text, round }: { text: string; round?: boolean }) {
@@ -466,12 +493,13 @@ const Doc = ({ href, children }: { href: string; children: ReactNode }) => (
   </a>
 )
 
-// The objections a launch visitor brings, at most eight ("why not an auto-apply bot" is answered under "does it apply for me"). Shown with PUBLIC_LAUNCH.
+// The objections a launch visitor brings, eight at most ("why not an auto-apply bot" is answered under "does it apply for me"). Shown with PUBLIC_LAUNCH.
 const LAUNCH_FAQ: [string, ReactNode][] = [
   ['How is the score made?', <>Agisse lists what a posting asks for and checks each point against your CV. Below 4.0 out of 5 it calls the role a long shot and names the gaps. <Doc href="/docs/methodology">How the score works</Doc></>],
   ['Does it apply for me?', 'No, on purpose. Auto-apply bots flood recruiters, who then filter harder. Agisse drafts; you submit and send, from your own accounts.'],
   ['Is it free, and how is it funded?', 'Yes, it’s free: no paid plan, no ads, and your data is never sold. Try it on free AI models. For real use, connect your own OpenRouter key and pay OpenRouter directly. The hosting costs little.'],
   ['Where does my data live?', <>In a database in the EU. With your own AI key, requests go straight to your provider. Download your data or delete your account in Profile at any time. <Doc href="/docs/data-flow">What goes where</Doc></>],
+  ['Does Agisse work for employers?', 'No. Agisse is on your side only: it never scores or ranks candidates for employers, never sells or shares your data with them, and no employer can pay to appear in your feed.'],
   ['Who’s behind it?', '[founder name], [one line about you]. Agisse is an open-source project, not a company.'],
   ['Can I use it from Claude, ChatGPT or Codex?', <>From Claude, Codex, Cursor and other MCP clients: sign in with your Agisse account and they can read your feed and tracker. <Doc href="/docs/mcp">Set it up</Doc></>],
   ['Is it open source, and what isn’t open?', <>All the code is open source (AGPL). The job data on agisse.xyz isn’t: the hosted service collects and maintains it. Your own copy starts with an empty feed. <Doc href="/docs/self-host">Run it yourself</Doc></>],

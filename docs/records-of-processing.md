@@ -20,18 +20,19 @@ This is the record for agisse.xyz. A self-hosted copy has its own controller, wh
 
 ## Activities
 
-Data subjects are Agisse's users (students and early-career job seekers, minimum age [owner: #151]) unless the row says otherwise. Recipients are the processors listed in the privacy policy.
+Data subjects are Agisse's users (students and early-career job seekers, minimum age 18) unless the row says otherwise. Recipients are the processors listed in the privacy policy.
 
 | Activity | Purpose | Personal data | Legal basis | Recipients | Outside the EEA | Retention |
 |---|---|---|---|---|---|---|
 | Accounts and sign-in | Let users in, run the waitlist and invites | Name, email, password hash, Google link, sessions, waitlist status, referral and invite codes | Contract | Cloudflare, Neon, Google (if chosen), Resend | Google, Resend (USA) | Account lifetime; waitlist accounts unused for 12 months are deleted; other accounts unused for 24 months are emailed once and deleted 30 days later |
-| Job-search workspace | The product: profile, CV, tracker, prep, saved companies and programmes, assistant memories | CV (PDF and text), education, work history, preferences, saved postings, notes, drafts, practice answers | Contract | Cloudflare (R2), Neon | No [owner: R2 bucket location, #148 point 9] | Account lifetime; deleted with the account |
+| Job-search workspace | The product: profile, CV, tracker, prep, saved companies and programmes, assistant memories | CV (PDF and text), education, work history, preferences, saved postings, notes, drafts, practice answers | Contract | Cloudflare (R2, EU jurisdiction), Neon (Frankfurt) | No | Account lifetime; deleted with the account |
 | AI features | Evaluate postings, tailor CVs, draft messages, prep, at the user's request | The CV and profile text a feature needs, with contact details removed first; the posting | Contract | OpenRouter and the model providers it routes to; with an own key, that provider instead | Yes (USA and others) [owner: transfer basis, #148 question 6] | Not stored by Agisse beyond the usage log; providers per their policy |
-| People search | Suggest whom to contact at a company | Third parties: names, roles and public profile links of people at companies | Legitimate interest | Exa, Neon | Exa (USA) | With the searching user's account; cached search results [owner: #148 point 5] |
+| People search | Suggest whom to contact at a company | Third parties: names, roles and public profile links of people at companies | Legitimate interest | Exa, Neon | Exa (USA) | With the searching user's account; cached search results deleted after 7 days |
 | Feed ranking | Order the job feed by fit | A profile embedding and a fit score per role, derived from the profile | Contract | The feed provider (run by the controller), Neon | No | Account lifetime; deleted with the account |
-| Usage and quality | Fair-use limits, cost control, answer quality | Feature, model, tokens, cost, the model's output, the user's rating and note | Legitimate interest | Neon | No | Account lifetime [owner: 90 days proposed, #148 question 2] |
+| Outcome figures | Show users anonymous response rates and timelines per employer and programme (not shown yet) | Tracker status changes and their dates, counted; a figure only with at least 10 users behind it | Legitimate interest; opt-out in Profile | Neon | No | Account lifetime; left out once the user opts out or deletes the account |
+| Usage and quality | Fair-use limits, cost control, answer quality | Feature, model, tokens, cost, the model's output, the user's rating and note | Legitimate interest | Neon | No | The output, the note: 90 days; the rest: account lifetime |
 | Account email | Password resets and account notices | Email address, message | Contract | Resend | Yes (USA) | Per Resend's policy |
-| Analytics and error reports | Learn which features help; fix bugs | Account id, pages viewed, buttons clicked, technical error details | Legitimate interest | PostHog, Sentry | Sentry (USA); PostHog [owner: region, #148 point 11] | At most 12 months |
+| Analytics and error reports | Learn which features help; fix bugs | Account id, pages viewed, buttons clicked, technical error details | Legitimate interest | PostHog, Sentry | Sentry (USA); PostHog in the EU | At most 12 months; PostHog's are deleted with the account |
 | Maps and logos | Show roles on a map and company logos | Location text, company domain, IP address (sent by the browser) | Legitimate interest | Nominatim, OpenFreeMap, logo.dev | Nominatim (UK), logo.dev (USA) | Per their policies |
 | Bot protection | Stop automated sign-ups | IP address, browser signals | Legitimate interest | Cloudflare Turnstile | Per Cloudflare's network | Per Cloudflare's policy |
 

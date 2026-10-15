@@ -19,11 +19,11 @@ This page describes what the code does: what is stored, where, and which outside
 | Pasted posting text | Postgres: `posting` | Shared across users, so two people who paste the same job reuse one evaluation. It holds the posting, not anyone's CV |
 | People found at a company | Postgres: `search`, `person` | Public profile text from Exa, per user |
 | Practice answers, interview and assessment prep | Postgres: `practice_answer`, `interview_question_set`, `training_session`, … | Per user. Mock-interview video stays in the browser |
-| AI usage | Postgres: `usage` | Feature, model, tokens and cost, for the monthly allowance |
+| AI usage | Postgres: `usage` | Feature, model, tokens and cost, for the monthly allowance; the output and the seeker's note for 90 days |
 | Feed pages per day | Postgres: `feed_day` | A count per day, for the feed's daily limit; deleted after 30 days |
 | Admin actions | Postgres: `admin_action` | Which admin exported, deleted, gave credit to or reset the free AI limit of which account id, and when; no content. Kept 2 years, also after the account is deleted |
 | Live switches | Postgres: `setting` | Limits an admin changed in `/admin` (daily caps, the feed's page cap, the monthly allowance), with the account id of who changed each last; set to null when that account is deleted |
-| Web search cache | Postgres: `exa_cache` | About a week |
+| Web search cache | Postgres: `exa_cache` | Deleted after 7 days |
 | Company facts | Postgres: `company` | From Wikidata, refreshed after 30 days |
 | Job feed | Postgres: `vacancy`, `profile_embedding`, `vacancy_fit` | Written by a feed provider outside this repo, see below |
 
@@ -57,7 +57,7 @@ Before any model call, on any key, email addresses, phone numbers, labelled birt
 | OpenFreeMap | The world map | Map tile requests, and the user's IP address |
 | logo.dev | Company logos (`VITE_LOGO_DEV_TOKEN`) | A company's domain, and the user's IP address |
 | Cloudflare Turnstile | The sign-up and sign-in forms (`TURNSTILE_SECRET_KEY`) | The bot check, and the user's IP address |
-| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked, with the account id (never the name or email). No session recordings |
+| PostHog | Analytics (`VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`) | Pages viewed and buttons clicked, with the account id (never the name or email). No session recordings. With `POSTHOG_PERSONAL_API_KEY`, deleting the account asks PostHog to delete that id's person and events |
 | The browser's speech recognition | Mock interview, where the browser has it | The answer's audio, handled by the browser vendor |
 
 Where the browser has no speech recognition (Firefox), the answer's audio goes once to the Worker, which has a model transcribe it and keeps only the text.

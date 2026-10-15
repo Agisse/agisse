@@ -1,6 +1,7 @@
-// Run: npx tsx worker/lib/vacancies.check.ts
-import { and } from 'drizzle-orm'
+// Run: npx tsx worker/lib/vacancies.check.ts (add --env-file=.dev.vars for the database part)
+import { and, eq as is } from 'drizzle-orm'
 import { PgDialect } from 'drizzle-orm/pg-core'
+import { createDb, schema } from '../db/index.ts'
 import { FAIRNESS } from './pipeline.ts'
 import { degreeQuery, FIT_Q, reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
 
@@ -56,3 +57,20 @@ eq(degreeQuery('MSc'), null, 'no field words')
 // The feed's fit question carries the same rule as the evaluation prompt.
 if (!FIT_Q.instructions.includes(FAIRNESS)) throw new Error('FIT_Q lacks FAIRNESS')
 console.log('vacancies ok')
+
+// Owner decision D3: a closed role leaves the feed but its row stays, so first_seen and closed_at build the recruiting calendar.
+if (process.env.DATABASE_URL) {
+  const db = createDb(process.env.DATABASE_URL)
+  const url = `https://example.com/jobs/closed-check-${Date.now()}`
+  const v = schema.vacancy
+  try {
+    await db.insert(v).values({ url, source: 'seed', company: 'Example Corp', title: 'Graduate Analyst', firstSeen: '2025-09-03', lastSeen: new Date().toISOString().slice(0, 10), closedAt: new Date().toISOString().slice(0, 10) })
+    const inFeed = await db.select({ url: v.url }).from(v).where(and(is(v.url, url), ...vacancyFilters(base)))
+    const kept = await db.select({ firstSeen: v.firstSeen, closedAt: v.closedAt }).from(v).where(is(v.url, url))
+    eq(inFeed.length, 0, 'a closed role in the feed')
+    eq(kept.length === 1 && kept[0].firstSeen === '2025-09-03' && !!kept[0].closedAt, true, 'the closed row kept with its dates')
+    console.log('closed roles kept ok')
+  } finally {
+    await db.delete(v).where(is(v.url, url))
+  }
+} else console.log('closed roles kept ok (skipped: no DATABASE_URL)')
