@@ -68,7 +68,7 @@ npx wrangler login
 npm run self-host
 ```
 
-`npm run self-host` creates the `agisse-resumes` R2 bucket, runs the migrations, builds for `SELF_HOST_DOMAIN` and deploys with the Worker secrets from `.env`. Build-time keys (`VITE_*`, `SENTRY_AUTH_TOKEN`) never leave your machine. Run it again to update.
+`npm run self-host` creates the `agisse-resumes-eu` R2 bucket (EU jurisdiction), runs the migrations, builds for `SELF_HOST_DOMAIN` and deploys with the Worker secrets from `.env`. Build-time keys (`VITE_*`, `SENTRY_AUTH_TOKEN`) never leave your machine. Run it again to update.
 
 The agisse.xyz routes in `wrangler.jsonc` stay untouched: `SELF_HOST_DOMAIN` replaces them at build time.
 
