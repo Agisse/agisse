@@ -10,8 +10,9 @@ declare global {
 }
 
 export async function sendEmail(env: Env, to: string, subject: string, lines: string[], cta?: { label: string; url: string }) {
-  // The link too, so a password reset works on a server without mail (npx agisse, npm run dev).
-  if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', to, subject, cta?.url ?? '')
+  // Only the link, so a password reset works on a server without mail (npx agisse, npm run dev).
+  // No address or subject: subjects carry names, and console lines reach Sentry as breadcrumbs.
+  if (!env.RESEND_API_KEY) return console.log('email (no RESEND_API_KEY):', cta ? `${cta.label}: ${cta.url}` : 'no link')
   const from = env.EMAIL_FROM?.trim() || 'hello@agisse.xyz'
   const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`].join('\n')
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
@@ -24,7 +25,8 @@ ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background
     body: JSON.stringify({ from: `Agisse <${from}>`, to, reply_to: from, subject, text, html }),
   })
   // A lost email is not worth failing the request that triggered it; log for Sentry/observability.
-  if (!res.ok) console.error('resend failed', res.status, await res.text().catch(() => ''))
+  // Resend's error name only: its message can quote an address.
+  if (!res.ok) console.error('resend failed', res.status, (await res.json().catch(() => null) as { name?: string } | null)?.name ?? '')
 }
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
