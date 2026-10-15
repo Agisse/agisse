@@ -19,6 +19,7 @@ import { VacancyFeed } from '../components/VacancyFeed'
 import { isBlocked, type Listing } from '../../shared/listings'
 import { PatternsPanel } from '../components/PatternsPanel'
 import { Rate } from '../components/Rate'
+import { FreeModelNote } from '../components/FreeModelNote'
 import { JobWriting } from '../components/JobWriting'
 import { trackerCsv } from '../lib/csv'
 
@@ -638,6 +639,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
             )}
             {busy && <AiWorking label={job.coverLetter ? 'Rewriting your cover letter' : 'Writing your cover letter'} />}
             {job.coverLetter && !busy && <Rate key={job.coverLetter} task="agisse_cover" refId={job.id} />}
+            {job.coverLetter && !busy && <FreeModelNote me={me} />}
           </section>
           <JobWriting job={job} disabled={exhausted} onSpend={onSpend} />
           <CheckCard job={job} disabled={exhausted} onSpend={onSpend} />
@@ -728,11 +730,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
           <Rate task="agisse_job_evaluation" refId={job.id} />
           <AskAssistant question="Should I apply to this job, and what would make my application stronger?">Should I apply?</AskAssistant>
           <a className="btn btn--sm btn--quiet verdict__how" href="/docs/methodology">How it’s scored</a>
-          {!me.aiKey && !me.trial && (
-            <p className="verdict__note">
-              Runs on free models. <Link href="/profile#ai-heading">Your own OpenRouter key gives sharper results</Link>.
-            </p>
-          )}
+          <FreeModelNote me={me} />
         </div>
       </div>
 
