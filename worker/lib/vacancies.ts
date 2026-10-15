@@ -34,30 +34,36 @@ export type VacancyQuery = {
 export const PAGE = 30
 // The hosted feed is for people, not for copying (hard rule 10 in the maintainer brief).
 // Every filter change, typed search and "Show more" is one page, so a long day of looking is a few dozen; 200 pages is
-// 6,000 roles a day at most, and a list goes no deeper than 20 pages.
+// 6,000 roles a day at most, and a list goes no deeper than 20 pages. The daily cap is FEED_DAILY_PAGES in wrangler.jsonc,
+// a live switch in /admin ("0" = no cap).
 export const MAX_OFFSET = 600
 export const FEED_DAILY_PAGES = 200
+export const feedDailyPages = (env: { FEED_DAILY_PAGES?: string }) => {
+  const n = Number(env.FEED_DAILY_PAGES ?? FEED_DAILY_PAGES)
+  return Number.isFinite(n) && n >= 0 ? n : FEED_DAILY_PAGES
+}
 export const FEED_CAP_MESSAGE = "That's a lot of roles for one day. The feed opens again tomorrow."
 
 /** Per account, the days in the last 30 on which it asked for more than the cap (a count only, for /admin). */
-export async function feedCapDays(db: Db) {
+export async function feedCapDays(db: Db, cap: number) {
+  if (!cap) return new Map<string, number>()
   const f = schema.feedDay
   const rows = await db
     .select({ userId: f.userId, days: sql<number>`count(*)::int` })
     .from(f)
-    .where(and(sql`${f.pages} > ${FEED_DAILY_PAGES}`, sql`${f.day} > current_date - 30`))
+    .where(and(sql`${f.pages} > ${cap}`, sql`${f.day} > current_date - 30`))
     .groupBy(f.userId)
   return new Map(rows.map((r) => [r.userId, r.days]))
 }
 
 /** Counts one feed page for today; false once the account is past today's cap. */
-export async function countFeedPage(db: Db, userId: string) {
+export async function countFeedPage(db: Db, userId: string, cap: number) {
   const [row] = await db
     .insert(schema.feedDay)
     .values({ userId, day: sql`current_date`, pages: 1 })
     .onConflictDoUpdate({ target: [schema.feedDay.userId, schema.feedDay.day], set: { pages: sql`${schema.feedDay.pages} + 1` } })
     .returning({ pages: schema.feedDay.pages })
-  return row!.pages <= FEED_DAILY_PAGES
+  return !cap || row!.pages <= cap
 }
 
 /** Daily counts are kept 30 days, for the admin's "hit the feed limit" line; run by the daily cron. */

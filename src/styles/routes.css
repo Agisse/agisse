@@ -21,6 +21,9 @@
 .admin-page__cost { color: var(--ink-2); }
 .admin-page__budget-edit { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 .admin-page__budget-edit .field__input { min-width: 0; width: 120px; padding-block: 4px; }
+.admin-page__switch { display: grid; gap: var(--space-1); justify-items: start; margin-top: var(--space-4); }
+.admin-page__switch small { color: var(--ink-3); }
+.admin-page__hint { margin-top: var(--space-2); color: var(--ink-3); }
 .admin-page__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-2); }
 .admin-page__confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); flex-basis: 100%; font-size: var(--fs-14); }
 /* Placeholder rows: each bar is padded to the height of the real line, so the rows don't move when accounts arrive. */

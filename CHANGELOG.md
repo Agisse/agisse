@@ -83,6 +83,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 - In `/admin`, a folded "Recent actions" list shows the last 20 lines of the admin action log (who exported, deleted or gave credit to which account, and when). The daily job deletes lines older than 2 years.
 - The homepage loads 10 kB (gzipped) less JavaScript: icons and Base UI code that only signed-in pages use no longer travel with it. `vite.config.ts`'s first-paint chunk now lists only our own files and lets the bundler add the package code they use.
 - The `motion` dependency is gone: "Working…" and the assistant's "Reading this page…" use shadcn's CSS `shimmer` utility, which already shipped with the styles. The signed-in app loads 40 kB (gzipped) less.
+- Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed in `/admin` → Limits without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
+- Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL`, `MONTHLY_BUDGET_EUR` and the feed's daily page cap `FEED_DAILY_PAGES` (now a `wrangler.jsonc` var, default 200) can be changed in `/admin` → Limits without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
 - In `/admin`, "Give credit…" adds a one-time AI credit to an account (up to €100 at a time), logged like export and delete.
 - In `/admin`, a used invite that carried a credit shows how much of it the person who joined has spent.
 - In `/admin`, an administrator's row shows how many people joined with their share link and how much of its credit they have spent.

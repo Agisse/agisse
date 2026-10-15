@@ -36,7 +36,7 @@ Every AI feature goes through `worker/lib/openrouter.ts`. It uses the user's own
 
 ## The job feed
 
-The feed reads the `vacancy` table and ranks it per user without a model call: an embedding match against the user's profile, their chosen functions, freshness and deadlines (`worker/lib/vacancies.ts`). This repository doesn't fill that table. A separate feed provider writes `vacancy`, `profile_embedding` and `vacancy_fit` to the [feed contract](/feed-contract); agisse.xyz's own provider is private. A self-hosted copy starts with an empty feed, or with the synthetic roles from `npm run db:seed`. Each account can load 200 feed pages a day (`FEED_DAILY_PAGES`), so the feed serves people and can't be copied in bulk.
+The feed reads the `vacancy` table and ranks it per user without a model call: an embedding match against the user's profile, their chosen functions, freshness and deadlines (`worker/lib/vacancies.ts`). This repository doesn't fill that table. A separate feed provider writes `vacancy`, `profile_embedding` and `vacancy_fit` to the [feed contract](/feed-contract); agisse.xyz's own provider is private. A self-hosted copy starts with an empty feed, or with the synthetic roles from `npm run db:seed`. Each account can load 200 feed pages a day (`FEED_DAILY_PAGES` in `wrangler.jsonc`, also a live switch in `/admin`), so the feed serves people and can't be copied in bulk.
 
 ## Free tiers
 
