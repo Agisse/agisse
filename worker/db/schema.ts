@@ -28,6 +28,8 @@ export const user = pgTable('user', {
   // Their share link is /?ref=<referralCode>. Friends who join with it point back here via referredBy.
   referralCode: text('referral_code').unique(),
   referredBy: text('referred_by'),
+  // When the daily cron emailed that this account will be deleted after 24 months unused (worker/lib/retention.ts).
+  inactiveWarnedAt: timestamp('inactive_warned_at'),
   image: text('image'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
