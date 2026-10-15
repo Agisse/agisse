@@ -2410,11 +2410,12 @@ app.notFound(async (c) => {
   if (asset.status === 404) asset = await c.env.ASSETS.fetch(new URL('/', c.req.url))
   if (!asset.headers.get('Content-Type')?.startsWith('text/html') || c.req.path.startsWith('/docs')) return asset
   // PUBLIC_LAUNCH=1 (wrangler.jsonc) turns on the launch-day homepage; Landing reads <html data-launch>.
-  // The crawler copy of the headline follows Landing's launch headline.
+  // The crawler copy of the headline and the line under it follow Landing's launch hero.
   const res = Number(c.env.PUBLIC_LAUNCH) === 1
     ? new HTMLRewriter()
         .on('html', { element: (el) => void el.setAttribute('data-launch', '') })
         .on('h1.home__title', { element: (el) => void el.setInnerContent('Stop applying everywhere. <span class="text-muted-foreground sm:block">Act where you fit.</span>', { html: true }) })
+        .on('p.home__note', { element: (el) => void el.setInnerContent('<a href="/sign-in?mode=sign-up">Get started</a>. Free with your own AI key · Open source · Made in Europe.', { html: true }) })
         .transform(asset)
     : asset
   const home = c.req.path === '/'
