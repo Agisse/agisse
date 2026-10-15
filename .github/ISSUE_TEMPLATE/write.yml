@@ -42,3 +42,5 @@ body:
       options:
         - label: I wrote this myself; nothing is copied from paid banks, other sites or real candidates.
           required: true
+        - label: A guide may be published under CC BY 4.0; practice questions under AGPL-3.0, like the code.
+          required: true
