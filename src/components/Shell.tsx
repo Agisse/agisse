@@ -2,7 +2,7 @@ import '../styles/app.css'
 import '../styles/components.css'
 import '../styles/routes.css'
 import { Link, useLocation } from 'wouter'
-import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, UserRound, Users } from 'lucide-react'
+import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, University, UserRound, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { shareLink, useCopy } from '../lib/hooks'
@@ -67,6 +67,7 @@ export function Shell({ email, trial, isAdmin, onSignOut, children }: { email: s
   const sections: Section[] = [
     { href: '/', label: 'Today', icon: House },
     { href: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, badge: due },
+    { href: '/education', label: 'Education', icon: University },
     { href: '/prepare', label: 'Prepare', icon: GraduationCap, trialHidden: true },
     { href: '/contacts', label: 'People', icon: Users },
   ].filter((s) => !(trial && s.trialHidden))

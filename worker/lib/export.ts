@@ -15,6 +15,7 @@ export const EXPORTED = {
   cvReviews: schema.cvReviewLog,
   scouts: schema.scout,
   savedCompanies: schema.savedCompany,
+  savedProgrammes: schema.savedProgramme,
   bubbleMaps: schema.bubbleMap,
   usage: schema.usage,
 }
