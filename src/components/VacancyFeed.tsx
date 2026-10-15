@@ -579,7 +579,7 @@ function FeedRow({ v, sub, jobId, isNew, open, exhausted, onToggle, onSave, onTa
       </div>
       {open && (
         <div className="feed-row__detail">
-          {why.length > 0 && <p className="feed-row__why">{why.join(' · ')}</p>}
+          {why.length > 0 && <p className="feed-row__why">{why.join(' · ')} <a href="/docs/methodology#the-0–100-match-in-your-feed">How it’s ranked</a></p>}
           {v.sponsors.length > 0 && (
             <p className="feed-row__sponsor" title="The employer's name is on this country's public register of visa sponsors. Check the register for the exact entity.">
               Recognised visa sponsor ({v.sponsors.map((c) => SPONSOR_COUNTRIES[c]).join(', ')})

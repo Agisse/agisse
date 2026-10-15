@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
 - Under a tailored CV, a cover letter and the feedback on a rehearsed answer, one quiet line when they were written on free models: your own OpenRouter key gives sharper results. With starter credit left, neither these nor the job score say "free models" any more, because credit runs on a paid model.
 - Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models". The monthly budget meter shows once the credit is used up.
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
