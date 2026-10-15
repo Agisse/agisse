@@ -2,7 +2,8 @@
 // Needs a (development) DATABASE_URL; without one it only says so. Creates synthetic @example.com accounts and deletes them.
 import { and, eq, inArray, like, lt, sql } from 'drizzle-orm'
 import { createDb, schema } from '../db/index.ts'
-import { deleteInactiveAccounts, deleteStaleWaitlist } from './retention.ts'
+import { pruneExaCache } from './exa.ts'
+import { deleteInactiveAccounts, deleteStaleWaitlist, pruneModelOutput } from './retention.ts'
 
 const url = process.env.DATABASE_URL
 const db = url ? createDb(url) : null
@@ -107,5 +108,36 @@ if (!db || olderApproved?.length) {
     globalThis.fetch = realFetch
     await db.delete(schema.user).where(inArray(schema.user.id, users.map((u) => u.id)))
     await db.delete(schema.oauthAccessToken).where(eq(schema.oauthAccessToken.clientId, 'inactive-check'))
+  }
+}
+
+// pruneModelOutput and pruneExaCache work on the whole table too: skip unless only this check's rows are old enough to match.
+const olderOutput =
+  db &&
+  ((await db.select({ id: schema.usage.id }).from(schema.usage).where(and(lt(schema.usage.createdAt, sql`now() - interval '89 days'`), sql`(${schema.usage.output} is not null or ${schema.usage.note} is not null)`)).limit(1)).length ||
+    (await db.select({ key: schema.exaCache.key }).from(schema.exaCache).where(lt(schema.exaCache.createdAt, sql`now() - interval '6 days'`)).limit(1)).length)
+if (!db || olderOutput) {
+  console.log(`model output ok (skipped: ${db ? 'this database has older model output or Exa rows' : 'no DATABASE_URL'})`)
+} else {
+  const run = Date.now()
+  const id = `output-${run}`
+  const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000)
+  const row = (key: string, createdAt: Date) => ({ id: `${id}-${key}`, userId: id, kind: 'cv' as const, tokens: 10, costUsd: 0.01, output: { text: 'Example' }, rating: -1, note: 'Too long', createdAt })
+  try {
+    await db.insert(schema.user).values({ id, name: 'Sam Example', email: `${id}@example.com` })
+    await db.insert(schema.usage).values([row('old', daysAgo(91)), row('new', daysAgo(89))])
+    await db.insert(schema.exaCache).values([{ key: `${id}-old`, results: [], createdAt: daysAgo(8) }, { key: `${id}-new`, results: [], createdAt: daysAgo(6) }])
+    await pruneModelOutput(db)
+    await pruneExaCache(db)
+    const rows = new Map((await db.select().from(schema.usage).where(eq(schema.usage.userId, id))).map((r) => [r.id, r]))
+    const old = rows.get(`${id}-old`), recent = rows.get(`${id}-new`)
+    if (!old || old.output !== null || old.note !== null || old.costUsd !== 0.01 || old.rating !== -1) throw new Error('model output: a 91-day-old row keeps its cost and rating, loses output and note')
+    if (!recent?.output || !recent.note) throw new Error('model output: an 89-day-old row is untouched')
+    const keys = (await db.select({ key: schema.exaCache.key }).from(schema.exaCache).where(like(schema.exaCache.key, `${id}-%`))).map((r) => r.key)
+    if (keys.join() !== `${id}-new`) throw new Error(`exa cache: only the 6-day-old row stays, got ${keys.join()}`)
+    console.log('model output ok')
+  } finally {
+    await db.delete(schema.user).where(eq(schema.user.id, id))
+    await db.delete(schema.exaCache).where(like(schema.exaCache.key, `${id}-%`))
   }
 }
