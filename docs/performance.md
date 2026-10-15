@@ -12,7 +12,7 @@ Agisse should feel instant, also on a mid-range phone on 4G. This page has the t
 | What | Target | Baseline (2026-10-14) | Latest (2026-10-15) |
 |---|---|---|---|
 | Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz | 2.3 s on agisse.xyz |
-| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) | not measured |
+| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) | 1.4 s locally, compressed (see below) |
 | Initial JS, gzipped | under 150 kB | 782 kB | 129 kB |
 | API round trips | no more than a route needs | `/api/me` 10, facets 7 | see API below |
 
@@ -71,6 +71,8 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 **The legacy primitives out of the first stylesheet, 2026-10-15.** `components.css` (buttons, fields, chips, badges of the older screens) is used only after sign-in; the first paint needed one rule from it, the logo's size, which moved to `base.css`. It now loads with the signed-in shell. The landing's stylesheet: 70 → 54 kB, 14.3 → 10.9 kB gzipped. Same throttled preview, seven runs: FCP and LCP 1.58 s → 1.41 s. The same eight pages are pixel-identical before and after.
 
 **Signed-in pages one by one, 2026-10-15.** The signed-in app loaded every page at once; now Home, Jobs, onboarding and Prepare's frame come with it and every other page is fetched on its first visit, behind the same skeleton as the first load. What Jobs downloads before it draws: 679 → 571 kB gzipped. Lazy pages made the bundler split modules the landing shares with them into seven small extra files, which cost the landing 160 ms of first paint; one chunk group in `vite.config.ts` keeps everything `src/main.tsx` imports in one file. Same throttled preview, seven runs: landing FCP and LCP 1.42 s → 0.95 s (the stylesheet now shares the line with two downloads instead of four); signed-in Jobs, five runs, heading drawn 13.7 s → 11.8 s. The landing's script is 8 kB gzipped larger (icons and menu parts of later pages that reach the group through `lucide-react`'s and `@base-ui/react`'s index files) and finishes about 150 ms later.
+
+**Signed-in Jobs, compressed, 2026-10-15.** The preview behind a small gzip proxy, so the transfer sizes match production, with a synthetic returning account (session cookie and signed-in hint in the Chromium profile), Lighthouse 12 mobile on `/jobs?view=feed`, three runs: score 100, FCP 0.6–0.8 s, LCP 1.4 s, CLS 0.009. With devtools throttling instead of the simulated default: FCP 1.1–2.0 s, LCP 2.5–2.9 s. The LCP element is the first role's title, so the time includes `/api/vacancies` against the dev database. The page is bound by bandwidth: about 300 kB gzipped of script before the feed draws (entry 127, signed-in app 97, shell 72). Preloading the signed-in files from `index.html` was tried and dropped: on a throttled link they shared the line with the entry, which then finished 3.8 s later, and the feed drew no sooner.
 
 **Lighthouse, local preview** (uncompressed, so relative only). Landing, sign-in, Home and Jobs all land at FCP about 14.3 s, because all four wait for the same script. Home has a CLS of 0.086, Jobs 0.012. Scaled to compressed transfer, Jobs would be around 5 s.
 
