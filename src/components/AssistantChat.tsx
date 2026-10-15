@@ -1,10 +1,8 @@
 import { useState, type ReactNode } from 'react'
-import { useReducedMotion } from 'motion/react'
 import { Link } from 'wouter'
-import { ArrowDown, ArrowRight, ArrowUp, Check, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUp, Check, Plus, Trash2 } from 'lucide-react'
 import { ThinkingOrb } from 'thinking-orbs'
 import { AssistantRuntimeProvider, ComposerPrimitive, MessagePrimitive, ThreadListItemPrimitive, ThreadListPrimitive, ThreadPrimitive, useExternalStoreRuntime, type ThreadMessageLike } from '@assistant-ui/react'
-import { Shimmer } from '@/components/ai-elements/shimmer'
 import { useAssistant, type ChatMessage, type ProposalState } from '@/lib/assistant'
 import { formatDate } from '@/lib/hooks'
 import { useDark } from '@/lib/theme'
@@ -102,7 +100,6 @@ export function AssistantChat({ placeholder, showActions = false, compact = fals
   const { me, messages, threads, threadId, newThread, switchThread, deleteThread, status, error, ask } = useAssistant()
   const spent = me.budget.used >= me.budget.limit
   const running = status === 'submitted'
-  const still = useReducedMotion()
   const blue = useDark() ? '#4d7bff' : '#1f45e0'
 
   const runtime = useExternalStoreRuntime({
@@ -145,7 +142,7 @@ export function AssistantChat({ placeholder, showActions = false, compact = fals
                 return (
                   <div className="helper-message helper-message--thinking" role="status">
                     <ThinkingOrb state="searching" size={20} color={blue} aria-hidden="true" />
-                    {still ? <span>Reading this page and your workspace…</span> : <Shimmer as="span">Reading this page and your workspace…</Shimmer>}
+                    <span className="shimmer">Reading this page and your workspace…</span>
                   </div>
                 )
               return (
@@ -179,6 +176,7 @@ export function AssistantChat({ placeholder, showActions = false, compact = fals
                 rows={2}
                 placeholder={placeholder ?? 'Ask about this page, an application, or what to do next…'}
                 aria-label="Ask your job-search assistant"
+                autoFocus={compact}
               />
               <div className="helper-prompt__foot">
                 <span className="helper-prompt__hint">Nothing changes without your click</span>
@@ -194,13 +192,3 @@ export function AssistantChat({ placeholder, showActions = false, compact = fals
   )
 }
 
-/** "Ask about this": opens the dock with a question about what is on screen. */
-export function AskAssistant({ question, children = 'Ask the assistant' }: { question: string; children?: ReactNode }) {
-  const { me, ask, status } = useAssistant()
-  if (me.trial || me.budget.used >= me.budget.limit) return null
-  return (
-    <button type="button" className="btn btn--sm btn--quiet ask-assistant" onClick={() => ask(question)} disabled={status === 'submitted'}>
-      <Sparkles aria-hidden="true" /> {children}
-    </button>
-  )
-}

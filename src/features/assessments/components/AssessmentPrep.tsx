@@ -16,6 +16,7 @@ import { MODE_HINT, MODE_LABEL, practiceHref } from './modes'
 import { PROVIDER_GAMES, providerGames, type ProviderGame } from '../../../../shared/assessment-catalog'
 import { MockInterview } from '../../../components/MockInterview'
 import { PrepGhost } from '../../../components/PrepGhost'
+import { ErrorNote } from '../../../components/ErrorNote'
 import '../assessments.css'
 
 const SOURCE_ORDER: AssessmentSource['kind'][] = ['official', 'provider', 'university', 'candidate report', 'forum']
@@ -359,9 +360,3 @@ function ReportForm({ jobId, onReported }: { jobId: string; onReported: (r: Asse
     </form>
   )
 }
-
-export const ErrorNote = ({ text }: { text: string }) => (
-  <p className="notice notice--error" role="alert">
-    <AlertCircle aria-hidden="true" /> <span>{text}</span>
-  </p>
-)

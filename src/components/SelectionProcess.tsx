@@ -9,9 +9,10 @@ import { ANSWER_TEXT_LIMIT, type AnswerFeedback, type PracticeAnswer } from '../
 import type { Job } from '../../shared/types'
 import { api, isAbort, type Me } from '../lib/api'
 import { useAbortable, useResource } from '../lib/hooks'
-import { ErrorNote } from '../features/assessments/components/AssessmentPrep'
+import { ErrorNote } from './ErrorNote'
 import posthog from '../lib/posthog'
 import { PrepGhost } from './PrepGhost'
+import { FreeModelNote } from './FreeModelNote'
 import '../features/assessments/assessments.css'
 
 const SOURCE_ORDER: AssessmentSource['kind'][] = ['official', 'university', 'candidate report', 'forum', 'provider']
@@ -152,7 +153,7 @@ export function SelectionProcess({ job, me, onSpend }: { job: Job; me: Me; onSpe
               <li key={q.question}>
                 {q.question} {q.stage && <span className="prep__meta">({q.stage})</span>} {cite(q.sourceUrl)}
                 {/* Remounts once stored attempts arrive, so it opens on the last try. */}
-                <Practice key={practice.data ? 'loaded' : 'loading'} job={job} question={q.question} last={lastTry(q.question)} disabled={exhausted} onSpend={onSpend} />
+                <Practice key={practice.data ? 'loaded' : 'loading'} job={job} me={me} question={q.question} last={lastTry(q.question)} disabled={exhausted} onSpend={onSpend} />
               </li>
             ))}
           </ul>
@@ -218,7 +219,7 @@ function RoundPractice({ job, text }: { job: Job; text: string }) {
 const STAR = ['situation', 'task', 'action', 'result'] as const
 
 /** Practise one reported question: write an answer, get STAR feedback and a tighter version. Attempts are stored; the last one shows again. */
-function Practice({ job, question, last, disabled, onSpend }: { job: Job; question: string; last: PracticeAnswer | null; disabled: boolean; onSpend: () => Promise<void> }) {
+function Practice({ job, me, question, last, disabled, onSpend }: { job: Job; me: Me; question: string; last: PracticeAnswer | null; disabled: boolean; onSpend: () => Promise<void> }) {
   const [open, setOpen] = useState(false)
   // The question being answered: the reported one, or the follow-up the last feedback asked.
   const [q, setQ] = useState(question)
@@ -258,6 +259,7 @@ function Practice({ job, question, last, disabled, onSpend }: { job: Job; questi
           {busy && <AiWorking label="Reviewing your answer" onCancel={abort.cancel} />}
           {error && <ErrorNote text={error} />}
           {feedback && <FeedbackView feedback={feedback} />}
+          {feedback && <FreeModelNote me={me} className="prep__meta" />}
           {feedback?.tighter && <SaveStory key={q} title={q} text={feedback.tighter} keywords={job.evaluation?.keywords ?? []} />}
           {feedback?.followUp && q === question && (
             <button
@@ -287,7 +289,7 @@ export function FeedbackView({ feedback }: { feedback: AnswerFeedback }) {
   ]
   return (
     <>
-      <p className="prep__meta">
+      <p className="prep__meta prep__star">
         {STAR.map((k) => (
           <span key={k}>
             {feedback.star[k] ? <Check role="img" aria-label="covered" /> : <X role="img" aria-label="missing" />} {k[0]!.toUpperCase() + k.slice(1)}{' '}

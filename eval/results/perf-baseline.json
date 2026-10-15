@@ -91,6 +91,28 @@
         "cls": 0.019,
         "speedIndexMs": 1395
       }
+    },
+    "liveLatest": {
+      "measuredAt": "2026-10-15",
+      "note": "agisse.xyz after the deploy of #91–#95 and #98, from the EU, Lighthouse 12.8.2; landing = the better of two runs (the other: LCP 2278 ms)",
+      "landing": {
+        "url": "https://agisse.xyz/",
+        "score": 98,
+        "fcpMs": 1673,
+        "lcpMs": 2273,
+        "tbtMs": 27,
+        "cls": 0,
+        "speedIndexMs": 1673
+      },
+      "docs": {
+        "url": "https://agisse.xyz/docs/",
+        "score": 99,
+        "fcpMs": 1370,
+        "lcpMs": 1820,
+        "tbtMs": 56,
+        "cls": 0,
+        "speedIndexMs": 1370
+      }
     }
   },
   "api": {

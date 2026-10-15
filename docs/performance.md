@@ -9,12 +9,12 @@ Agisse should feel instant, also on a mid-range phone on 4G. This page has the t
 
 ## Targets
 
-| What | Target | Baseline (2026-10-14) |
-|---|---|---|
-| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz |
-| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) |
-| Initial JS, gzipped | under 150 kB | 782 kB |
-| API round trips | no more than a route needs | `/api/me` 10, facets 7 |
+| What | Target | Baseline (2026-10-14) | Latest (2026-10-15) |
+|---|---|---|---|
+| Landing page LCP, Lighthouse mobile | under 1.5 s | 6.5 s on agisse.xyz | 2.3 s on agisse.xyz |
+| Jobs LCP, Lighthouse mobile | under 2.5 s | about 5 s (estimated, see below) | not measured |
+| Initial JS, gzipped | under 150 kB | 782 kB | 129 kB |
+| API round trips | no more than a route needs | `/api/me` 10, facets 7 | see API below |
 
 ## Measure it yourself
 
@@ -59,6 +59,18 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 | `src/routes/Jobs.tsx` | 59 |
 
 **Lighthouse, agisse.xyz signed out.** Landing: score 72, FCP 1.1 s, LCP 6.5 s, TBT 260 ms, CLS 0. The hero heading only paints after the full app script has loaded and run. PostHog also loads its session recorder and surveys on the landing page. The docs: score 100, LCP 1.5 s.
+
+**Lighthouse, agisse.xyz signed out, 2026-10-15** (after the code splitting in #91–#95 and #98). Landing: score 98, FCP 1.7 s, LCP 2.3 s, TBT 27 ms, CLS 0. The LCP element is still the hero heading; 73% of its time is render delay, the wait for the app script to draw it, and the 41 kB stylesheet blocks the first paint for about 0.3 s. The docs: score 99, LCP 1.8 s.
+
+**Landing heading in `index.html`, 2026-10-15.** The crawler copy in `index.html` now carries Landing's header and hero classes and text, so the first paint already shows the final heading at its final size, and React's copy of it is not a larger LCP candidate. Local preview with devtools throttling (150 ms, 1.6 Mbit/s, 4× CPU), three runs: LCP 3.66 s → 3.06 s, now equal to FCP. The next lever is FCP itself: the stylesheet.
+
+**The app's styles out of the first stylesheet, 2026-10-15.** `routes.css` styles only signed-in screens, so it now loads with the signed-in app and its shell instead of with every page. The landing's stylesheet: 219 → 148 kB, 37 → 25 kB gzipped. Same throttled preview, seven runs: FCP and LCP 3.07 s → 2.34 s. Screenshots of the landing, sign-in and six signed-in pages are pixel-identical before and after.
+
+**Only the first paint's utilities in the first stylesheet, 2026-10-15.** Tailwind used to build one sheet of utilities from every file. `base.css` now builds them only from the files in the initial script (its `@source` list; `scripts/bundle-size.ts --check` fails when one is missing), and `app.css` builds the full set with the signed-in shell. The landing's stylesheet: 148 → 70 kB, 25 → 14 kB gzipped. Same throttled preview, seven runs: FCP and LCP 2.35 s → 1.58 s. The same eight pages are pixel-identical before and after; the signed-in app downloads about 7 kB gzipped more, once.
+
+**The legacy primitives out of the first stylesheet, 2026-10-15.** `components.css` (buttons, fields, chips, badges of the older screens) is used only after sign-in; the first paint needed one rule from it, the logo's size, which moved to `base.css`. It now loads with the signed-in shell. The landing's stylesheet: 70 → 54 kB, 14.3 → 10.9 kB gzipped. Same throttled preview, seven runs: FCP and LCP 1.58 s → 1.41 s. The same eight pages are pixel-identical before and after.
+
+**Signed-in pages one by one, 2026-10-15.** The signed-in app loaded every page at once; now Home, Jobs, onboarding and Prepare's frame come with it and every other page is fetched on its first visit, behind the same skeleton as the first load. What Jobs downloads before it draws: 679 → 571 kB gzipped. Lazy pages made the bundler split modules the landing shares with them into seven small extra files, which cost the landing 160 ms of first paint; one chunk group in `vite.config.ts` keeps everything `src/main.tsx` imports in one file. Same throttled preview, seven runs: landing FCP and LCP 1.42 s → 0.95 s (the stylesheet now shares the line with two downloads instead of four); signed-in Jobs, five runs, heading drawn 13.7 s → 11.8 s. The landing's script is 8 kB gzipped larger (icons and menu parts of later pages that reach the group through `lucide-react`'s and `@base-ui/react`'s index files) and finishes about 150 ms later.
 
 **Lighthouse, local preview** (uncompressed, so relative only). Landing, sign-in, Home and Jobs all land at FCP about 14.3 s, because all four wait for the same script. Home has a CLS of 0.086, Jobs 0.012. Scaled to compressed transfer, Jobs would be around 5 s.
 
