@@ -3,7 +3,34 @@
 import { and, eq, inArray, like, lt, sql } from 'drizzle-orm'
 import { createDb, schema } from '../db/index.ts'
 import { pruneExaCache } from './exa.ts'
-import { deleteInactiveAccounts, deleteStaleWaitlist, pruneModelOutput } from './retention.ts'
+import { deleteInactiveAccounts, deleteStaleWaitlist, eraseOutsideCascade, pruneModelOutput } from './retention.ts'
+
+// Erasure tells PostHog only when both PostHog vars are set, with the ids and nothing else; a PostHog failure never blocks it.
+{
+  const calls: { url: string; init: RequestInit }[] = []
+  const realFetch = globalThis.fetch
+  let status = 202
+  globalThis.fetch = (async (url: string, init: RequestInit) => (calls.push({ url: String(url), init }), new Response('{}', { status }))) as typeof fetch
+  const noDb = { delete: () => ({ where: async () => {} }) } as unknown as Parameters<typeof eraseOutsideCascade>[1]
+  const pdfs: string[] = []
+  const RESUMES = { delete: async (key: string) => void pdfs.push(key) }
+  try {
+    await eraseOutsideCascade({ RESUMES }, noDb, ['u1'])
+    await eraseOutsideCascade({ RESUMES, POSTHOG_PERSONAL_API_KEY: 'phx_test' }, noDb, ['u1'])
+    if (calls.length) throw new Error('posthog: called without POSTHOG_API_URL')
+    await eraseOutsideCascade({ RESUMES, POSTHOG_PERSONAL_API_KEY: 'phx_test', POSTHOG_API_URL: 'https://eu.posthog.example.com/api/projects/1/' }, noDb, ['u1', 'u2'])
+    const [call] = calls
+    if (call?.url !== 'https://eu.posthog.example.com/api/projects/1/persons/bulk_delete/') throw new Error(`posthog: url ${call?.url}`)
+    if ((call.init.headers as Record<string, string>).authorization !== 'Bearer phx_test') throw new Error('posthog: no bearer key')
+    if (call.init.body !== JSON.stringify({ distinct_ids: ['u1', 'u2'], delete_events: true })) throw new Error(`posthog: body ${call.init.body}`)
+    status = 500
+    await eraseOutsideCascade({ RESUMES, POSTHOG_PERSONAL_API_KEY: 'phx_test', POSTHOG_API_URL: 'https://eu.posthog.example.com/api/projects/1' }, noDb, ['u3'])
+    if (!pdfs.includes('resumes/u3.pdf') || calls.length !== 2) throw new Error('posthog: a failed call blocked the erasure')
+    console.log('posthog forget ok')
+  } finally {
+    globalThis.fetch = realFetch
+  }
+}
 
 const url = process.env.DATABASE_URL
 const db = url ? createDb(url) : null
@@ -29,7 +56,7 @@ if (!db || others?.length) {
     await db.insert(schema.user).values(users)
     await db.insert(schema.session).values({ id: `retention-${run}`, token: `retention-${run}`, userId: users[2].id, expiresAt: new Date(Date.now() + 86_400_000) })
     await db.insert(schema.oauthConsent).values({ id: `retention-${run}`, clientId: 'retention-check', userId: users[0].id, scopes: ['openid'] })
-    await deleteStaleWaitlist(db, files)
+    await deleteStaleWaitlist({ RESUMES: files }, db)
     const left = new Set((await db.select({ id: schema.user.id }).from(schema.user).where(like(schema.user.email, `retention-${run}-%`))).map((u) => u.id))
     const expectGone = [users[0].id, users[1].id]
     for (const u of users) if (left.has(u.id) === expectGone.includes(u.id)) throw new Error(`${u.id}: ${left.has(u.id) ? 'kept' : 'deleted'}`)
@@ -75,7 +102,7 @@ if (!db || olderApproved?.length) {
     sent.push(to)
     return new Response('{}', { status: to === a.mailFails.email ? 500 : 200 })
   }) as typeof fetch
-  const mailEnv = (extra: object) => ({ APP_URL: 'https://example.com', ...extra }) as unknown as Env
+  const mailEnv = (extra: object) => ({ APP_URL: 'https://example.com', RESUMES: files, ...extra }) as unknown as Env
   const state = async () =>
     new Map((await db.select({ id: schema.user.id, warned: schema.user.inactiveWarnedAt }).from(schema.user).where(like(schema.user.email, `inactive-${run}-%`))).map((u) => [u.id, u.warned]))
   const check = (ok: boolean, what: string) => {
@@ -87,12 +114,12 @@ if (!db || olderApproved?.length) {
     await db.insert(schema.oauthAccessToken).values({ id: `${a.mcp.id}-t`, token: `${a.mcp.id}-t`, clientId: 'inactive-check', userId: a.mcp.id, createdAt: daysAgo(30), expiresAt: daysAgo(29), scopes: ['openid'] })
 
     // Without mail, nobody new is warned; an account warned before is still deleted on time.
-    await deleteInactiveAccounts(mailEnv({}), db, files)
+    await deleteInactiveAccounts(mailEnv({}), db)
     let left = await state()
     check(!left.has(a.warnedIdle.id) && deleted.has(`resumes/${a.warnedIdle.id}.pdf`), 'warned 40 days ago and unused since: deleted with its PDF')
     check(!sent.length && left.get(a.idle.id) === null, 'no RESEND_API_KEY: nobody warned')
 
-    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db, files)
+    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db)
     left = await state()
     check(sent.sort().join() === [a.idle.email, a.mailFails.email].sort().join(), `mailed only the unused, unwarned accounts: ${sent.join()}`)
     check(left.get(a.idle.id) instanceof Date, 'idle account marked as warned')
@@ -101,7 +128,7 @@ if (!db || olderApproved?.length) {
 
     // A second run the same day sends nothing new and deletes nothing: the warning is 30 days old at the earliest.
     sent.length = 0
-    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db, files)
+    await deleteInactiveAccounts(mailEnv({ RESEND_API_KEY: 're_test' }), db)
     check(sent.join() === a.mailFails.email && (await state()).size === users.length - 1, 'second run: only the failed email is tried again')
     console.log('inactive accounts ok')
   } finally {
