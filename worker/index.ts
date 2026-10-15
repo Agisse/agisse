@@ -2,7 +2,7 @@ import { Hono, type Context } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { sentry } from '@sentry/hono/cloudflare'
 import { and, desc, eq, gte, isNotNull, isNull, ne, notInArray, or, sql } from 'drizzle-orm'
-import type { PgUpdateSetSource } from 'drizzle-orm/pg-core'
+import { alias, type PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 import { requireMcpAuth } from '@better-auth/mcp'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
@@ -56,7 +56,7 @@ import {
 } from './lib/shared'
 import { mails } from './lib/email'
 import { exportUserData } from './lib/export'
-import { deleteStaleWaitlist, eraseAccounts } from './lib/retention'
+import { deleteStaleWaitlist, eraseAccounts, pruneAdminActions } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
@@ -405,6 +405,20 @@ app.get('/api/admin/quality', async (c) => {
 // What an admin does to someone else's account (export, delete, credit) is logged in admin_action: who, what, when; no content.
 const logAdminAction = (c: Context<{ Bindings: Env; Variables: Variables }>, action: 'export' | 'delete' | 'credit', targetId: string) =>
   c.get('db').insert(schema.adminAction).values({ id: crypto.randomUUID(), adminId: c.get('userId'), action, targetId })
+
+// The last 20 lines of that log, newest first: who, what, when, and the account's email while it still exists.
+app.get('/api/admin/actions', async (c) => {
+  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
+  const admin = alias(schema.user, 'admin')
+  const rows = await c.get('db')
+    .select({ action: schema.adminAction.action, at: schema.adminAction.createdAt, admin: admin.name, targetId: schema.adminAction.targetId, target: schema.user.email })
+    .from(schema.adminAction)
+    .leftJoin(admin, eq(admin.id, schema.adminAction.adminId))
+    .leftJoin(schema.user, eq(schema.user.id, schema.adminAction.targetId))
+    .orderBy(desc(schema.adminAction.createdAt))
+    .limit(20)
+  return c.json({ actions: rows.map((r) => ({ ...r, at: r.at.toISOString() })) })
+})
 
 app.patch('/api/admin/users/:id', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
@@ -2381,5 +2395,6 @@ export default {
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
     console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(db, env.RESUMES))
+    await pruneAdminActions(db)
   },
 } satisfies ExportedHandler<Env>
