@@ -3,7 +3,7 @@
 import type { Db } from '../db'
 import { schema } from '../db'
 
-export const SWITCHES = ['GLOBAL_DAILY_USD_CAP', 'FREE_DAILY_ACTIONS', 'FREE_DAILY_ACTIONS_ALL', 'MONTHLY_BUDGET_EUR'] as const
+export const SWITCHES = ['GLOBAL_DAILY_USD_CAP', 'FREE_DAILY_ACTIONS', 'FREE_DAILY_ACTIONS_ALL', 'MONTHLY_BUDGET_EUR', 'FEED_DAILY_PAGES'] as const
 export type Switch = (typeof SWITCHES)[number]
 export type SwitchRow = { key: Switch; value: string; updatedBy: string | null; updatedAt: Date }
 

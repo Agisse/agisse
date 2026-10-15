@@ -61,7 +61,7 @@ import { exportUserData } from './lib/export'
 import { deleteStaleWaitlist, eraseAccounts, pruneAdminActions } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { referralStatus } from './lib/waitlist'
-import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
+import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
 import { dueItems } from '../src/lib/followup'
 import type { SelectionProcess } from '../shared/selection'
@@ -370,7 +370,7 @@ app.get('/api/admin/users', async (c) => {
   const [users, used, capped, freeCapped, limitedNow, today] = await Promise.all([
     db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true, referredBy: true } }),
     spendThisMonth(db),
-    feedCapDays(db),
+    feedCapDays(db, feedDailyPages(c.env)),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     freeLimitToday(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
@@ -480,7 +480,7 @@ app.put('/api/admin/settings/:key', async (c) => {
   const key = c.req.param('key')
   if (!isSwitch(key)) return c.json({ error: 'Unknown setting.' }, 404)
   const parsed = z.object({ value: z.number().min(0).max(100_000) }).safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success || (key.includes('ACTIONS') && !Number.isInteger(parsed.data.value))) return c.json({ error: 'Enter a number between 0 and 100,000 (whole numbers for actions; 0 = no limit).' }, 400)
+  if (!parsed.success || (/ACTIONS|PAGES/.test(key) && !Number.isInteger(parsed.data.value))) return c.json({ error: 'Enter a number between 0 and 100,000 (whole numbers for actions; 0 = no limit).' }, 400)
   const row = { value: String(parsed.data.value), updatedBy: c.get('userId'), updatedAt: new Date() }
   await c.get('db').insert(schema.setting).values({ key, ...row }).onConflictDoUpdate({ target: schema.setting.key, set: row })
   forgetSwitches()
@@ -1521,7 +1521,7 @@ app.get('/api/vacancies', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid filters' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  const [allowed, profile] = await Promise.all([c.get('isAdmin') || countFeedPage(db, userId), loadProfile(db, userId)])
+  const [allowed, profile] = await Promise.all([c.get('isAdmin') || countFeedPage(db, userId, feedDailyPages(c.env)), loadProfile(db, userId)])
   if (!allowed) return c.json({ error: FEED_CAP_MESSAGE }, 429)
   return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])], profile?.degree))
 })
