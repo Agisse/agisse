@@ -25,12 +25,14 @@ Agisse is in beta; full access is by invite. You must be at least 18 to use it. 
 
 We never sell your data and never use it to advertise to you.
 
+**Outcomes from your tracker.** The status changes in your tracker and their dates (applied, test, interview, offer) may be counted, with other users', to show how employers respond, for example "6 of 23 got a test within about 10 days". Agisse doesn't show these figures yet. When it does, a figure appears only when at least 10 people are behind it, and never names you. To leave your tracker out, turn off **Count my tracker anonymously** in Profile & settings.
+
 **About the people Agisse finds.** Contacts come from publicly available web pages. We store only what is needed to show them to the user who searched. Anyone who finds themselves in Agisse can ask us to remove their data at [hello@agisse.xyz](mailto:hello@agisse.xyz).
 
 ## Legal bases (GDPR article 6)
 
 - **Contract** (6(1)(b)): your account, profile, CV, searches, tracker and the AI features you ask for.
-- **Legitimate interest** (6(1)(f)): cookieless analytics, error reports, fair-use limits and abuse prevention, and showing publicly available professional information about people at companies you target. We weigh these against your interests and keep them minimal.
+- **Legitimate interest** (6(1)(f)): cookieless analytics, error reports, fair-use limits and abuse prevention, showing publicly available professional information about people at companies you target, and anonymous outcome figures (below). We weigh these against your interests and keep them minimal.
 
 ## Who processes it for us
 

@@ -8,6 +8,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
+- Count my tracker anonymously, in Profile: on by default. Agisse may later show how employers respond, counted over at least 10 people and never naming anyone; turn it off to leave your tracker out.
 - Under a tailored CV, a cover letter and the feedback on a rehearsed answer, one quiet line when they were written on free models: your own OpenRouter key gives sharper results. With starter credit left, neither these nor the job score say "free models" any more, because credit runs on a paid model.
 - Profile shows what's left of a one-time starter credit, for example "€3.20 of your €5 starter credit left · then free models". The monthly budget meter shows once the credit is used up.
 - Agisse next to career-ops, Simplify, Jobright, Teal, Huntr, Jobscan and LinkedIn Easy Apply, in the docs (`/docs/compare/`): one dated page each, written from their own public pages.
@@ -21,6 +23,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
+- Creating an account now asks you to confirm you're 18 or over, in the line that links the terms.
 - The privacy policy and terms now match what Agisse does: CVs are stored in the EU, AI output and notes are kept 90 days, every cookie is named, Agisse is free, and you must be 18 or over.
 - Signing out now clears your assistant chats from this browser, so the next person on a shared computer can't read them.
 - What's new groups its changes into New, Improved and Fixed, with each change's name in bold, so it's quicker to scan.
@@ -85,7 +88,14 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- A contributors page in the docs (`/docs/contributors`), by GitHub handle, and a short note in `CONTRIBUTING.md` on putting a contribution on your CV or LinkedIn.
+- Ways to help without code, first in `CONTRIBUTING.md`: guides, practice questions, README translation reviews and score feedback, with two new issue forms ("Write a guide or practice questions" and "Agisse told me to apply, but…").
+- With `PUBLIC_LAUNCH=1`, the homepage's plain-HTML copy also carries the launch line under the heading, so the beta line no longer flashes before the app draws.
+- The self-host docs say what differs between agisse.xyz and your own copy, in one table: the same features, but the hosted feed, the managed AI key and the shared prep from everyone on agisse.xyz stay with the hosted service.
+- `SUPPORT.md` and the self-host docs say what help to expect: two supported ways to self-host, community help in Discussions on a best-effort basis, no response times.
+- `CONTRIBUTING.md` lists what isn't accepted: mass or automatic applications, sending messages for the user or automating LinkedIn, and scraping against a site's terms.
 - The feed contract asks providers to keep closed roles with `closed_at` set instead of deleting them, so their dates build a recruiting calendar. `vacancies.check.ts` shows a closed role leaves the feed and keeps its row.
+- `GOVERNANCE.md` states the student-side promise: Agisse never scores or ranks candidates for employers, never sells or shares user data with them, and takes no paid placement. The launch landing (behind `PUBLIC_LAUNCH`) says it in the footer and the FAQ.
 - The README is distilled to the intro, self-hosting, development and links. The feature-by-feature reference, settings and costs moved to [docs/internals](docs/internals.md). `agisse.xyz/agent.md` lets a coding agent (Claude Code, Codex, Cursor) set up a copy from one prompt; the landing shows "Onboard your agent" behind `PUBLIC_LAUNCH`.
 - Live switches: `GLOBAL_DAILY_USD_CAP`, `FREE_DAILY_ACTIONS`, `FREE_DAILY_ACTIONS_ALL` and `MONTHLY_BUDGET_EUR` can be changed through `/api/admin/settings` without a redeploy (a `setting` table; within a minute everywhere). Without a row, `wrangler.jsonc` stays in charge.
 - In `/admin`, an account at the free daily AI limit (`FREE_DAILY_ACTIONS`) shows "Reset today's free limit": its count for today starts again, logged like credit, export and delete. The limit for everyone stays.

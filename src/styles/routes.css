@@ -1859,6 +1859,7 @@
 
 .feed-row__detail { grid-column: 2 / -1; display: grid; gap: var(--space-3); max-width: 68ch; padding-bottom: var(--space-1); cursor: auto; }
 .feed-row__why { margin: 0; font-size: var(--fs-14); font-weight: 600; color: var(--green-ink); }
+.feed-row__why a { margin-left: var(--space-2); font-size: var(--fs-13); font-weight: 400; color: var(--ink-3); }
 .feed-row__sponsor { margin: 0; font-size: var(--fs-14); color: var(--ink-2); }
 .feed-row__excerpt {
   margin: 0;
