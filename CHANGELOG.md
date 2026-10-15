@@ -22,7 +22,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 - The homepage shows its final heading on the first paint, instead of a small plain copy that the app then swaps for the big one.
 - The homepage and sign-in paint sooner: they no longer download the signed-in app's styles (a third of the stylesheet).
-- The homepage and sign-in paint sooner again: their stylesheet is half the size, because it now holds only what those pages use.
+- The homepage and sign-in paint sooner again: their stylesheet is about a third of its size, because it now holds only what those pages use.
 - A one-time AI credit now works on its own: what it pays for no longer counts toward your monthly allowance or the daily free limit, and while credit is left the daily free limit doesn't apply.
 - A waitlist account that hasn't been used for 12 months is now deleted, as the privacy policy says, with its CV and everything else.
 - Download my data now includes the CV PDF you uploaded, inside the same file.

@@ -218,3 +218,10 @@ svg {
     @apply font-sans;
   }
 }
+
+/* The wordmark is on the first paint; the rest of the legacy primitives (components.css) load with the shell. */
+.booth-sign__mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
