@@ -1,6 +1,6 @@
 // Run: npx tsx src/lib/changelog.check.ts
 import { readFileSync } from 'node:fs'
-import { inlineParts, parseChangelog, releaseKey } from './changelog.ts'
+import { inlineParts, leadOf, parseChangelog, releaseKey } from './changelog.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -39,8 +39,8 @@ Intro with a - dash that is not a bullet.
 eq(
   parseChangelog(md),
   [
-    { version: 'Unreleased', date: null, changes: ['The feed explains itself.', 'A long entry that wraps onto a second line.'] },
-    { version: '0.1.0', date: '2026-11-02', changes: ['First release.'] },
+    { version: 'Unreleased', date: null, changes: ['The feed explains itself.', 'A long entry that wraps onto a second line.'], groups: [{ title: 'Changed', changes: ['The feed explains itself.', 'A long entry that wraps onto a second line.'] }] },
+    { version: '0.1.0', date: '2026-11-02', changes: ['First release.'], groups: [{ title: 'Added', changes: ['First release.'] }] },
   ],
   'releases, contributor sections and empty versions skipped',
 )
@@ -60,10 +60,14 @@ eq(
 )
 eq(inlineParts('a ` lone backtick'), [{ kind: 'text', text: 'a ` lone backtick' }], 'unmatched marks stay text')
 
-const r = { version: 'Unreleased', date: null, changes: ['One.'] }
+const r = { version: 'Unreleased', date: null, changes: ['One.'], groups: [] }
 eq(releaseKey(r), releaseKey({ ...r, changes: ['One.'] }), 'same entries, same key')
 if (releaseKey(r) === releaseKey({ ...r, changes: ['One.', 'Two.'] })) throw new Error('a new entry must change the key')
 if (releaseKey(r) === releaseKey({ ...r, version: '0.1.0' })) throw new Error('a release must change the key')
+
+eq(leadOf('Download my data, in Profile: one JSON file.'), { lead: 'Download my data, in Profile', rest: 'one JSON file.' }, 'lead splits at the first colon')
+eq(leadOf('See `a: b` here.'), null, 'no lead when code comes first')
+eq(leadOf('No colon at all.'), null, 'no lead without a colon')
 
 // The real file: the page has something to show, and none of it is contributor plumbing.
 const real = parseChangelog(readFileSync(new URL('../../CHANGELOG.md', import.meta.url), 'utf8'))
