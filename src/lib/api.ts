@@ -8,6 +8,7 @@ import type { FeedPrefs, Listing, Vacancy, VacancyFacets, VacancySort } from '..
 import type { Programme, ProgrammeFacets, ProgrammeFilters } from '../../shared/programmes'
 import { SOON_DAYS } from '../../shared/programmes'
 import type { QualityReport } from '../../shared/quality'
+import type { OutcomeStats } from '../../shared/outcomes'
 import type { HelperBriefing, HelperMessage, HelperReply } from '../../shared/helper'
 import type { CvReviewSummary } from '../../shared/cv-review'
 import type { LinkedinInput, LinkedinReview } from '../../shared/linkedin-review'
@@ -151,6 +152,8 @@ export const api = {
   deleteStory: (id: string) => request<{ ok: true }>(`/api/stories/${id}`, { method: 'DELETE' }),
   listings: (query: { what: string; where: string; country: string }, signal?: AbortSignal) => request<{ listings: Listing[] }>(`/api/listings?${new URLSearchParams(query)}`, { signal }),
   job: (id: string) => request<{ job: Job }>(`/api/jobs/${id}`),
+  /** Other seekers' outcomes at this posting's employer, null below 10 people. Free. */
+  jobOutcomes: (id: string) => request<{ outcomes: OutcomeStats | null }>(`/api/jobs/${id}/outcomes`),
   /** Posting keywords not word for word in the CV the seeker would send (the tailored one when it exists). Free. */
   jobKeywords: (id: string) => request<{ missingKeywords: string[] }>(`/api/jobs/${id}?keywords=1`),
   createJob: (input: { jdText: string; url?: string }, signal?: AbortSignal) => request<{ job: Job; existing: boolean }>('/api/jobs', { method: 'POST', body: JSON.stringify(input), signal }),

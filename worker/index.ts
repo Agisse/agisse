@@ -11,7 +11,7 @@ import { forgetSwitches, isSwitch, switchRows, SWITCHES, withSwitches } from './
 import { isAdminEmail, createAuth, unexpired, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { checkClosedPostings } from './lib/closed'
-import { qualityReport } from './lib/quality'
+import { employerOutcomes, qualityReport } from './lib/quality'
 import { APP_CSP, DOCS_CSP } from './lib/csp'
 import { draftOutreach, draftPrep, extractProfileFromResume, runSearch } from './lib/pipeline'
 import { answerQuestion, checkApplication, cvPlain, cvText, draftCover, draftEmail, evaluateJob, findPosting, insertJob, missingKeywords, postingKey, pushStatus, saveJob, sharedPosting, tailorCv } from './lib/jobs'
@@ -1632,6 +1632,14 @@ app.get('/api/jobs/:id', async (c) => {
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
   const cv = row.cv ? cvPlain(row.cv) : cvText(profile, resumeText)
   return c.json({ job: toJob(row), missingKeywords: row.evaluation ? missingKeywords(cv, row.evaluation.keywords) : [] })
+})
+
+// "From 20+ applicants this year: 35% got a test…" on the posting's Overview: other seekers' outcomes at this employer, null below 10 people.
+app.get('/api/jobs/:id/outcomes', async (c) => {
+  const db = c.get('db')
+  const row = await findJob(db, c.req.param('id'), c.get('userId'))
+  if (!row) return c.json({ error: 'Posting not found' }, 404)
+  return c.json({ outcomes: await employerOutcomes(db, companyKey(row.company)) })
 })
 
 // Paste a posting → one evaluation call → pinned on the board. Charged to the monthly budget.

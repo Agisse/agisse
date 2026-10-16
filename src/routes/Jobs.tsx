@@ -22,6 +22,7 @@ import { Rate } from '../components/Rate'
 import { FreeModelNote } from '../components/FreeModelNote'
 import { JobWriting } from '../components/JobWriting'
 import { trackerCsv } from '../lib/csv'
+import { outcomeLine } from '../../shared/outcomes'
 
 // The online-test prep pulls in every assessment game's definition; it loads with the Prepare tab.
 const AssessmentPrep = lazy(() => import('../features/assessments/components/AssessmentPrep').then((m) => ({ default: m.AssessmentPrep })))
@@ -346,6 +347,18 @@ function PostingForm({ me, jobs, careers, busy, hasResume, onSubmit, onEvaluate,
         /></>}
         </div>
       </div>
+  )
+}
+
+/** Other seekers' outcomes at this employer in one muted line; how it's counted opens on a tap. Nothing below 10 people. */
+function OutcomeLine({ id }: { id: string }) {
+  const stats = useResource(() => api.jobOutcomes(id).then((r) => r.outcomes).catch(() => null), [id]).data
+  if (!stats) return null
+  return (
+    <details className="req__fold outcome-line">
+      <summary>{outcomeLine(stats)}</summary>
+      <p>Counted anonymously from at least 10 people's trackers and updated each Monday; yours is left out if you turned off Count my tracker anonymously.</p>
+    </details>
   )
 }
 
@@ -678,6 +691,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
           )}
           <EvaluateFirst job={job} exhausted={exhausted} onChange={onChange} onSpend={onSpend} />
           <div className="posting__actions">{nextStep}</div>
+          <OutcomeLine id={job.id} />
           {job.jdText.trim() && (
             <details className="posting__block posting__fold">
               <summary className="label">The posting</summary>
@@ -773,6 +787,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         </Link>
         <Link href={`/jobs?${new URLSearchParams({ view: 'feed', similar: job.url ?? '', title: job.role })}`}>Similar roles</Link>
       </p>
+      <OutcomeLine id={job.id} />
 
       <section className="posting__block" aria-labelledby="req-title">
         <h3 id="req-title" className="label">
