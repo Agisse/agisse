@@ -6,6 +6,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-16
+
 ### Added
 
 - When a job moves to Online test, one optional question under its status: "Which test did they send?", with the test publishers and Not sure. Skip it and it doesn't come back for that job. The employer's Prepare tab then shows counts, never names: "SHL · reported by 3 students this year", once at least 2 students reported it. When at least 2 students report a different publisher than the one on file, the existing "the provider changed" warning shows next to it, and what's on file stays. Turn off Count my tracker anonymously to leave your answers out of the counts.
@@ -185,4 +187,5 @@ Each version lists what changes for people using Agisse first. Changes that only
 - Emails go out from `EMAIL_FROM` when it is set, so a self-hosted copy can send through its own Resend domain. The default stays `hello@agisse.xyz`.
 - With no open roles at all, the job feed says no feed is connected, offers "Add a job", and links the feed contract for whoever runs the copy. The filters and views it can't use are hidden.
 
-[Unreleased]: https://github.com/Agisse/agisse/commits/main
+[Unreleased]: https://github.com/Agisse/agisse/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Agisse/agisse/releases/tag/v0.1.0
