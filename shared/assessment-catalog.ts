@@ -535,5 +535,35 @@ export function curatedFor(company: string): CuratedAssessment[] {
   return CURATED_ASSESSMENTS.filter((c) => [c.company, ...(c.aliases ?? [])].some((n) => has(name, n)) && !c.unless?.some((n) => has(name, n)))
 }
 
+// Trailing words that name a legal form, a place or a division, not another employer: "KPMG Advisory Belgium BV" is KPMG.
+const SUFFIXES = new Set(
+  ('and co cie company bv nv sa srl sprl bvba cv cvba vzw asbl gmbh ag kg se ltd limited llp llc lp inc incorporated corp corporation plc sas sarl spa ab oy ' +
+    'belgium belgique belgie brussels bruxelles brussel antwerp antwerpen ghent gent leuven liege luxembourg netherlands nederland france paris germany deutschland ' +
+    'uk london ireland dublin amsterdam europe emea benelux international global advisory consulting group holding holdings').split(' '),
+)
+// A name the suffix would leave on its own is not an employer: "Air France" and "Air Belgium" stay apart.
+const GENERIC = new Set(['air', 'bank', 'royal', 'national', 'general', 'united', 'first', 'new', 'european', 'consulting'])
+
+/**
+ * One key per employer, which every per-company count and lookup groups by: "KPMG Belgium BV", "kpmg" and "K.P.M.G." are "kpmg";
+ * "PricewaterhouseCoopers" is "pwc" through the curated aliases, and "Bain Capital" stays apart from Bain.
+ * ponytail: a fixed suffix list, not entity resolution; add an alias to a curated row when two names of one firm still split.
+ */
+export function companyKey(company: string): string {
+  const name = company.replace(/\.(?=[^\s.])/g, '') // "J.P. Morgan" → "JP Morgan", "N.V." → "NV"
+  const curated = curatedFor(name)[0]
+  if (curated) return norm(curated.company).trim()
+  const words = norm(name).trim().split(' ')
+  if (words[0] === 'the' && words.length > 1) words.shift()
+  while (words.length > 1 && SUFFIXES.has(words.at(-1)!) && words.at(-2) !== 'of' && !(words.length === 2 && GENERIC.has(words[0]!))) words.pop()
+  return words.join(' ')
+}
+
+/** The names a key stands for, as companyKey sees them (the key, and a curated firm's aliases): what to search raw names for. */
+export const companyNames = (key: string) => {
+  const curated = CURATED_ASSESSMENTS.find((c) => norm(c.company).trim() === key)
+  return curated ? [key, ...(curated.aliases ?? []).map((a) => norm(a).trim())] : [key]
+}
+
 /** The real tests a firm's online stage is made of, in catalogue order. */
 export const testsFor = (c: CuratedAssessment) => c.tests.map((id) => providerGame(id)!)

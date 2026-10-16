@@ -1,15 +1,35 @@
 // Assessment prep: which online assessment a posting likely leads to, researched from the public web.
 // Two Exa web searches + one structured call. Every source is checked against the search results in code.
 import { z } from 'zod'
+import { sql } from 'drizzle-orm'
 import { searchWeb, type WebResult } from './exa'
 import type { Db } from '../db'
 import { generateStructured, type Meter } from './openrouter'
 import { preferredModels } from './pipeline'
-import { PROVIDER_GAMES } from '../../shared/assessment-catalog'
+import { PROVIDER_GAMES, companyKey } from '../../shared/assessment-catalog'
 import { DRILL_IDS, ASSESSMENT_TYPES, COGNITIVE_SKILLS, CONFIDENCES, GAME_IDS, PROVIDERS, providerProfile, type AssessmentType, type CognitiveSkill, type CompanyAssessment, type Confidence, type GameId, type SkillWeight } from '../../shared/assessments'
 
-/** What rows are looked up by: lowercased, whitespace-collapsed company name. */
-export const companyKey = (company: string) => company.trim().toLowerCase().replace(/\s+/g, ' ')
+/** What rows are looked up by: one key per employer (shared/assessment-catalog.ts). */
+export { companyKey }
+
+/**
+ * Gives stored intel and reports today's key, so rows saved as "KPMG Belgium" are found under "kpmg" (daily cron; a no-op once done).
+ * Saved companies and cached interview questions keep their key: a stale one costs a second shortlist row or one regeneration.
+ */
+export async function rekeyCompanies(db: Db) {
+  let changed = 0
+  for (const table of ['assessment_intel', 'assessment_report', 'selection_intel']) {
+    const t = sql.identifier(table)
+    const { rows } = await db.execute<{ company: string; key: string }>(sql`select distinct company, company_key as key from ${t}`)
+    for (const r of rows) {
+      const key = companyKey(r.company)
+      if (key === r.key) continue
+      await db.execute(sql`update ${t} set company_key = ${key} where company = ${r.company} and company_key = ${r.key}`)
+      changed++
+    }
+  }
+  return changed
+}
 
 export const has = (haystack: string | null, needle: string) => !!haystack && haystack.toLowerCase().includes(needle.trim().toLowerCase())
 

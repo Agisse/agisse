@@ -1,7 +1,21 @@
-import type { PostHog } from 'posthog-js'
+import type { CaptureResult, PostHog, Properties } from 'posthog-js'
 
-const posthogKey = import.meta.env.VITE_POSTHOG_KEY
-const posthogHost = import.meta.env.VITE_POSTHOG_HOST
+const posthogKey = import.meta.env?.VITE_POSTHOG_KEY
+const posthogHost = import.meta.env?.VITE_POSTHOG_HOST
+
+// Query strings and fragments carry reset tokens, invite codes and OAuth requests, and paths carry job and search ids,
+// so PostHog gets /jobs/:id and nothing after it. UTM tags still arrive: posthog-js copies them into their own properties first.
+export const scrubUrl = (url: string) =>
+  url.replace(/[?#].*$/s, '').replace(/\/(?:[0-9a-f]{8}-[0-9a-f-]{27}|(?=[^/]*\d)[\w-]{8,})(?=\/|$)/gi, '/:id')
+
+const scrubbed = (props: Properties | undefined) => {
+  for (const k in props) if (/(url|pathname|referrer)$/.test(k) && typeof props[k] === 'string') props[k] = scrubUrl(props[k])
+}
+
+const beforeSend = (e: CaptureResult | null) => {
+  if (e) [e.properties, e.$set, e.$set_once].forEach(scrubbed)
+  return e
+}
 
 let client: PostHog | undefined
 let queue: ((p: PostHog) => void)[] | undefined
@@ -18,6 +32,15 @@ if (posthogKey && posthogHost) {
         defaults: '2026-05-30',
         // No cookies or browser storage, so no consent banner: IDs live for the page load only. App re-identifies signed-in users on every load.
         persistence: 'memory',
+        person_profiles: 'identified_only',
+        respect_dnt: true,
+        // Explicit events only. Autocapture, rage clicks and heatmaps send the text of what was clicked: a contact's name, a CV line.
+        autocapture: false,
+        rageclick: false,
+        capture_heatmaps: false,
+        capture_dead_clicks: false,
+        disable_surveys: true,
+        before_send: beforeSend,
         // Whatever the project settings say: a recording would show CVs, notes and drafts.
         disable_session_recording: true,
         capture_exceptions: {
