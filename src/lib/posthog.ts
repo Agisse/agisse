@@ -41,11 +41,8 @@ if (posthogKey && posthogHost) {
         before_send: beforeSend,
         // Whatever the project settings say: a recording would show CVs, notes and drafts.
         disable_session_recording: true,
-        capture_exceptions: {
-          capture_unhandled_errors: true,
-          capture_unhandled_rejections: true,
-          capture_console_errors: false,
-        },
+        // Browser errors go to Sentry, without the account id. Explicit false, or the project setting turns them back on.
+        capture_exceptions: false,
       })
       client = posthog
       queue?.splice(0).forEach((f) => f(posthog))
