@@ -20,7 +20,7 @@ Agisse is in beta; full access is by invite. You must be at least 18 to use it. 
 | Contacts found | Names, roles and public profile links of people at a company, found on the public web | To suggest who to contact; you decide whether to |
 | Job tracker | Postings you save, their status, dates, notes, drafts and practice answers | To run your application board |
 | AI usage logs | Which AI feature ran, when, the model, token counts and cost; what it wrote, and your thumbs up or down and note on it | To enforce fair-use limits, control cost and check the quality of answers |
-| Analytics | Pages viewed and buttons clicked, with your account id (never your name or email), without cookies | To learn which parts of Agisse help |
+| Analytics | Pages viewed (without codes or ids in the address) and the features you use, with your account id (never your name or email), without cookies. Off when your browser sends Do Not Track | To learn which parts of Agisse help |
 | Error reports | Technical details when something breaks, without your account id | To fix bugs |
 
 We never sell your data and never use it to advertise to you.
