@@ -1,6 +1,7 @@
 import type { Story } from '../../shared/stories'
 import type { AiKeyInfo, AiProvider, ApplicationCheck, Budget, DraftedEmail, EmailKind, ContactValue, ContactedPerson, Person, Profile, ReplyStatus, Search, SearchWithPeople, Goal, NoteLanguage, Job, JobStatus, JobSummary, OfferTerms, SavedCompany, BubbleMapSummary, SavedBubbleMap, Scout, ScoutInput, ScoutSummary, RatedTask, SimilarCompany, Memory, MemoryKind } from '../../shared/types'
 import type { SelectionProcess } from '../../shared/selection'
+import type { TestCount } from '../../shared/test-reports'
 import type { AnswerDelivery, AnswerFeedback, InterviewQuestion, PracticeAnswer } from '../../shared/interview'
 import type { ProgressData } from '../../shared/progress'
 import type { AssessmentReport, CompanyAssessment, GameId, GameResult, ReportKind, SkillBenchmark, TrainingMode, TrainingSession } from '../../shared/assessments'
@@ -161,7 +162,7 @@ export const api = {
   updateJob: (id: string, patch: { status?: JobStatus; notes?: string | null; coverLetter?: string; nextAt?: string | null; offer?: OfferTerms | null }) => request<{ job: Job }>(`/api/jobs/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   deleteJob: (id: string) => request<{ ok: true }>(`/api/jobs/${id}`, { method: 'DELETE' }),
   writeJobDoc: (id: string, doc: 'cv' | 'cover', rewrite = false) => request<{ job: Job }>(`/api/jobs/${id}/${doc}${rewrite ? '?rewrite=1' : ''}`, { method: 'POST' }),
-  jobAssessment: (jobId: string) => request<{ assessment: CompanyAssessment | null; reports: AssessmentReport[] }>(`/api/jobs/${jobId}/assessment`),
+  jobAssessment: (jobId: string) => request<{ assessment: CompanyAssessment | null; reports: AssessmentReport[]; tests: TestCount[]; testsChanged: number; askTest: boolean }>(`/api/jobs/${jobId}/assessment`),
   researchAssessment: (jobId: string) => request<{ assessment: CompanyAssessment | null }>(`/api/jobs/${jobId}/assessment/research`, { method: 'POST' }),
   reportAssessment: (input: { jobId: string; kind: ReportKind; detail?: string | null }) => request<{ report: AssessmentReport }>('/api/assessments/reports', { method: 'POST', body: JSON.stringify(input) }),
   jobSelection: (jobId: string) => request<{ selection: SelectionProcess | null }>(`/api/jobs/${jobId}/selection`),

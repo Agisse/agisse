@@ -81,6 +81,33 @@ if (!databaseUrl) {
       check(r.status === 200, path, r.status)
     }
 
+    // "Which test?": only on your own job, once per job, and a dismissal (detail null) ends it too.
+    {
+      const [me1] = await db.select({ id: schema.user.id }).from(schema.user).where(eq(schema.user.email, email))
+      const stranger = crypto.randomUUID()
+      await db.insert(schema.user).values({ id: stranger, name: 'Index Check Stranger', email: `index-check-stranger-${stranger.slice(0, 8)}@example.com` })
+      // A new sign-up waits for approval; these routes need an approved account.
+      await db.update(schema.user).set({ accessStatus: 'approved' }).where(eq(schema.user.id, me1!.id))
+      try {
+        const job = (id: string, userId: string) => ({ id, userId, company: 'Index Check Test Co', role: 'Analyst', jdText: 'Synthetic.', status: 'assessment' as const })
+        const [answered, dismissed, theirs] = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]
+        await db.insert(schema.job).values([job(answered, me1!.id), job(dismissed, me1!.id), job(theirs, stranger)])
+        const report = (jobId: string, detail: string | null) => call('POST', '/api/assessments/reports', { jobId, kind: 'test reported', detail })
+        const ask = async (jobId: string) => (await call('GET', `/api/jobs/${jobId}/assessment`)).json
+        const theirsReport = await report(theirs, 'shl')
+        check(theirsReport.status === 404, "a test report on someone else's job is 404", theirsReport)
+        check((await ask(answered))?.askTest === true, 'asked at assessment')
+        check((await report(answered, 'shl')).status === 200, 'own job, a listed publisher')
+        check((await report(answered, 'aon')).status === 400, 'a second answer for the same job is refused')
+        check((await report(dismissed, 'Ada Lovelace')).status === 400, 'free text is refused')
+        check((await report(dismissed, null)).status === 200 && (await ask(dismissed))?.askTest === false, 'dismissed: not asked again for that job')
+        const counts = await ask(answered)
+        check(counts?.askTest === false && JSON.stringify(counts?.tests) === JSON.stringify([{ provider: 'shl', students: 1 }]), 'answered: counted once, and never asked again', counts)
+      } finally {
+        await db.delete(schema.user).where(eq(schema.user.id, stranger))
+      }
+    }
+
     // The hosted feed is capped per account per day, and a list goes no deeper than MAX_OFFSET.
     check((await call('GET', `/api/vacancies?offset=${MAX_OFFSET + 30}`)).status === 400, 'offset past MAX_OFFSET is 400')
     const [user] = await db.select({ id: schema.user.id }).from(schema.user).where(eq(schema.user.email, email))

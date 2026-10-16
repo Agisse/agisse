@@ -67,6 +67,7 @@ import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSE
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
 import { dueItems } from '../src/lib/followup'
 import type { SelectionProcess } from '../shared/selection'
+import { askWhichTest, contradictions, testCounts, testReportError, type TestReportRow } from '../shared/test-reports'
 import { ANSWER_QUESTION_LIMIT, ANSWER_TEXT_LIMIT, type InterviewQuestion, type PracticeAnswer } from '../shared/interview'
 import { COGNITIVE_SKILLS, BENCHMARK_MIN_USERS, GAME_IDS, REPORT_KINDS, TRAINING_MODES, type AssessmentReport, type CompanyAssessment, type SkillBenchmark, type TrainingSession } from '../shared/assessments'
 import type { HelperMessage } from '../shared/helper'
@@ -1946,13 +1947,36 @@ app.get('/api/jobs/:id/assessment', async (c) => {
   const row = await findJob(db, c.req.param('id'), c.get('userId'))
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   const assessment = await assessmentFor(db, row)
-  const reports = await db.query.assessmentReport.findMany({
-    where: and(eq(schema.assessmentReport.companyKey, companyKey(row.company)), assessment ? gte(schema.assessmentReport.createdAt, new Date(assessment.sourceDate)) : undefined),
-    orderBy: desc(schema.assessmentReport.createdAt),
-    limit: assessment ? 50 : 10,
+  const key = companyKey(row.company)
+  const [reports, tested, answered] = await Promise.all([
+    db.query.assessmentReport.findMany({
+      where: and(eq(schema.assessmentReport.companyKey, key), ne(schema.assessmentReport.kind, 'test reported'), assessment ? gte(schema.assessmentReport.createdAt, new Date(assessment.sourceDate)) : undefined),
+      orderBy: desc(schema.assessmentReport.createdAt),
+      limit: assessment ? 50 : 10,
+    }),
+    testReportRows(db, key),
+    db.query.assessmentReport.findFirst({ columns: { id: true }, where: and(eq(schema.assessmentReport.jobId, row.id), eq(schema.assessmentReport.userId, row.userId), eq(schema.assessmentReport.kind, 'test reported')) }),
+  ])
+  // Counts only, never who: the rows carry no name, and the response carries no user id.
+  return c.json({
+    assessment,
+    reports: reports.map(toReport),
+    tests: testCounts(tested),
+    testsChanged: assessment ? contradictions(tested, assessment.provider, assessment.sourceDate) : 0,
+    askTest: askWhichTest(row.status, !!answered),
   })
-  return c.json({ assessment, reports: reports.map(toReport) })
 })
+
+// "Which test?" answers for one employer over the last 12 months. Seekers who turned off "Count my tracker anonymously"
+// (profile.shareOutcomes) never leave the database, as in worker/lib/quality.ts; testCounts checks share again.
+const testReportRows = (db: Db, key: string) =>
+  db
+    .execute<TestReportRow>(sql`
+      select r.user_id as "userId", r.detail, r.created_at as "createdAt", (p.data->>'shareOutcomes')::boolean as share from assessment_report r
+      left join profile p on p.user_id = r.user_id
+      where r.company_key = ${key} and r.kind = 'test reported' and r.detail is not null and r.created_at > now() - interval '12 months'
+        and coalesce((p.data->>'shareOutcomes')::boolean, true)`)
+    .then((r) => r.rows)
 
 // Two web searches + one model call → a new shared intel row. Charged to the monthly budget.
 app.post('/api/jobs/:id/assessment/research', async (c) => {
@@ -2236,6 +2260,12 @@ app.post('/api/assessments/reports', async (c) => {
   const db = c.get('db')
   const job = await findJob(db, parsed.data.jobId, c.get('userId'))
   if (!job) return c.json({ error: 'Posting not found' }, 404)
+  if (parsed.data.kind === 'test reported') {
+    // One answer per job, "Not sure" and dismissal included (detail null), so the chooser never comes back.
+    const answered = await db.query.assessmentReport.findFirst({ columns: { id: true }, where: and(eq(schema.assessmentReport.jobId, job.id), eq(schema.assessmentReport.kind, 'test reported')) })
+    const error = testReportError(job, c.get('userId'), !!answered, parsed.data.detail || null)
+    if (error) return c.json({ error }, error === 'Posting not found' ? 404 : 400)
+  }
   const [report] = await db
     .insert(schema.assessmentReport)
     .values({ id: crypto.randomUUID(), userId: c.get('userId'), company: job.company, companyKey: companyKey(job.company), jobId: job.id, kind: parsed.data.kind, detail: parsed.data.detail || null })
