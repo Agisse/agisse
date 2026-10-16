@@ -37,8 +37,11 @@
     // Comma-separated preference list for Agisse's key: free models only (owner, 2026-10-14), then auto-discovered ":free" ones.
     // If Agisse's key ever pays for a model again, put Haiku first ("anthropic/claude-haiku-5.5"), never "openrouter/auto".
     "OPENROUTER_MODELS": "nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
-    // Accounts with a one-time credit (invite or an admin's ref link) get these on Agisse's key first, until the credit is spent.
+    // Accounts with a one-time credit (invite, an admin's ref link, or the sign-up credit) get these on Agisse's key first, until the credit is spent.
     "OPENROUTER_CREDIT_MODELS": "anthropic/claude-haiku-5.5",
+    // One-time credit in € for every new account (owner, 2026-10-16). An invite's or an admin's ref link's credit replaces it.
+    // Self-hosters: "0" turns it off; it only ever spends on OPENROUTER_CREDIT_MODELS.
+    "SIGNUP_CREDIT_EUR": "1",
     // Paid models below run only on a seeker's own OpenRouter key.
     // "Smart" model setting: tried first, then paid models under SMART_MAX_USD_PER_M ($ per 1M output tokens), then the free chain.
     "OPENROUTER_CHECK_MODELS": "google/gemini-3.8-flash",
