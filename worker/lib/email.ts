@@ -10,7 +10,8 @@ declare global {
 }
 
 // True when Resend accepted it.
-export async function sendEmail(env: Env, to: string, subject: string, lines: string[], cta?: { label: string; url: string }) {
+// A line with an href is a link; `unsubscribe` (a signed one-click URL) adds a footer link and the List-Unsubscribe headers.
+export async function sendEmail(env: Env, to: string, subject: string, lines: Array<string | { text: string; href: string }>, cta?: { label: string; url: string }, unsubscribe?: string) {
   // Only the link, so a password reset works on a server without mail (npx agisse, npm run dev).
   // No address or subject: subjects carry names, and console lines reach Sentry as breadcrumbs.
   if (!env.RESEND_API_KEY) {
@@ -18,15 +19,15 @@ export async function sendEmail(env: Env, to: string, subject: string, lines: st
     return false
   }
   const from = env.EMAIL_FROM?.trim() || 'hello@agisse.xyz'
-  const text = [...lines, ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`].join('\n')
+  const text = [...lines.map((l) => (typeof l === 'string' ? l : `${l.text}: ${l.href}`)), ...(cta ? ['', `${cta.label}: ${cta.url}`] : []), '', `— Agisse · ${from}`, ...(unsubscribe ? [`Unsubscribe: ${unsubscribe}`] : [])].join('\n')
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
-${lines.map((l) => `<p style="margin:0 0 14px">${escape(l)}</p>`).join('')}
+${lines.map((l) => `<p style="margin:0 0 14px">${typeof l === 'string' ? escape(l) : `<a href="${escape(l.href)}" style="color:#111">${escape(l.text)}</a>`}</p>`).join('')}
 ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">${escape(cta.label)}</a></p>` : ''}
-<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · invite-only beta · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a></p></div>`
+<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · invite-only beta · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a>${unsubscribe ? ` · <a href="${escape(unsubscribe)}" style="color:#888">Unsubscribe</a>` : ''}</p></div>`
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: `Agisse <${from}>`, to, reply_to: from, subject, text, html }),
+    body: JSON.stringify({ from: `Agisse <${from}>`, to, reply_to: from, subject, text, html, ...(unsubscribe && { headers: { 'List-Unsubscribe': `<${unsubscribe}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }) }),
   })
   // A lost email is not worth failing the request that triggered it; log for Sentry/observability.
   // Resend's error name only: its message can quote an address.

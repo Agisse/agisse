@@ -1,5 +1,4 @@
-// "Your progress": one view over games, interview answers and CV reviews, with the three most useful next steps.
-import { Link } from 'wouter'
+// "Your progress": one quiet view over games, interview answers and CV reviews. The Tests tab turns the weakest area into its one next practice.
 import { COGNITIVE_SKILLS, SKILL_GAMES, SKILL_LABEL } from '../../shared/assessments'
 import { answerStats, CV_CHECK_LABEL, nextSteps, persistentCvFails } from '../../shared/progress'
 import { api } from '../lib/api'
@@ -9,9 +8,10 @@ import { Sparkline } from '../features/assessments/components/Sparkline'
 import { practiceHref } from '../features/assessments/components/modes'
 import '../features/assessments/assessments.css'
 
-export function ProgressPanel() {
+/** Games, answers and CV history, summarised; `steps` are the most useful next steps, weakest first. */
+export function useProgress() {
   const data = useResource(() => Promise.all([api.progress(), api.trainingSessions().then((r) => r.sessions), api.benchmarks().then((r) => r.benchmarks).catch(() => [])]), [])
-  if (!data.data) return data.error ? <p className="prep__meta">Progress unavailable: {data.error}</p> : null
+  if (!data.data) return { error: data.error, loading: data.loading, progress: null }
   const [{ answers, cvLog }, sessions, bench] = data.data
 
   const skills = skillProgress(sessions, [...COGNITIVE_SKILLS], bench).filter((s) => s.current !== null)
@@ -26,18 +26,16 @@ export function ProgressPanel() {
     cvLog: cv,
     lastJobId,
   })
+  return { error: null, loading: false, progress: { skills, a, cv, stuck, steps } }
+}
+
+export function ProgressPanel() {
+  const { error, progress } = useProgress()
+  if (!progress) return error ? <p className="prep__meta">Progress unavailable: {error}</p> : null
+  const { skills, a, cv, stuck } = progress
 
   return (
     <section className="progress" aria-label="Your progress">
-      {steps.length > 0 && (
-        <ol className="progress__next" aria-label="Next steps">
-          {steps.map((s) => (
-            <li key={s.area}>
-              <Link href={s.href}>{s.text}</Link>
-            </li>
-          ))}
-        </ol>
-      )}
       <div className="progress__cards">
         <div className="progress__card">
           <h3 className="label">Games</h3>
@@ -58,7 +56,6 @@ export function ProgressPanel() {
             <p className="prep__meta">No games played yet.</p>
           )}
           {skills.length > 0 && <p className="prep__meta">Agisse's own 0–100 scale over your last three sessions; not an employer's score.</p>}
-          <Link href="/prepare">Practise a test</Link>
         </div>
 
         <div className="progress__card">
@@ -83,7 +80,7 @@ export function ProgressPanel() {
               )}
             </>
           ) : (
-            <p className="prep__meta">No practice answers yet. Rehearse likely questions on a posting's Prepare tab.</p>
+            <p className="prep__meta">No practice answers yet.</p>
           )}
         </div>
 
@@ -100,7 +97,6 @@ export function ProgressPanel() {
           ) : (
             <p className="prep__meta">No CV review yet.</p>
           )}
-          <Link href="/prepare/cv">Review my CV</Link>
         </div>
       </div>
     </section>

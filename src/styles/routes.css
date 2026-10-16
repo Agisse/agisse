@@ -2088,7 +2088,10 @@
 
 /* Prepare hub (Prepare.tsx): its tabs and folded progress sit above the page they open, as one column. */
 .prepare-hub { display: grid; gap: var(--space-4); padding-bottom: 0; }
-.prepare-hub + .map { padding-top: var(--space-6); }
+.prepare-hub + .map { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+/* The folded progress closes the page, so it keeps the room the page's own bottom padding gave the assistant button. */
+.map + .prepare-hub { padding-top: 0; padding-bottom: 96px; }
+@media (max-width: 767px) { .map + .prepare-hub { padding-bottom: 88px; } }
 .prepare-hub,
 .prepare-hub + .map { max-width: 880px; }
 
@@ -2103,7 +2106,6 @@
 .profile__danger { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); font-size: var(--fs-14); }
 
 /* nav polish */
-.prepare-hub__purpose { margin: 0; font-size: var(--fs-14); }
 /* Coarse pointers: section tabs and segments reach 44px. */
 @media (pointer: coarse) {
   .helper-prompt__send, .assistant-dock__tools .btn { min-width: 44px; min-height: 44px; }

@@ -42,7 +42,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
+export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean; /** Opted in to the Monday deadline email. */ deadlineEmail: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
 /** No school, employers, organizations or skills: nothing to find shared ground with. */
 export function profileIsEmpty(me: Me) {
   const p = me.profile
@@ -89,6 +89,7 @@ export const api = {
   settings: () => request<{ switches: LiveSwitch[] }>('/api/admin/settings'),
   setSetting: (key: LiveSwitch['key'], value: number | null) => request<{ ok: true }>(`/api/admin/settings/${key}`, value === null ? { method: 'DELETE' } : { method: 'PUT', body: JSON.stringify({ value }) }),
   setReferralCredit: (id: string, referralCreditEur: number | null) => request<{ user: { id: string; referralCreditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ referralCreditEur }) }),
+  setDeadlineEmail: (on: boolean) => request<{ on: boolean }>('/api/me/deadline-email', { method: 'PUT', body: JSON.stringify({ on }) }),
   saveProfile: (profile: Profile) => request<{ profile: Profile }>('/api/profile', { method: 'PUT', body: JSON.stringify(profile) }),
   uploadResume: (file: File) =>
     request<{ ok: true }>('/api/profile/resume', { method: 'PUT', body: file, headers: { 'content-type': 'application/pdf', 'x-filename': encodeURIComponent(file.name) } }),

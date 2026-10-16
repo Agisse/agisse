@@ -164,6 +164,8 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
         </div>
       </form>
 
+      <DeadlineEmail me={me} refreshMe={refreshMe} />
+
       {!me.trial && <MemoryPanel me={me} refreshMe={refreshMe} />}
 
       <section className="profile__group" aria-labelledby="ai-heading">
@@ -320,6 +322,32 @@ function OwnKey({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
         {error && <span className="field__error" role="alert">{error}</span>}
       </div>
     </details>
+  )
+}
+
+/** Off by default; saves on change, since the unsubscribe link in the email turns it off too (worker/lib/reminders.ts). */
+function DeadlineEmail({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
+  const [on, setOn] = useState(me.user.deadlineEmail)
+  const [error, setError] = useState<string | null>(null)
+  const change = async (next: boolean) => {
+    setOn(next)
+    setError(null)
+    try {
+      await api.setDeadlineEmail(next)
+      await refreshMe()
+    } catch {
+      setOn(!next)
+      setError('Could not save. Try again.')
+    }
+  }
+  return (
+    <div className="profile__group">
+      <label className="field--check profile__check" htmlFor="deadlineEmail">
+        <input id="deadlineEmail" type="checkbox" checked={on} onChange={(e) => void change(e.target.checked)} />
+        <span>Email me on Mondays about deadlines this week</span>
+      </label>
+      {error && <span className="field__error" role="alert">{error}</span>}
+    </div>
   )
 }
 

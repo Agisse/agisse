@@ -161,6 +161,22 @@
   gap: var(--space-4);
   max-width: 640px;
 }
+.practice__next {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--rule-soft), var(--shadow-sm);
+}
+.practice__next-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-20);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
 .practice__panel--wide {
   max-width: none;
 }
@@ -443,16 +459,10 @@
   text-decoration: none;
 }
 
-/* Profile: progress across games, answers and CV */
+/* Prepare: progress across games, answers and CV, folded under the tab's content */
 .progress {
   display: grid;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-.progress__next {
-  display: grid;
-  gap: var(--space-2);
-  padding-left: 1.25em;
 }
 .progress__cards {
   display: grid;
@@ -463,7 +473,4 @@
   display: grid;
   align-content: start;
   gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--rule-soft);
-  border-radius: var(--radius);
 }

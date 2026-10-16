@@ -9,6 +9,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Added
 
 - On a saved job at an employer Agisse knows, one quiet line names its online test, for example "Online test: SHL (numerical, abstract, deductive) · Practise". Tap it for the rounds, practice of exactly those tests, the provider's own free samples, and the employer's guide. Nothing shows when the test is unknown. Employer guides in the docs now list that employer's own tests, what each measures, how long it runs (marked when only candidates report it), and link the provider's free practice.
+- Email me on Mondays about deadlines this week, in Profile: off by default. On Mondays, one short email lists the roles in your tracker that close that week, and tests, interviews and offer replies due. No email in a week with nothing due; one click unsubscribes.
 - How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
 - Count my tracker anonymously, in Profile: on by default. Agisse may later show how employers respond, counted over at least 10 people and never naming anyone; turn it off to leave your tracker out.
 - Education, a new tab for what comes after a degree that isn't a job: master's, MBA and PhD programmes and funded PhD positions. One search, filters for type, country, field, language and tuition, "Closing soon" and a Saved list, ordered by your degree. Each programme opens to its facts and one link: apply on the institution's own page.
@@ -24,6 +25,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Prepare opens on the one practice to do next: the tests or interview you have coming up soonest, else your weakest area. Every test sits under "All tests", your progress stays folded at the bottom, and the Interviews tab starts on your upcoming interview.
 - **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
 - Creating an account now asks you to confirm you're 18 or over, in the line that links the terms.
