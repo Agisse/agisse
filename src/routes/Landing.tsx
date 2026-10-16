@@ -546,6 +546,7 @@ const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/imprint', 'Imprint'],
   ['https://github.com/Agisse/agisse/blob/main/CHANGELOG.md', 'Changelog'],
   ['https://github.com/Agisse/agisse', 'GitHub'],
+  ['https://www.linkedin.com/company/agisse-xyz/', 'LinkedIn'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
 
