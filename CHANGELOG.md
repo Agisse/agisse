@@ -26,6 +26,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Emails say "free and open source" in the footer once Agisse launches, instead of "invite-only beta".
 - Prepare opens on the one practice to do next: the tests or interview you have coming up soonest, else your weakest area. Every test sits under "All tests", your progress stays folded at the bottom, and the Interviews tab starts on your upcoming interview.
 - **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
