@@ -72,7 +72,7 @@ export function Landing() {
           </p>
           <div className="mt-9 flex flex-col items-center gap-4">
             <div className="flex flex-wrap justify-center gap-3">
-              <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
+              <Button nativeButton={false} className="h-12 rounded-full px-7 text-base has-data-[icon=inline-end]:pr-6" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
                 Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
               </Button>
               {LAUNCH && (
@@ -211,7 +211,7 @@ export function Landing() {
             {LAUNCH ? 'Apply less. Act more.' : 'Your next job, on your terms.'}
           </h2>
           {!LAUNCH && <p className="mt-4 text-lg text-muted-foreground">Free during the beta. Your first search works while you wait.</p>}
-          <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('close')} />}>
+          <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base has-data-[icon=inline-end]:pr-6" render={<Link href={SIGN_UP} onClick={track('close')} />}>
             Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>
         </section>
