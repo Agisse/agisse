@@ -17,7 +17,7 @@ import { draftOutreach, draftPrep, extractProfileFromResume, runSearch } from '.
 import { answerQuestion, checkApplication, cvPlain, cvText, draftCover, draftEmail, evaluateJob, findPosting, insertJob, missingKeywords, postingKey, pushStatus, saveJob, sharedPosting, tailorCv } from './lib/jobs'
 import { answerFeedback, interviewQuestions, offerBrief, payCheck, roleKey } from './lib/interview'
 import { fetchProfileText, normalizeProfileUrl, pruneExaCache } from './lib/exa'
-import { bestMatch, companyKey, percentileOf, researchAssessment } from './lib/assessments'
+import { bestMatch, companyKey, percentileOf, rekeyCompanies, researchAssessment } from './lib/assessments'
 import { curatedFor, providerGame } from '../shared/assessment-catalog'
 import { ANSWER_FIELDS, EMPTY_ANSWERS, matchAnswer, type AnswerKey } from '../shared/answer-bank'
 import { STORY_TEXT_LIMIT, type Story } from '../shared/stories'
@@ -2544,7 +2544,7 @@ app.onError((err, c) => {
 
 export default {
   fetch: app.fetch,
-  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, apply retention,
+  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, apply retention, merge employer keys,
   // and on Mondays send the deadline emails seekers opted in to.
   async scheduled(_event: ScheduledController, env: Env) {
     const db = env.DB ?? createDb(env.DATABASE_URL)
@@ -2556,5 +2556,11 @@ export default {
     await pruneExaCache(db)
     console.log('inactive accounts', await deleteInactiveAccounts(env, db))
     console.log('deadline emails', await sendDeadlineEmails(env, db))
+    // Last and caught: a failed re-key must not hold up retention or the emails. Logs the error name only, never a company.
+    try {
+      console.log('employer keys merged', await rekeyCompanies(db))
+    } catch (err) {
+      console.error('employer keys failed', err instanceof Error ? err.name : 'unknown')
+    }
   },
 } satisfies ExportedHandler<Env>

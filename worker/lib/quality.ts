@@ -3,6 +3,7 @@
 import { sql } from 'drizzle-orm'
 import type { Db } from '../db'
 import type { StatusChange } from '../../shared/types'
+import { companyKey as toKey, companyNames } from '../../shared/assessment-catalog'
 import { lastMonday, outcomeStats, type OutcomeRow, type OutcomeStats } from '../../shared/outcomes'
 import { calibrate, RANK_BUCKETS, scoreRows, SCORE_BUCKETS, type PromptRow, type QualityReport } from '../../shared/quality'
 
@@ -120,23 +121,28 @@ export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
 // ponytail: per-isolate cache for a day, like modelRanking; figures only change on Mondays anyway. Cleared wholesale past 500 employers.
 const outcomes = new Map<string, { at: number; data: OutcomeStats | null }>()
 const OUTCOMES_TTL = 24 * 60 * 60 * 1000
+const ACCENTED = 'àáâãäåāçćčèéêëēěìíîïīñńòóôõöōřśšùúûüūýÿźž'
+const PLAIN = 'aaaaaaaccceeeeeeiiiiinnoooooorssuuuuuyyzz'
 
 /** Outcome figures for one employer, by its companyKey() (worker/lib/assessments.ts), as of last Monday; null below MIN_USERS or when the query fails. */
 export async function employerOutcomes(db: Db, companyKey: string): Promise<OutcomeStats | null> {
+  if (!companyKey) return null
   const asOf = lastMonday(new Date())
   const key = `${asOf.toISOString()}\u0000${companyKey}`
   const hit = outcomes.get(key)
   if (hit && Date.now() - hit.at < OUTCOMES_TTL) return hit.data
   try {
-    // ponytail: scans job by company; add a job(lower(company)) expression index when this shows up in slow logs.
-    // The key matches companyKey(): trimmed, lowercased, whitespace collapsed.
-    const rows = await db.execute<OutcomeRow>(sql`
-      select j.user_id as "userId", j.history, j.applied_at as "appliedAt" from job j
+    // ponytail: scans job by company; add an expression index when this shows up in slow logs.
+    // SQL narrows to names holding the key's first word (or an alias's), lowercased, dots and common accents dropped;
+    // companyKey() then decides, so "KPMG Belgium BV" and "PricewaterhouseCoopers" count with "kpmg" and "pwc".
+    const like = sql.join(companyNames(companyKey).map((n) => sql`${`%${n.split(' ')[0]}%`}`), sql`, `)
+    const rows = await db.execute<OutcomeRow & { company: string }>(sql`
+      select j.user_id as "userId", j.company, j.history, j.applied_at as "appliedAt" from job j
       left join profile p on p.user_id = j.user_id
-      where regexp_replace(lower(trim(j.company)), '\\s+', ' ', 'g') = ${companyKey}
+      where translate(replace(lower(j.company), '.', ''), ${ACCENTED}, ${PLAIN}) like any(array[${like}])
         and jsonb_array_length(j.history) > 0 and ${sharesOutcomes}`)
     if (outcomes.size > 500) outcomes.clear()
-    outcomes.set(key, { at: Date.now(), data: outcomeStats(rows.rows, asOf) })
+    outcomes.set(key, { at: Date.now(), data: outcomeStats(rows.rows.filter((r) => toKey(r.company) === companyKey), asOf) })
   } catch (err) {
     // A figure is a nicety: without it the posting shows nothing.
     console.warn('[quality] outcomes failed', err)

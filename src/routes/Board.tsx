@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type PointerEvent } from 'react'
 import { Link } from 'wouter'
 import { AlertCircle, CalendarClock, ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { companyKey } from '../../shared/assessment-catalog'
 import { JOB_STATUSES, NEXT_AT_LABEL, type ContactedPerson, type JobStatus, type JobSummary } from '../../shared/types'
 import { api } from '../lib/api'
 import { boothHref, formatDate } from '../lib/hooks'
@@ -11,7 +12,6 @@ import { CompanyLogo } from '../components/CompanyLogo'
 const COLUMNS = JOB_STATUSES.filter((s) => s !== 'discarded')
 
 const statusName = (s: JobStatus) => s[0]!.toUpperCase() + s.slice(1)
-const companyKey = (s: string) => s.trim().toLowerCase()
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const FOLDED = 'agisse.board-folded'
