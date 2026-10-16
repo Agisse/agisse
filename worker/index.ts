@@ -2554,8 +2554,13 @@ export default {
     await pruneAdminActions(db)
     await pruneModelOutput(db)
     await pruneExaCache(db)
-    console.log('employer keys merged', await rekeyCompanies(db))
     console.log('inactive accounts', await deleteInactiveAccounts(env, db))
     console.log('deadline emails', await sendDeadlineEmails(env, db))
+    // Last and caught: a failed re-key must not hold up retention or the emails. Logs the error name only, never a company.
+    try {
+      console.log('employer keys merged', await rekeyCompanies(db))
+    } catch (err) {
+      console.error('employer keys failed', err instanceof Error ? err.name : 'unknown')
+    }
   },
 } satisfies ExportedHandler<Env>
