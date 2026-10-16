@@ -90,7 +90,7 @@ export function EducationRoute() {
     ...(filters.maxTuition != null ? [{ key: 'fee', label: `Up to ${eur(filters.maxTuition)} a year`, remove: () => setFilters({ ...filters, maxTuition: null }) }] : []),
   ]
   const filtersOn = chosen.length - (filters.q ? 1 : 0)
-  // Nothing open at all: the provider is still filling the table, not a filter problem.
+  // Nothing open at all: the provider is still filling the table, or this copy has none (docs/education-contract.md).
   const noData = facets?.total === 0
 
   if (noData) {
@@ -100,6 +100,7 @@ export function EducationRoute() {
           <h1 className="display intake__title">Education</h1>
           <div className="open-roles__empty">
             <p>Master's, MBA and PhD programmes are on their way, from the world's top universities and business schools, with funded PhD positions as they open.</p>
+            <p className="muted">Running this copy? <a href="/docs/education-contract">Connect a programme provider</a></p>
           </div>
         </div>
       </main>
