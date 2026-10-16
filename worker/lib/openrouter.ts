@@ -179,7 +179,9 @@ export async function generateStructured<T>(opts: {
   // The model the seeker picked for their own OpenRouter key goes first, ahead of Agisse's choices.
   const own = byok?.model ? [byok.model] : []
   // Strong models get a second try: even good ones now and then return malformed JSON.
-  const chain = [...own, ...strong.filter((m) => !own.includes(m)), ...strong.filter((m) => !own.includes(m)), ...[...new Set([...paid, ...free])].filter((m) => !strong.includes(m) && !own.includes(m))]
+  // So do the paid models on Agisse's key: a fresh sample fixes most rejections (a banned word in a letter) in seconds, the free chain takes a minute.
+  const retry = byok ? [] : paid.filter((m) => !strong.includes(m))
+  const chain = [...own, ...strong.filter((m) => !own.includes(m)), ...strong.filter((m) => !own.includes(m)), ...retry, ...[...new Set([...paid, ...free])].filter((m) => !strong.includes(m) && !own.includes(m))]
   const attempts: Array<{ model: string; error: string }> = []
   const started = Date.now()
   const deadline = opts.deadlineMs ?? 120_000
@@ -219,8 +221,9 @@ export async function generateStructured<T>(opts: {
               type: 'json_schema',
               json_schema: { name: opts.schemaName, strict: true, schema: opts.schema },
             },
-            provider: { require_parameters: true },
           }),
+          // Mistral's models run only on Mistral's own EU endpoint (owner, 2026-10-16); when it fails, the chain moves on.
+          provider: { require_parameters: native, ...(model.startsWith('mistralai/') && { only: ['mistral/eu'] }) },
           // Returns usage.cost (USD) so each call can be billed against the user's budget.
           usage: { include: true },
         }),

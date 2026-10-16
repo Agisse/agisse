@@ -27,7 +27,7 @@ Every part of Agisse should end in one next step you take yourself: apply, reach
 
 Agisse is free and open source. There's no company behind it, no paid plan and no donations.
 
-- **Trying it costs nothing.** Agisse's own key runs free AI models, with a small daily limit per account.
+- **Trying it costs nothing.** Agisse's shared AI runs on its own key, with a small daily limit per account.
 - **For real use, connect your own OpenRouter key.** Better models, your own account, and you pay OpenRouter directly.
 - **Hosting is cheap.** It runs on Cloudflare's and Neon's free tiers. [What it costs to run](/open).
 

@@ -44,4 +44,12 @@ console.warn = console.error = (...a: unknown[]) => void logged.push(...a)
 const failed = await generateStructured({ ...call, apiKey: 'sk-server', preferredModels: ['a/one', 'a/two'] }).catch((e) => e)
 eq(JSON.stringify([logged, failed.attempts]).includes('Jane'), false, 'no prompt or output text in logs or attempts')
 eq(failed.attempts[0].error, '403 Input was flagged', "the provider's message is kept")
+// Mistral models are pinned to Mistral's EU endpoint; others keep OpenRouter's routing.
+const sent: Array<{ model: string; provider: { only?: string[] } }> = []
+globalThis.fetch = (async (url: string, init?: RequestInit) => {
+  if (String(url).endsWith('/chat/completions')) sent.push(JSON.parse(String(init?.body)))
+  return new Response('{}', { status: 500 })
+}) as unknown as typeof fetch
+await generateStructured({ ...call, apiKey: 'sk-server', preferredModels: ['mistralai/mistral-small-2603', 'a/other:free'] }).catch(() => {})
+eq(sent.map((b) => [b.model, b.provider.only ?? null]), [['mistralai/mistral-small-2603', ['mistral/eu']], ['mistralai/mistral-small-2603', ['mistral/eu']], ['a/other:free', null]], "Agisse's paid model: EU endpoint, a second try, then the rest")
 console.log('openrouter ok')
