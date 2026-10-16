@@ -11,20 +11,23 @@ You are a coding agent helping someone run their own copy of Agisse, the open-so
 
 ## 2. On this computer
 
-Needs Node 20+ or Bun. Check with `node -v`.
+Use the public `agisse` package. Choose the package manager already installed on the person's computer. npm, pnpm and Yarn need Node 20+; Bun can run it without Node. Do not ask for their npm login or any server credentials for local mode.
 
-```sh
-npx github:Agisse/agisse
-```
+| Package manager | Start | Load public roles, after stopping the server |
+| --- | --- | --- |
+| npm | `npx agisse` | `npx agisse import-feed` |
+| Bun | `bunx --bun agisse` | `bunx --bun agisse import-feed` |
+| pnpm | `pnpm dlx agisse` | `pnpm dlx agisse import-feed` |
+| Yarn | `yarn dlx agisse` | `yarn dlx agisse import-feed` |
 
-Agisse opens on http://localhost:3000 and keeps everything in `./agisse-data/`. Leave it running and tell the person to:
+Run the start command from a folder the person chooses. Agisse opens on http://localhost:3000 and keeps account data and files in `./agisse-data/`. Leave it running and tell the person to:
 
 1. open http://localhost:3000 and sign up;
-2. connect an AI key under Profile → AI (an OpenRouter key works best, and free models cost nothing).
+2. connect their own AI key under Profile > AI if they want AI features. Never put that key in chat or in a command.
 
-The job feed starts empty. To load public roles from Arbeitnow, stop Agisse, run `npx github:Agisse/agisse import-feed`, then start it again.
+The job feed starts empty. Ask whether they want public roles from Arbeitnow, then use the matching import command above with the server stopped. Show `--help` if they need the admin command, a different data folder, or a different port.
 
-Done. Tell the person how to start it again next time (the same `npx` command, in the same folder).
+Done. Tell the person how to start it again next time: use the same command from the same folder. If they want their coding agent to work with their account, follow https://agisse.xyz/docs/mcp and complete OAuth with them.
 
 ## 3. A public site on Cloudflare
 
