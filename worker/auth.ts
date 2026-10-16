@@ -81,8 +81,8 @@ export function createAuth(env: Env, db: Db, origin: string) {
             // A personal invite from the admin skips the waitlist. The email route has already claimed it (usedAt set, usedBy not yet).
             const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt), unexpired()), columns: { creditEur: true } }) : undefined
             const approved = ref?.admits || group || !!personal
-            // One-time credit: the invite's, else the admin's ref link's.
-            const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || null
+            // One-time credit: the invite's, else the admin's ref link's, else the sign-up credit everyone gets.
+            const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || Number(env.SIGNUP_CREDIT_EUR) || null
             return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}), ...(credit ? { creditGrantedEur: credit, creditEur: credit } : {}) } }
           },
           after: async (user, ctx) => {
