@@ -97,7 +97,7 @@ Each key turns one feature on, and Agisse works without it.
 | `EMAIL_FROM` | Sender address for those emails, on a domain verified in Resend |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Sign in with Google |
 | `TURNSTILE_SECRET_KEY` + `VITE_TURNSTILE_SITE_KEY` | Bot protection on sign-in |
-| `SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking and analytics |
+| `SENTRY_DSN`, `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY` + `VITE_POSTHOG_HOST` | Error tracking (server, browser) and analytics. A DSN outside Sentry's EU region needs its host in `connect-src` (`worker/lib/csp.ts`) |
 | `POSTHOG_PERSONAL_API_KEY` + `POSTHOG_API_URL` | Deleting an account also deletes its PostHog person and events |
 | `VITE_LOGO_DEV_TOKEN` | Company logos (otherwise monograms) |
 
@@ -120,7 +120,7 @@ The code is open source (AGPL). The job data on agisse.xyz is not: it's collecte
 
 ## Telemetry
 
-Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog unless you set `SENTRY_DSN`, `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`, or `SENTRY_AUTH_TOKEN`. Your own keys send to your own accounts. See [Data flow](/data-flow) for which service sees what.
+Off by default. A self-hosted copy sends nothing to Agisse, Sentry or PostHog unless you set `SENTRY_DSN`, `VITE_SENTRY_DSN`, `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`, or `SENTRY_AUTH_TOKEN`. Your own keys send to your own accounts. See [Data flow](/data-flow) for which service sees what.
 
 ## Your users' data
 
