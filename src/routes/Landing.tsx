@@ -128,7 +128,12 @@ export function Landing() {
                 <blockquote className="text-lg text-pretty text-muted-foreground">
                   “I built Agisse to help people learn about AI while searching and applying for jobs. Agisse means taking action in French.”
                 </blockquote>
-                <figcaption className="mt-3 text-sm font-medium">Lennart, founder of Agisse</figcaption>
+                <figcaption className="mt-3 text-sm font-medium">
+                  Lennart, founder of Agisse ·{' '}
+                  <a href="/docs/manifesto" className="text-primary underline-offset-4 hover:underline">
+                    Why Agisse exists
+                  </a>
+                </figcaption>
               </figure>
             ) : (
               <p className="mt-5 text-lg text-pretty text-muted-foreground">
@@ -529,9 +534,11 @@ const FOOTER: [string, string][] = [
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
 
-// MCP and the extension sit in the docs' own menu. Manifesto joins once its docs page exists; the changelog is the repo's file (the flag is on only once the repo is public).
+// MCP and the extension sit in the docs' own menu; the changelog is the repo's file (the flag is on only once the repo is public).
 const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/', 'Docs'],
+  ['/docs/manifesto', 'Manifesto'],
+  ['/docs/open', 'Open'],
   ['/docs/methodology', 'Methodology'],
   ['/docs/compare/', 'Compare'],
   ['/docs/privacy', 'Privacy'],

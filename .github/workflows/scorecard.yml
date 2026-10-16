@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   branch_protection_rule:
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
 
 permissions: read-all
 

@@ -6,6 +6,14 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+### Added
+
+- Agisse is public: the homepage says free and open source, with the founder's note, the self-host section and a launch FAQ. Two new pages in the docs, linked from the footer: why Agisse exists (`/docs/manifesto`) and what agisse.xyz has and costs to run (`/docs/open`).
+
+### For contributors and self-hosters
+
+- `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
+
 ## [0.1.0] - 2026-10-16
 
 ### Added
