@@ -6,23 +6,30 @@ export type TestReportRow = { userId: string; detail: string | null; createdAt: 
 export type TestCount = { provider: string; students: number }
 
 const YEAR_MS = 365 * 86_400_000
+/** A publisher shows only once this many students reported it (owner decision on #253): one report alone never shows. */
+export const MIN_STUDENTS = 2
 const counted = (rows: TestReportRow[], asOf: Date) =>
   rows.filter((r) => r.detail && r.share !== false && +new Date(r.createdAt) <= +asOf && +asOf - +new Date(r.createdAt) <= YEAR_MS)
 
-/** Students per publisher over the last 12 months, most first. A student counts once per publisher; opted-out seekers not at all. */
-export function testCounts(rows: TestReportRow[], asOf = new Date()): TestCount[] {
+const perPublisher = (rows: TestReportRow[]) => {
   const by = new Map<string, Set<string>>()
-  for (const r of counted(rows, asOf)) by.set(r.detail!, (by.get(r.detail!) ?? new Set()).add(r.userId))
-  return [...by].map(([provider, users]) => ({ provider, students: users.size })).sort((a, b) => b.students - a.students || a.provider.localeCompare(b.provider))
+  for (const r of rows) by.set(r.detail!, (by.get(r.detail!) ?? new Set()).add(r.userId))
+  return [...by].map(([provider, users]) => ({ provider, students: users.size })).filter((c) => c.students >= MIN_STUDENTS)
 }
 
-/** A count, never a name: "SHL · reported by 3 students this year", or "1 student reported SHL". */
-export const testCountLine = ({ provider, students }: TestCount) => (students > 1 ? `${providerName(provider)} · reported by ${students} students this year` : `1 student reported ${providerName(provider)}`)
+/** Students per publisher over the last 12 months, most first, from MIN_STUDENTS up. A student counts once per publisher; opted-out seekers not at all. */
+export const testCounts = (rows: TestReportRow[], asOf = new Date()): TestCount[] =>
+  perPublisher(counted(rows, asOf)).sort((a, b) => b.students - a.students || a.provider.localeCompare(b.provider))
 
-/** Students who reported a different publisher than the sourced intel since it was checked. The intel itself is never changed. */
+/** A count, never a name: "SHL · reported by 3 students this year". */
+export const testCountLine = ({ provider, students }: TestCount) => `${providerName(provider)} · reported by ${students} students this year`
+
+/** Students who reported a different publisher than the sourced intel since it was checked, counting only publishers with MIN_STUDENTS. The intel itself is never changed. */
 export function contradictions(rows: TestReportRow[], intelProvider: string | null, sourceDate: string, asOf = new Date()): number {
   if (!intelProvider || !PUBLISHERS.includes(intelProvider)) return 0
-  return new Set(counted(rows, asOf).filter((r) => r.detail !== intelProvider && +new Date(r.createdAt) > +new Date(sourceDate)).map((r) => r.userId)).size
+  const other = counted(rows, asOf).filter((r) => r.detail !== intelProvider && +new Date(r.createdAt) > +new Date(sourceDate))
+  const shown = new Set(perPublisher(other).map((c) => c.provider))
+  return new Set(other.filter((r) => shown.has(r.detail!)).map((r) => r.userId)).size
 }
 
 /** Ask once: the job is at assessment and this job has no answer or dismissal yet. */
