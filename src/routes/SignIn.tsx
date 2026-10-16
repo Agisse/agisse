@@ -81,7 +81,7 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     posthog.capture('google_sign_in_started', { mode })
     // Coming back from Google, draw the app rather than the homepage while /api/me answers.
     sessionHint('in')
-    const res = await authClient.signIn.social({ provider: 'google', callbackURL: '/', newUserCallbackURL: '/welcome', errorCallbackURL: '/sign-in' })
+    const res = await authClient.signIn.social({ provider: 'google', callbackURL: '/', newUserCallbackURL: '/welcome?new=google', errorCallbackURL: '/sign-in' })
     if (res.error) {
       setBusy(false)
       setError(res.error.message ?? 'Google sign-in did not start. Try again.')
@@ -130,7 +130,7 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
       )
       return
     }
-    posthog.capture(mode === 'sign-up' ? 'account_created' : 'signed_in')
+    posthog.capture(mode === 'sign-up' ? 'account_created' : 'signed_in', { method: 'email' })
     // A new account starts in onboarding; a returning one lands where it was going.
     if (mode === 'sign-up') window.history.replaceState(null, '', '/welcome')
     else if (linkedInvite) window.history.replaceState(null, '', window.location.pathname)
