@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- On a saved job at an employer Agisse knows, one quiet line names its online test, for example "Online test: SHL (numerical, abstract, deductive) · Practise". Tap it for the rounds, practice of exactly those tests, the provider's own free samples, and the employer's guide. Nothing shows when the test is unknown. Employer guides in the docs now list that employer's own tests, what each measures, how long it runs (marked when only candidates report it), and link the provider's free practice.
 - Email me on Mondays about deadlines this week, in Profile: off by default. On Mondays, one short email lists the roles in your tracker that close that week, and tests, interviews and offer replies due. No email in a week with nothing due; one click unsubscribes.
 - How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
 - Count my tracker anonymously, in Profile: on by default. Agisse may later show how employers respond, counted over at least 10 people and never naming anyone; turn it off to leave your tracker out.

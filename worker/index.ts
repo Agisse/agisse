@@ -1934,7 +1934,7 @@ const toSession = (s: typeof schema.trainingSession.$inferSelect): TrainingSessi
 // Curated rows go first, so they win ties; a newer researched or reported row still beats them.
 async function assessmentFor(db: Db, j: { company: string; role: string; location: string | null }): Promise<CompanyAssessment | null> {
   const rows = await db.query.assessmentIntel.findMany({ where: eq(schema.assessmentIntel.companyKey, companyKey(j.company)), orderBy: desc(schema.assessmentIntel.createdAt), limit: 50 })
-  const curated = curatedFor(j.company).map(({ aliases: _, ...c }) => ({ ...c, id: `curated:${companyKey(c.company)}:${c.rolePattern ?? ''}` }))
+  const curated = curatedFor(j.company).map(({ aliases: _a, unless: _u, tests: _t, ...c }) => ({ ...c, id: `curated:${companyKey(c.company)}:${c.rolePattern ?? ''}` }))
   const best = bestMatch<CompanyAssessment>([...curated, ...rows.map(toAssessment)], j.role, j.location)
   // A researched row still gets the known interview format for its company.
   return best && { ...best, interview: best.interview ?? curated[0]?.interview ?? null }

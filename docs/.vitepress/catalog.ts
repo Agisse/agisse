@@ -1,5 +1,5 @@
 // Public SEO pages generated from the in-app assessment catalog, so the guides and the app never disagree.
-import { CURATED_ASSESSMENTS, PROVIDER_GAMES, UNTRAINABLE, type CuratedAssessment } from '../../shared/assessment-catalog'
+import { CURATED_ASSESSMENTS, OFFICIAL_PRACTICE, PROVIDER_GAMES, UNTRAINABLE, testsFor, type CuratedAssessment, type ProviderGame } from '../../shared/assessment-catalog'
 import { PROVIDERS } from '../../shared/assessments'
 import { readFileSync } from 'node:fs'
 import { PROVIDER_IDS, providerName, slug } from './names'
@@ -16,11 +16,15 @@ export function defaultHowTo(gameId: string) {
 
 const length = (g: { realDuration: number | null; realRounds: number | null }) =>
   [g.realDuration == null ? '' : g.realDuration < 120 ? `${g.realDuration} s` : `${Math.round(g.realDuration / 60)} min`, g.realRounds ? `${g.realRounds} rounds` : ''].filter(Boolean).join(', ') || 'set by the employer'
+// Only a known length can be reported; "set by the employer" stands on its own.
+const reported = (g: ProviderGame) => (g.realDuration != null || g.realRounds != null) && (g.basis === 'reconstructed' || !!g.note?.includes('reconstructed'))
 const CTA = '[Practise these in Agisse](https://agisse.xyz/?utm_source=docs&utm_medium=guide) — invite-only beta.'
 
 export function firmPage(c: CuratedAssessment) {
   const p = c.provider ? providerName(c.provider) : null
-  const games = PROVIDER_GAMES.filter((g) => g.provider === c.provider)
+  const games = testsFor(c)
+  // The providers whose free practice to do first: the tests' own, else the firm's.
+  const official = [...new Set(games.length ? games.map((g) => g.provider) : [c.provider ?? ''])].filter((id) => OFFICIAL_PRACTICE[id])
   const title = `${c.company} online assessment and selection process`
   const description = `How ${c.company} hires graduates and interns: ${p ? `${p} online test, ` : ''}every stage in order, time limits and how to prepare.`.slice(0, 160)
   const list = (xs: string[]) => xs.filter(Boolean).map((x) => `- ${x}`).join('\n')
@@ -34,12 +38,12 @@ export function firmPage(c: CuratedAssessment) {
     c.assessmentTypes.length ? `**What is tested:** ${c.assessmentTypes.join(', ')}` : '',
     c.interview ? `**Video interview:** about ${c.interview.questions} question${c.interview.questions > 1 ? 's' : ''}, ${c.interview.prepSec} s to prepare, ${c.interview.answerSec / 60} min per answer, ${c.interview.retakes ? `${c.interview.retakes} retake` : 'no retakes'}.` : '',
     c.notes ? `> ${c.notes}` : '',
-    games.length ? `## The ${p} tasks` : '',
-    games.length ? ['| Task | Measures | Length |', '|---|---|---|', ...games.map((g) => `| ${g.name} | ${g.measures} | ${length(g)} |`)].join('\n') : '',
+    games.length ? '## The online test' : '',
+    games.length ? ['| Test | Provider | Measures | Length |', '|---|---|---|---|', ...games.map((g) => `| ${g.name} | [${providerName(g.provider)}](/tests/${slug(g.provider)}) | ${g.measures} | ${length(g)}${reported(g) ? ' (reported by candidates)' : ''} |`)].join('\n') : '',
     '## How to prepare',
     list([
-      'Do the provider’s own free practice first so the interface is not new on the day.',
-      games.length ? `Practise each task above under real timing. ${CTA}` : CTA,
+      ...official.map((id) => `Do [${providerName(id)}’s free practice tests](${OFFICIAL_PRACTICE[id]}) first, so the interface is not new on the day.`),
+      games.length ? `Practise each test above under real timing. ${CTA}` : CTA,
       c.interview ? 'Record yourself answering three motivation and strengths questions in the time limits above; watch one back.' : '',
     ]),
     '## Sources',
@@ -62,7 +66,7 @@ export function providerPage(id: string) {
     firms.length ? `**Used by:** ${firms.map((f) => `[${f.company}](/guides/${slug(f.company)})`).join(', ')} (and many more).` : '',
     '## Tasks',
     ...games.map((g) =>
-      [`### ${g.name}`, `**Measures:** ${g.measures}. **Length:** ${length(g)}${g.basis === 'reconstructed' || g.note?.includes('reconstructed') ? ' (from candidate reports)' : ''}.`, g.howTo ?? defaultHowTo(g.gameId), g.guide ?? '', g.note && !g.note.includes('reconstructed') ? `> ${g.note}` : '', g.practiceUrl ? `[Official practice](${g.practiceUrl})` : '']
+      [`### ${g.name}`, `**Measures:** ${g.measures}. **Length:** ${length(g)}${reported(g) ? ' (reported by candidates)' : ''}.`, g.howTo ?? defaultHowTo(g.gameId), g.guide ?? '', g.note && !g.note.includes('reconstructed') ? `> ${g.note}` : '', g.practiceUrl ? `[Official practice](${g.practiceUrl})` : '']
         .filter(Boolean)
         .join('\n\n'),
     ),
