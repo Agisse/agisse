@@ -74,8 +74,8 @@
     // Links in mail the daily cron sends. With RESEND_API_KEY it also turns on deleting accounts unused for 24 months
     // (warned by email 30 days before); without either, nobody is warned and nobody is deleted.
     "APP_URL": "https://agisse.xyz",
-    // "1" turns on the launch-day homepage. The owner flips it; until then the launch sections ship dark.
-    "PUBLIC_LAUNCH": "0"
+    // "1" turns on the launch-day homepage (on since the repo went public); "0" brings back the beta homepage.
+    "PUBLIC_LAUNCH": "1"
   }
   // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
   // DATABASE_URL, BETTER_AUTH_SECRET

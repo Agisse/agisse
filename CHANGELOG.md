@@ -6,12 +6,17 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+### Added
+
+- Agisse is public: the homepage says free and open source, with the founder's note, the self-host section and a launch FAQ. Two new pages in the docs, linked from the footer: why Agisse exists (`/docs/manifesto`) and what agisse.xyz has and costs to run (`/docs/open`).
+
 ### Changed
 
 - Faster answers: job evaluations, cover letters, outreach and prep on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Tailored CVs stay on free models, which write them better. Free models stay as the fallback.
 
 ### For contributors and self-hosters
 
+- `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
 - The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.
 - The docs site builds on vite 6.4 instead of vite 5, and drizzle-kit's config loader uses esbuild 0.25: two `overrides` in `package.json` close the vite and esbuild dev-server advisories until vitepress and drizzle-kit ship the fix themselves.
 

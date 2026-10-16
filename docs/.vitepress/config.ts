@@ -23,6 +23,7 @@ export default defineConfig({
       { text: 'Guides', link: '/guides/' },
     ],
     sidebar: [
+      { text: 'About', items: [{ text: 'Manifesto', link: '/manifesto' }, { text: 'Open', link: '/open' }] },
       { text: 'Guides', items: [{ text: 'Extension', link: '/extension' }, { text: 'MCP', link: '/mcp' }, { text: 'Self-host', link: '/self-host' }, { text: 'Contributors', link: '/contributors' }] },
       { text: 'How it works', items: [{ text: 'Methodology', link: '/methodology' }, { text: 'Architecture', link: '/architecture' }, { text: 'Data flow', link: '/data-flow' }, { text: 'Feed contract', link: '/feed-contract' }, { text: 'Education contract', link: '/education-contract' }, { text: 'Performance', link: '/performance' }, { text: 'Internals', link: '/internals' }] },
       { text: 'Compare', collapsed: true, items: [{ text: 'Overview', link: '/compare/' }, { text: 'career-ops', link: '/compare/career-ops' }, { text: 'Simplify', link: '/compare/simplify' }, { text: 'Jobright', link: '/compare/jobright' }, { text: 'Teal', link: '/compare/teal' }, { text: 'Huntr', link: '/compare/huntr' }, { text: 'Jobscan', link: '/compare/jobscan' }, { text: 'LinkedIn Easy Apply', link: '/compare/linkedin-easy-apply' }] },
