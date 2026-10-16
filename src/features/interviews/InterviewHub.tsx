@@ -33,7 +33,9 @@ export function InterviewHub() {
 
   const p = me.data?.profile
   const guess = fieldFor([...(p?.targetIndustries ?? []), p?.degree ?? '', p?.headline ?? ''].join(' '))
-  const source = picked ?? `field:${guess}`
+  // Default to the soonest interview the seeker is tracking, else questions for their field.
+  const upcoming = (jobs.data ?? []).filter((j) => j.status === 'interview').sort((a, b) => (a.nextAt ?? '9').localeCompare(b.nextAt ?? '9'))[0]
+  const source = picked ?? (upcoming ? `job:${upcoming.id}` : `field:${guess}`)
   const [kind, id] = source.split(':') as ['job' | 'field', string]
   const job = useResource(() => (kind === 'job' ? api.job(id).then((r) => r.job) : Promise.resolve(null)), [source])
   const field = kind === 'field' ? (id as FieldId) : fieldFor(`${job.data?.role ?? ''} ${p?.targetIndustries.join(' ') ?? ''}`)
@@ -45,9 +47,7 @@ export function InterviewHub() {
           Practise an interview
         </h2>
         {running ? (
-          <>
-            <MockInterview key={`${source}-${mode}`} job={job.data} field={field} mode={mode} onExit={() => setRunning(false)} />
-          </>
+          <MockInterview key={`${source}-${mode}`} job={job.data} field={field} mode={mode} onExit={() => setRunning(false)} />
         ) : (
           <>
             <Segmented label="Interview type" options={MODES.map((m) => [m, MODE_INFO[m].label] as const)} value={mode as (typeof MODES)[number]} onChange={setMode} />
@@ -76,25 +76,6 @@ export function InterviewHub() {
             <button type="button" className="btn btn--primary iv-start-btn" disabled={kind === 'job' && !job.data} onClick={() => setRunning(true)}>
               Start interview
             </button>
-            {(field === 'business' || field === 'consulting') && (
-              <p className="prep__meta">
-                {field === 'consulting' ? (
-                  <>
-                    Consulting rounds usually include a case.{' '}
-                    <Link className="iv-link" href="/prepare/interviews/case">
-                      Practise a case
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    Finance interviews often add technical questions.{' '}
-                    <Link className="iv-link" href="/prepare/interviews/banking">
-                      Investment banking prep
-                    </Link>
-                  </>
-                )}
-              </p>
-            )}
           </>
         )}
       </section>

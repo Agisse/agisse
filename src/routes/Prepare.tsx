@@ -3,12 +3,13 @@ import { Link, useLocation } from 'wouter'
 import { ProgressPanel } from '../components/ProgressPanel'
 
 const TABS = [
-  ['/prepare', 'Tests', 'Practise the online tests employers use.'],
-  ['/prepare/interviews', 'Interviews', 'Rehearse answers and get feedback.'],
-  ['/prepare/cv', 'CV', 'Score your CV and fix weak lines.'],
+  ['/prepare', 'Tests'],
+  ['/prepare/interviews', 'Interviews'],
+  ['/prepare/cv', 'CV'],
 ] as const
 
-/** Prepare: online tests, interviews and the CV in one place, with progress across all three folded under the tab's content. */
+/** Prepare: online tests, interviews and the CV in one place, with progress across all three folded under the tab's content.
+ *  The Tests tab is the landing page and leads with the one practice to do next (TrainingHub). */
 export function PrepareHub({ children }: { children: ReactNode }) {
   const [loc] = useLocation()
   const current = loc.startsWith('/prepare/interviews') ? '/prepare/interviews' : loc.startsWith('/prepare/cv') ? '/prepare/cv' : '/prepare'
@@ -23,7 +24,6 @@ export function PrepareHub({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <p className="muted prepare-hub__purpose">{TABS.find(([href]) => href === current)?.[2]}</p>
       </div>
       {children}
       <div className="map prepare-hub">
