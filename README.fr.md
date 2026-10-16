@@ -1,16 +1,18 @@
-<!-- source: c7c6ff376fc9 -->
+<!-- source: 81b8c26c2bb4 -->
 # Agisse
 
 [English](README.md) · [Nederlands](README.nl.md) · **Français** · [Deutsch](README.de.md) · [Español](README.es.md) · [Italiano](README.it.md) · [Polski](README.pl.md)
 
 > Cette traduction n'a pas encore été relue par une personne de langue maternelle française. Les corrections sont bienvenues par pull request.
 
-Agisse est un copilote de recherche d'emploi pour les étudiants et les jeunes diplômés en Europe. Son nom vient de « il faut que j'agisse ».
+Agisse est un copilote de recherche d'emploi pour les étudiants et les jeunes diplômés en Europe :
 
-- **Des offres en Europe, classées selon votre CV.** Collez une offre pour obtenir une note honnête sur 5 : en dessous de 4,0, Agisse vous déconseille de postuler.
-- **Des mises en relation** fondées sur un vrai point commun : la même université, le même employeur ou la même association étudiante. Vous envoyez toujours le message vous-même ; Agisse n'automatise jamais LinkedIn.
-- **Préparation et suivi :** les étapes d'entretien et les tests en ligne d'une entreprise, de l'entraînement avec des retours, et un seul endroit pour toutes vos candidatures.
+- **Un fil d'offres européennes** classées selon ton CV, avec un score honnête : postuler ou passer. Sous 4,0, Agisse te déconseille de postuler.
+- **Des mises en relation** fondées sur de vrais points communs : la même université, le même employeur ou la même association étudiante. Tu envoies toujours le message toi-même ; Agisse ne se connecte jamais à ton compte LinkedIn.
+- **Préparation et suivi** : les étapes de recrutement et les tests en ligne d'une entreprise, de l'entraînement avec retours, et un tableau pour toutes tes candidatures.
 
-Agisse est gratuit et open source ([AGPL-3.0](LICENSE)). Utilisez-le sur [agisse.xyz](https://agisse.xyz), ou hébergez votre propre copie : voir [Self-host](README.md#self-host) (en anglais). Le code est ouvert ; le flux d'offres d'agisse.xyz ne l'est pas, donc une copie hébergée par vos soins démarre avec un flux vide. Pas de publicité, pas de revente de vos données, pas de placement payant.
+Gratuit sur [agisse.xyz](https://agisse.xyz) : essaie-le avec des modèles d'IA gratuits, puis connecte ta propre clé OpenRouter pour un vrai usage. Ou lance ta propre copie avec `npx agisse` : voir le [guide d'auto-hébergement](https://agisse.xyz/docs/self-host) (en anglais). Pas de publicité, pas de vente de données, pas de places payantes dans le fil.
+
+Tout le code est ouvert (AGPL-3.0). Le fil d'offres d'agisse.xyz ne l'est pas : une copie auto-hébergée démarre vide, et tu la remplis avec ta propre source ([feed contract](https://agisse.xyz/docs/feed-contract), en anglais).
 
 Plus, en anglais : [Contribuer](CONTRIBUTING.md) · [Licence](LICENSE)

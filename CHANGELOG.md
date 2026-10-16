@@ -13,6 +13,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
+- The README opens with the launch hero: one line on what Agisse is, the license, CI and Scorecard badges, and what's free and what's open. The six translated READMEs follow it.
 
 ## [0.1.0] - 2026-10-16
 
