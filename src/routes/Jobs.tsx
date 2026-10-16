@@ -2,7 +2,7 @@ import { AskAssistant } from '@/components/AskAssistant'
 import { AiWorking } from '@/components/AiWorking'
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
-import { AlertCircle, ArrowLeft, Check, Copy, Download, Dumbbell, ExternalLink, FileText, IdCard, MoreHorizontal, Plus, Search as SearchIcon, Trash2, X } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, Copy, Download, ExternalLink, FileText, IdCard, MoreHorizontal, Plus, Search as SearchIcon, Trash2, X } from 'lucide-react'
 import { EMPTY_PROFILE, JD_TEXT_LIMIT, JOB_STATUSES, NEXT_AT_LABEL, type ApplicationCheck, type CheckIssue, type Job, type JobStatus, type JobSummary, type Recommendation, type Requirement, type StatusChange } from '../../shared/types'
 import { api, isAbort, type Me } from '../lib/api'
 import { formatDate, groupByCompany, remembered, useAbortable, useCopy, useResource } from '../lib/hooks'
@@ -14,6 +14,7 @@ import { Segmented } from '../components/Segmented'
 import posthog from '../lib/posthog'
 import { SelectionProcess } from '../components/SelectionProcess'
 import { OnlineTestLine } from '../components/OnlineTest'
+import { WhichTest } from '../components/WhichTest'
 import { PrepGhost } from '../components/PrepGhost'
 import { OpenRoles, type OnSave } from '../components/OpenRoles'
 import { VacancyFeed } from '../components/VacancyFeed'
@@ -23,6 +24,7 @@ import { Rate } from '../components/Rate'
 import { FreeModelNote } from '../components/FreeModelNote'
 import { JobWriting } from '../components/JobWriting'
 import { trackerCsv } from '../lib/csv'
+import { primaryAction } from '../lib/posting-action'
 import { outcomeLine } from '../../shared/outcomes'
 
 // The online-test prep pulls in every assessment game's definition; it loads with the Prepare tab.
@@ -56,7 +58,7 @@ const MATCH: Record<Requirement['match'], string> = { strong: 'Have it', partial
 const IMPORTANCE: Record<Requirement['importance'], string> = { critical: 'Critical', high: 'High', meaningful: 'Meaningful', preferred: 'Preferred', low_signal: 'Low' }
 const SIGNAL = { positive: 'Good sign', neutral: 'Note', concerning: 'Watch' } as const
 const LEGITIMACY = { high_confidence: 'Looks genuine', proceed_with_caution: 'Proceed with caution', suspicious: 'Suspicious' } as const
-const STATUS_LABEL: Partial<Record<JobStatus, string>> = { assessment: 'Online assessment received' }
+const STATUS_LABEL: Partial<Record<JobStatus, string>> = { assessment: 'Online test' }
 const statusName = (s: JobStatus) => s[0]!.toUpperCase() + s.slice(1)
 /** Board filters: where the application stands. */
 const BUCKETS = {
@@ -485,8 +487,8 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
   const close = CLOSE[job.status]
   const nextStep = (
     <>
-      {NEXT[job.status]?.map(([to, label], i) => (
-        <button key={to} type="button" className={`btn btn--sm ${i === 0 && job.status !== 'saved' && job.status !== 'evaluated' ? 'btn--primary' : ''}`} onClick={() => void setStatus(to)}>
+      {NEXT[job.status]?.map(([to, label]) => (
+        <button key={to} type="button" className="btn btn--sm btn--quiet" onClick={() => void setStatus(to)}>
           {label}
         </button>
       ))}
@@ -501,6 +503,21 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         </button>
       )}
     </>
+  )
+  // The one filled button, by status; the status steps sit beside it, quiet.
+  const primary = primaryAction(job.status, Boolean(ev))
+  const decided = job.status === 'saved' || job.status === 'evaluated'
+  const actions = (
+    <div className="posting__next">
+      {primary && primary !== 'check' && (
+        <Link href={`/jobs/${job.id}/${primary.path}`} className="btn btn--primary">
+          {primary.label}
+        </Link>
+      )}
+      <div className="posting__actions" role="group" aria-label="Update the status">
+        {nextStep}
+      </div>
+    </div>
   )
   // Long shot: name the gaps that matter most, critical first, and leave the call to the seeker.
   const gaps = (ev?.requirements ?? [])
@@ -542,8 +559,15 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
             {ev?.role.seniority && <span> · {ev.role.seniority}</span>}
             {ev && ev.role.remote !== 'unknown' && <span> · {ev.role.remote === 'full' ? 'remote' : ev.role.remote}</span>}
           </p>
-          <Timeline job={job} />
+          <p className="posting__now tnum">
+            <span className={`status-pill status-pill--${job.status}`}>{STATUS_LABEL[job.status] ?? statusName(job.status)}</span>
+            {job.nextAt && NEXT_AT_LABEL[job.status] && <span>{NEXT_AT_LABEL[job.status]} {formatDate(job.nextAt)}</span>}
+          </p>
+          {job.status === 'assessment' && <WhichTest jobId={job.id} company={job.company} counted={me.profile?.shareOutcomes !== false} />}
           {tab !== 'prepare' && <OnlineTestLine jobId={job.id} company={job.company} />}
+          </div>
+        </div>
+        <div className="booth__aside">
           {job.url && (
             <a
               className="booth__domain"
@@ -557,10 +581,6 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
               Open the posting <ExternalLink aria-hidden="true" />
             </a>
           )}
-          </div>
-        </div>
-        <div className="booth__aside">
-          {job.nextAt && NEXT_AT_LABEL[job.status] && <p className="muted tnum">{NEXT_AT_LABEL[job.status]} {formatDate(job.nextAt)}</p>}
           <details className="feed-menu posting__more" ref={moreRef}>
             <summary className="btn btn--sm btn--quiet" aria-label="More options for this posting">
               <MoreHorizontal aria-hidden="true" /> More
@@ -577,6 +597,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
                 </select>
               </label>
               {NEXT_AT_LABEL[job.status] && <NextDate key={job.status} job={job} inputRef={dateRef} ask={askDate} onSave={(v) => void setNextAt(v)} />}
+              <Timeline job={job} />
               <button type="button" className="btn btn--sm btn--quiet btn--danger" onClick={onDelete}>
                 <Trash2 aria-hidden="true" /> Remove posting
               </button>
@@ -594,7 +615,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
       {askApplied && (
         <p className="notice notice--ok" role="status">
           <span>Back from {job.company}. Did you apply?</span>
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => { posthog.capture('job_apply_prompt', { answer: 'yes' }); void setStatus('applied') }}>
+          <button type="button" className="btn btn--sm" onClick={() => { posthog.capture('job_apply_prompt', { answer: 'yes' }); void setStatus('applied') }}>
             Yes, I applied
           </button>
           <button type="button" className="btn btn--quiet btn--sm" onClick={() => { posthog.capture('job_apply_prompt', { answer: 'not_yet' }); setAskApplied(false) }}>
@@ -618,14 +639,6 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         <EvaluateFirst job={job} exhausted={exhausted} onChange={onChange} onSpend={onSpend} />
       ) : tab === 'apply' ? (
         <>
-          {job.status === 'applied' && !job.nextAt && (
-            <p className="notice" role="note">
-              <span>Sent a follow-up? Mark it, and Today asks again in a week if they stay silent.</span>
-              <button type="button" className="btn btn--sm" onClick={followedUp}>
-                I followed up
-              </button>
-            </p>
-          )}
           <section className="posting__block" aria-labelledby="cv-title">
             <h3 id="cv-title" className="label">Tailored CV</h3>
             <p className="muted">Your CV reworded for this posting, never added to. Print it to PDF.</p>
@@ -691,8 +704,9 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
               <AlertCircle aria-hidden="true" /> <span>This posting looks closed: its job board stopped listing it on {formatDate(job.closedAt)}. Open the link to make sure.</span>
             </p>
           )}
-          <EvaluateFirst job={job} exhausted={exhausted} onChange={onChange} onSpend={onSpend} />
-          <div className="posting__actions">{nextStep}</div>
+          {primary !== 'check' && actions}
+          <EvaluateFirst job={job} exhausted={exhausted} primary={primary === 'check'} onChange={onChange} onSpend={onSpend} />
+          {primary === 'check' && actions}
           <OutcomeLine id={job.id} />
           {job.jdText.trim() && (
             <details className="posting__block posting__fold">
@@ -704,34 +718,13 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         </>
       ) : (
       <>
-      {job.status === 'assessment' && (
-        <p className="notice notice--ok" role="note">
-          <Dumbbell aria-hidden="true" />
+      {!decided && actions}
+      {job.status === 'offer' && askStory && (
+        <p className="notice" role="note">
           <span>
-            Online assessment received. <Link href={`/jobs/${job.id}/prepare#online-test`}>Practise now</Link> on the skills it likely tests.
+            Got the job? <a href={HIRED_STORY} target="_blank" rel="noreferrer" onClick={storyDone}>Share your story</a>.
           </span>
-          {nextStep}
-        </p>
-      )}
-
-      {job.status === 'interview' && (
-        <p className="notice notice--ok" role="note">
-          <Dumbbell aria-hidden="true" />
-          <span>
-            Interview coming up. <Link href={`/jobs/${job.id}/prepare`}>Rehearse the likely questions</Link>.
-          </span>
-          {nextStep}
-        </p>
-      )}
-
-      {job.status === 'offer' && (
-        <p className="notice notice--ok" role="note">
-          <Check aria-hidden="true" />
-          <span>
-            Offer received. <Link href={`/jobs/${job.id}/offer`}>Prepare your negotiation brief</Link>.
-            {askStory && <> Got the job? <a href={HIRED_STORY} target="_blank" rel="noreferrer" onClick={storyDone}>Share your story</a>.</>}
-          </span>
-          {askStory && <button type="button" className="btn btn--quiet btn--sm notice__close" onClick={storyDone} aria-label="Hide Share your story"><X aria-hidden="true" /></button>}
+          <button type="button" className="btn btn--quiet btn--sm notice__close" onClick={storyDone} aria-label="Hide Share your story"><X aria-hidden="true" /></button>
         </p>
       )}
 
@@ -772,17 +765,8 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         </p>
       )}
 
-      {/* The next step, on its own row above the work on it; the rest stays quiet. */}
-      {job.status !== 'assessment' && job.status !== 'interview' && (NEXT[job.status] || CLOSE[job.status]) && (
-        <div className="posting__actions" role="group" aria-label="Update the status">
-          {job.status === 'evaluated' && (
-            <Link href={`/jobs/${job.id}/apply`} className="btn btn--sm btn--primary">
-              Prepare my application
-            </Link>
-          )}
-          {nextStep}
-        </div>
-      )}
+      {/* Still deciding: the verdict comes first, then the step it leads to. */}
+      {decided && actions}
       <p className="posting__links">
         <Link href={booth ? `/s/${booth.id}` : `/contacts?${new URLSearchParams({ company: job.company, role: job.role, domain: job.domain ?? '' })}`}>
           {booth ? `People at ${job.company}` : `Find people at ${job.company}`}
@@ -908,7 +892,7 @@ function NextDate({ job, inputRef, ask, onSave }: { job: Job; inputRef: Ref<HTML
 }
 
 /** A saved posting has no evaluation yet: one call scores it against the CV (the link is read first when there is no text). */
-function EvaluateFirst({ job, exhausted, onChange, onSpend }: { job: Job; exhausted: boolean; onChange: (j: Job) => void; onSpend: () => Promise<void> }) {
+function EvaluateFirst({ job, exhausted, primary = true, onChange, onSpend }: { job: Job; exhausted: boolean; primary?: boolean; onChange: (j: Job) => void; onSpend: () => Promise<void> }) {
   const [startedAt, setStartedAt] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const abort = useAbortable()
@@ -930,13 +914,13 @@ function EvaluateFirst({ job, exhausted, onChange, onSpend }: { job: Job; exhaus
   return (
     <section className="posting__block saved-posting" aria-labelledby="saved-title">
       <h3 id="saved-title" className="label">Saved, not checked yet</h3>
-      <p>Scores it against your CV, requirement by requirement. The tailored CV, cover letter, answers and pay check work from it.</p>
+      <p>Scores it against your CV, requirement by requirement. The tailored CV, cover letter and pay check build on it.</p>
       {error && (
         <p className="notice notice--error" role="alert">
           <AlertCircle aria-hidden="true" /> <span>{error}</span>
         </p>
       )}
-      <button type="button" className="btn btn--primary" disabled={exhausted} onClick={() => void run()}>
+      <button type="button" className={`btn ${primary ? 'btn--primary' : ''}`} disabled={exhausted} onClick={() => void run()}>
         Check fit
       </button>
       {exhausted && <p className="field__hint">This month's AI budget is used up.</p>}
