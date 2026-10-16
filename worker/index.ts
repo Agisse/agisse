@@ -24,7 +24,8 @@ import { ANSWER_FIELDS, EMPTY_ANSWERS, matchAnswer, type AnswerKey } from '../sh
 import { STORY_TEXT_LIMIT, type Story } from '../shared/stories'
 import type { ProgressData } from '../shared/progress'
 import { NoAiKey, NoModelAvailable, transcribe } from './lib/openrouter'
-import { DEFAULT_MODEL, keyLooksValid, listKeyModels, loadUserKey, seal, verifyKey } from './lib/byok'
+import { DEFAULT_MODEL, keyLooksValid, listKeyModels, loadUserKey, open, revokePlan, seal, verifyKey } from './lib/byok'
+import { authorizeUrl, chatgptAvailable, ChatgptError, exchangeCode, hostId, listModels as planModels, pkce, redirectUri, testRequest } from './lib/chatgpt'
 import { SavedCompanyInput, scoutCompanies, similarCompanies, toSaved, upsertSavedCompany } from './lib/companies'
 import { researchSelection } from './lib/selection'
 import { adzunaEnabled, searchAdzuna } from './lib/adzuna'
@@ -168,7 +169,8 @@ const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(asy
   await dbTiming.run(t, next)
   c.header('Server-Timing', `db;dur=${t.ms};desc="${t.queries} queries", total;dur=${Date.now() - start}`)
 })
-for (const path of ['/api/*', '/mcp', '/.well-known/*']) app.use(path, withDbAuth)
+// /auth/chatgpt too, for the CHATGPT_PLAN switch.
+for (const path of ['/api/*', '/mcp', '/.well-known/*', '/auth/chatgpt']) app.use(path, withDbAuth)
 
 // requireMcpAuth (below) verifies bearer tokens by fetching `${origin}/api/auth/jwks`, but a Custom Domain
 // Worker can't fetch its own hostname (the MCP client saw `500 Jwks failed`). Serve that one URL in-process.
@@ -333,6 +335,10 @@ app.on(['GET', 'POST'], '/api/unsubscribe', async (c) => {
   const body = !ok ? '<p>This unsubscribe link is not valid. Turn the email off in Profile instead.</p>' : c.req.method === 'POST' ? '<p>Done. No more Monday deadline emails. Turn them back on in Profile.</p>' : '<form method="post"><button type="submit">Stop the Monday deadline emails</button></form>'
   return c.html(`<!doctype html><meta name="viewport" content="width=device-width"><title>Agisse</title><body style="font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 16px">${body}</body>`, ok ? 200 : 400)
 })
+
+// ChatGPT's sign-in returns to http://127.0.0.1 (OpenAI's rule for local apps), where the browser doesn't send the session
+// cookie it holds for localhost: pass the callback on to the same app at APP_URL, where /api/chatgpt/callback has the session.
+app.get('/auth/chatgpt', (c) => (chatgptAvailable(c.env) ? c.redirect(`${new URL('/api/chatgpt/callback', c.env.APP_URL)}${new URL(c.req.url).search}`) : c.notFound()))
 
 // ---- Session guard for everything below ----
 app.use('/api/*', async (c, next) => {
@@ -680,7 +686,7 @@ app.get('/api/me', async (c) => {
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: { id, name, email, isAdmin, deadlineEmail }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+  return c.json({ user: { id, name, email, isAdmin, deadlineEmail }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null, chatgpt: chatgptAvailable(c.env) })
 })
 
 // The Monday deadline email (worker/lib/reminders.ts); off until the seeker turns it on in Profile.
@@ -730,8 +736,8 @@ app.patch('/api/ai-key', async (c) => {
   const model = parsed.data.model || DEFAULT_MODEL[k.provider]
   const problem = await verifyKey({ ...k, model })
   if (problem) return c.json({ error: problem }, 400)
-  await db.update(schema.aiKey).set({ model }).where(eq(schema.aiKey.userId, userId))
-  return c.json({ aiKey: { provider: k.provider, model, last4: k.key.slice(-4) } })
+  const [row] = await db.update(schema.aiKey).set({ model }).where(eq(schema.aiKey.userId, userId)).returning({ last4: schema.aiKey.last4 })
+  return c.json({ aiKey: { provider: k.provider, model, last4: row.last4 } })
 })
 
 /** Model ids the stored key can use, for the picker. */
@@ -741,8 +747,47 @@ app.get('/api/ai-key/models', async (c) => {
 })
 
 app.delete('/api/ai-key', async (c) => {
+  await revokePlan(c.get('db'), c.env, c.get('userId'))
   await c.get('db').delete(schema.aiKey).where(eq(schema.aiKey.userId, c.get('userId')))
   return c.json({ ok: true })
+})
+
+// ---- ChatGPT plan (worker/lib/chatgpt.ts): on `npx agisse`, or on a hosted server OpenAI admitted (CHATGPT_PLAN=1) ----
+// "Connect ChatGPT" opens /api/chatgpt/start; OpenAI returns to /auth/chatgpt, which hands on to /api/chatgpt/callback.
+
+/** The attempt itself travels in `state`, sealed: it ties the callback to the account that started it and needs no storage. */
+type ChatgptState = { u: string; v: string; n: string; r: string; e: number }
+const STATE_AD = 'chatgpt-state'
+
+app.get('/api/chatgpt/start', async (c) => {
+  if (!chatgptAvailable(c.env)) return c.notFound()
+  const { verifier, challenge, nonce } = await pkce()
+  const redirect = redirectUri(c.env)
+  const s: ChatgptState = { u: c.get('userId'), v: verifier, n: nonce, r: redirect, e: Date.now() + 10 * 60_000 }
+  const state = await seal(c.env.BETTER_AUTH_SECRET, STATE_AD, JSON.stringify(s))
+  return c.redirect(authorizeUrl({ hostId: await hostId(c.env.BETTER_AUTH_SECRET), redirect, state, challenge, nonce }))
+})
+
+app.get('/api/chatgpt/callback', async (c) => {
+  if (!chatgptAvailable(c.env)) return c.notFound()
+  const back = (error?: string) => c.redirect(`/profile?chatgpt=${encodeURIComponent(error ?? 'connected')}`)
+  const userId = c.get('userId')
+  try {
+    const s = JSON.parse(await open(c.env.BETTER_AUTH_SECRET, STATE_AD, c.req.query('state') ?? '').catch(() => 'null')) as ChatgptState | null
+    if (!s || s.u !== userId || s.e < Date.now()) throw new ChatgptError('ChatGPT sign-in expired. Try again.')
+    const grant = await exchangeCode({ query: c.req.query(), verifier: s.v, nonce: s.n, redirect: s.r })
+    const models = await planModels(grant.access)
+    if (!models.length) throw new ChatgptError('Your ChatGPT plan lists no models Agisse can use.')
+    await testRequest(grant.access, models[0])
+    // last4 holds the account's name for ChatGPT; an empty model means the plan's default.
+    const row = { provider: 'chatgpt' as const, model: '', sealed: await seal(c.env.BETTER_AUTH_SECRET, userId, JSON.stringify(grant)), last4: grant.name.slice(0, 80), createdAt: new Date() }
+    await c.get('db').insert(schema.aiKey).values({ userId, ...row }).onConflictDoUpdate({ target: schema.aiKey.userId, set: row })
+    return back()
+  } catch (err) {
+    if (err instanceof ChatgptError) return back(err.message)
+    console.error('[chatgpt] connect failed', err instanceof Error ? err.message : err)
+    return back('Could not connect ChatGPT. Try again.')
+  }
 })
 
 // ---- Story bank: the seeker's STAR stories, matched to postings in the browser (shared/stories.ts) ----

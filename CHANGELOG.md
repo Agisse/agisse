@@ -18,6 +18,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### For contributors and self-hosters
 
+- `npx agisse` can run Agisse's AI on your own ChatGPT Plus or Pro plan: Profile → Your own AI key → ChatGPT plan → Connect. Sign-in goes through OpenAI with a callback on 127.0.0.1; the tokens stay encrypted in `agisse-data`. A hosted server keeps it off until OpenAI admits it from its waitlist, then turns it on with the `CHATGPT_PLAN` switch in /admin.
 - Optional `VITE_SENTRY_DSN` turns on browser error reports; the SDK loads after the page, so first paint doesn't grow. Sentry SDK v11 ignores `sendDefaultPii`, so the Worker and browser now set `dataCollection` to collect no user, cookies, query strings or bodies, and both scrub addresses with `shared/scrub-url.ts` (shared with PostHog). Source maps are kept out of the deployed assets (`public/.assetsignore`) and deleted after upload; `SENTRY_ORG` and `SENTRY_PROJECT` override the upload target.
 - `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
 - The README opens with the launch hero: one line on what Agisse is, the license, CI and Scorecard badges, and what's free and what's open. The six translated READMEs follow it.

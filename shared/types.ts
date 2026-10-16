@@ -154,8 +154,9 @@ export type Search = {
 export type SearchWithPeople = Search & { people: Person[] }
 
 /** Monthly allowance in €. `used` is what the user was charged (provider cost plus margin); `cost` is our provider cost in €. */
-export type AiProvider = 'openrouter' | 'openai' | 'anthropic' | 'gemini' | 'mistral'
+export type AiProvider = 'openrouter' | 'openai' | 'anthropic' | 'gemini' | 'mistral' | 'chatgpt'
 /** The seeker's own AI key as the browser sees it: never the key itself. */
+/** last4: the key's last four characters; for ChatGPT, the account's name. */
 export type AiKeyInfo = { provider: AiProvider; model: string; last4: string }
 
 export type Budget = { used: number; limit: number; cost: number; tokens: number; resetsOn: string; paused?: 'cap' | 'free' | 'you' }

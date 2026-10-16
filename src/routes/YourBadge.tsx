@@ -188,6 +188,8 @@ const PROVIDERS: Array<{ id: AiProvider; label: string; model: string }> = [
   { id: 'mistral', label: 'Mistral (EU)', model: 'mistral-large-latest' },
 ]
 
+const providerLabel = (id: AiProvider) => (id === 'chatgpt' ? 'ChatGPT plan' : PROVIDERS.find((x) => x.id === id)?.label)
+
 /** Switch the own key's model; suggestions come from the provider, any id it accepts works. */
 function ModelSwitch({ current, run, busy }: { current: string; run: (fn: () => Promise<unknown>) => Promise<void>; busy: boolean }) {
   const [model, setModel] = useState(current)
@@ -273,28 +275,46 @@ function OwnKey({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // Back from ChatGPT's sign-in (/api/chatgpt/callback): the card opens on the result.
+  // ponytail: the error text rides in the URL, so a crafted link can show any sentence here; send codes if hosted mode ships.
+  const [landed] = useState(() => new URLSearchParams(location.search).get('chatgpt'))
+  useEffect(() => {
+    if (!landed) return
+    history.replaceState(null, '', location.pathname)
+    if (landed !== 'connected') setError(landed)
+  }, [landed])
   const current = me.aiKey
   const meta = PROVIDERS.find((x) => x.id === provider)!
   return (
-    <details className="index-card__options profile__more">
+    <details className="index-card__options profile__more" open={!!landed}>
       <summary>
         <span>Your own AI key</span>
-        <span className="index-card__options-hint">{current ? `${PROVIDERS.find((x) => x.id === current.provider)?.label} · ${current.model || 'Agisse picks'}` : 'Optional'}</span>
+        <span className="index-card__options-hint">{current ? `${providerLabel(current.provider)} · ${current.model || (current.provider === 'chatgpt' ? 'plan default' : 'Agisse picks')}` : 'Optional'}</span>
       </summary>
       <div className="index-card__options-fields ph-no-capture">
         {current ? (
           <>
             <p className="profile__key">
-              <span>
-                {PROVIDERS.find((x) => x.id === current.provider)?.label} · key ending <span className="tnum">{current.last4}</span>
-              </span>
-              <button type="button" className="btn btn--quiet btn--sm" disabled={busy} onClick={() => run(() => api.removeAiKey())}>Remove</button>
+              {current.provider === 'chatgpt' ? (
+                <span>ChatGPT plan · Connected as {current.last4}</span>
+              ) : (
+                <span>
+                  {providerLabel(current.provider)} · key ending <span className="tnum">{current.last4}</span>
+                </span>
+              )}
+              <button type="button" className="btn btn--quiet btn--sm" disabled={busy} onClick={() => run(() => api.removeAiKey())}>{current.provider === 'chatgpt' ? 'Disconnect' : 'Remove'}</button>
             </p>
             <ModelSwitch key={current.model} current={current.model} run={run} busy={busy} />
           </>
         ) : (
           <>
             <p className="field__hint">AI then runs on your account and stops counting against your budget. Stored encrypted, never shown again.</p>
+            {me.chatgpt && (
+              <p className="profile__key">
+                <span>ChatGPT plan · Use your Plus or Pro plan for Agisse's AI</span>
+                <a className="btn" href="/api/chatgpt/start">Connect</a>
+              </p>
+            )}
             <div>
               <button type="button" className="btn" disabled={busy} onClick={() => void connectOpenRouter()}>Connect OpenRouter</button>
             </div>

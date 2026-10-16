@@ -354,6 +354,7 @@ const SWITCH_LABELS: Record<LiveSwitch['key'], string> = {
   GLOBAL_DAILY_USD_CAP: 'AI spend for everyone, per day ($)',
   MONTHLY_BUDGET_EUR: 'Monthly allowance per account (€)',
   FEED_DAILY_PAGES: 'Feed pages per account, per day',
+  CHATGPT_PLAN: 'ChatGPT plan usage (1 = on; only once OpenAI admits this server)',
 }
 
 /** The daily limits and the monthly allowance, changed without a redeploy (worker/lib/settings.ts). */
