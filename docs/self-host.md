@@ -116,7 +116,7 @@ Your copy has every feature the code has; agisse.xyz holds nothing back. What di
 
 ## The job feed
 
-The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. Your copy starts with an empty feed; fill it with your own provider by following the [feed contract](/feed-contract), or with the [Arbeitnow importer](/feed-contract#a-reference-provider). Everything else works without a feed: pasted postings, public ATS boards, the Arbeitnow feed, Adzuna, people search and prep.
+The code is open source (AGPL). The job data on agisse.xyz is not: it's collected and maintained by the hosted service. Your copy starts with an empty feed; fill it with your own provider by following the [feed contract](/feed-contract), or with the [Arbeitnow importer](/feed-contract#a-reference-provider). Everything else works without a feed: pasted postings, public ATS boards, the Arbeitnow feed, Adzuna, people search and prep. The Education tab works the same way: it starts empty, and a provider fills it by following the [education contract](/education-contract).
 
 ## Telemetry
 
