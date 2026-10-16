@@ -47,3 +47,6 @@ eval/results/*
 
 # npm run local / npx agisse
 agisse-data/
+
+/source/
+/agisse-*.tgz

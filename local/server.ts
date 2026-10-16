@@ -17,13 +17,34 @@ import { importFeed } from '../scripts/import-feed'
 import './html-rewriter'
 import worker from '../worker/index'
 
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const [command, arg] = process.argv.slice(2)
+
+if (command === '--help' || command === '-h' || command === 'help') {
+  console.log(`Agisse: a self-hosted job-search copilot
+
+Usage:
+  agisse                         Start at http://localhost:3000
+  agisse import-feed             Load public roles from Arbeitnow
+  agisse admin <email>           Make a signed-up account the admin (stop the server first)
+  agisse --help                  Show this help
+  agisse --version               Show the installed version
+
+Data is stored in ./agisse-data/ by default. Set AGISSE_DATA to choose another folder
+and PORT to choose another port. The feed starts empty until you import roles.
+
+Agent setup: https://agisse.xyz/agent.md
+MCP setup:   https://agisse.xyz/docs/mcp`)
+  process.exit(0)
+}
+if (command === '--version' || command === '-v') {
+  console.log(JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version)
+  process.exit(0)
+}
 if (command && command !== 'import-feed' && !(command === 'admin' && arg?.includes('@'))) {
-  console.error(`Unknown command "${command}". Run without one to start Agisse, with import-feed to load public roles, or with admin <email> to make that account the admin.`)
+  console.error(`Unknown command "${command}". Run agisse --help for usage.`)
   process.exit(1)
 }
-
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const data = resolve(process.env.AGISSE_DATA ?? 'agisse-data')
 const port = Number(process.env.PORT ?? 3000)
 mkdirSync(join(data, 'files'), { recursive: true })

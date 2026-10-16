@@ -26,11 +26,16 @@ Read https://agisse.xyz/agent.md and set up my own Agisse.
 
 It asks whether the copy is just for you or a public site, then does the steps below with you.
 
-**On your computer.** Node 20+ or Bun, nothing else:
+**On your computer.** Use one package manager to start the published app. Node 20+ is needed for npm, pnpm and Yarn; Bun can run it without Node.
 
-```sh
-npx github:Agisse/agisse   # http://localhost:3000, everything in ./agisse-data/
-```
+| Package manager | Start Agisse |
+| --- | --- |
+| npm | `npx agisse` |
+| Bun | `bunx --bun agisse` |
+| pnpm | `pnpm dlx agisse` |
+| Yarn | `yarn dlx agisse` |
+
+Open http://localhost:3000. Your account and files stay in `./agisse-data/`. Run `agisse --help` through the same package manager to see the optional commands. To connect an AI agent to your account, follow the [MCP guide](docs/mcp.md). The npm package includes a source archive for its exact release under `source/`.
 
 **On Cloudflare.** A public site on Cloudflare's free plan and a free [Neon](https://neon.tech) database:
 
