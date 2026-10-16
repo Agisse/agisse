@@ -1742,10 +1742,12 @@ app.patch('/api/jobs/:id', async (c) => {
 })
 
 app.delete('/api/jobs/:id', async (c) => {
-  await c
-    .get('db')
-    .delete(schema.job)
-    .where(and(eq(schema.job.id, c.req.param('id')), eq(schema.job.userId, c.get('userId'))))
+  const db = c.get('db')
+  const mine = and(eq(schema.job.id, c.req.param('id')), eq(schema.job.userId, c.get('userId')))
+  // The "Which test?" answer goes with the job (docs/privacy.md); corrections filed on it stay, unlinked (job_id set null).
+  // First, while the report still points at the job: deleting the job sets job_id to null.
+  await db.delete(schema.assessmentReport).where(and(eq(schema.assessmentReport.kind, 'test reported'), eq(schema.assessmentReport.userId, c.get('userId')), eq(schema.assessmentReport.jobId, c.req.param('id'))))
+  await db.delete(schema.job).where(mine)
   return c.json({ ok: true })
 })
 

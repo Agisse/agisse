@@ -103,6 +103,9 @@ if (!databaseUrl) {
         check((await report(dismissed, null)).status === 200 && (await ask(dismissed))?.askTest === false, 'dismissed: not asked again for that job')
         const counts = await ask(answered)
         check(counts?.askTest === false && JSON.stringify(counts?.tests) === JSON.stringify([{ provider: 'shl', students: 1 }]), 'answered: counted once, and never asked again', counts)
+        check((await call('DELETE', `/api/jobs/${answered}`)).status === 200, 'delete the job')
+        const left = await db.select({ id: schema.assessmentReport.id }).from(schema.assessmentReport).where(sql`${schema.assessmentReport.userId} = ${me1!.id} and ${schema.assessmentReport.kind} = 'test reported' and ${schema.assessmentReport.jobId} is null`)
+        check(left.length === 0, 'a test report goes with its job', left)
       } finally {
         await db.delete(schema.user).where(eq(schema.user.id, stranger))
       }
