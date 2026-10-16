@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- While Agisse writes or checks something, you now see what it is doing step by step, how long it has taken, and the outline of what is coming. After 20 seconds it tells you free models can take up to a minute. Suggesting LinkedIn headlines and growing the company map now show this too.
 - Agisse is public: the homepage says free and open source, with the founder's note, the self-host section and a launch FAQ. Two new pages in the docs, linked from the footer: why Agisse exists (`/docs/manifesto`) and what agisse.xyz has and costs to run (`/docs/open`).
 
 ### Changed

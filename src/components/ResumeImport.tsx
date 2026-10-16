@@ -138,7 +138,9 @@ export function ResumeImport({ onExtracted, autosave }: { onExtracted: (p: Profi
           </Button>
         </div>
       </details>
-      {(phase.kind === 'extracting' || phase.kind === 'linkedin') && <AiWorking label="Picking out school, work, organizations, skills" />}
+      {(phase.kind === 'extracting' || phase.kind === 'linkedin') && (
+        <AiWorking steps={[phase.kind === 'linkedin' ? 'Reading your LinkedIn profile' : 'Reading your résumé', 'Picking out school and work', 'Picking out organizations and skills']} expected={18} />
+      )}
 
       {phase.kind === 'done' && (
         <p className="flex items-start gap-2 rounded-lg bg-(--green-tint) px-3 py-2.5 text-sm text-(--green-ink) [&_a]:underline [&_a]:underline-offset-4" role="status">

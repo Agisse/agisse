@@ -1,5 +1,6 @@
 import { AskAssistant } from '@/components/AskAssistant'
 import { AiWorking } from '@/components/AiWorking'
+import { EVALUATE_STEPS } from '@/lib/ai-wait'
 import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
 import { Link, useLocation, useSearch } from 'wouter'
 import { AlertCircle, ArrowLeft, Check, Copy, Download, ExternalLink, FileText, IdCard, MoreHorizontal, Plus, Search as SearchIcon, Trash2, X } from 'lucide-react'
@@ -368,7 +369,7 @@ function OutcomeLine({ id }: { id: string }) {
 function Evaluating({ startedAt, onCancel }: { startedAt: number; onCancel: () => void }) {
   return (
     <div className="booth">
-      <AiWorking label="Reading the posting and checking it against your CV" startedAt={startedAt} onCancel={onCancel} />
+      <AiWorking steps={EVALUATE_STEPS} shape="verdict" startedAt={startedAt} onCancel={onCancel} />
     </div>
   )
 }
@@ -670,7 +671,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
                 </button>
               </div>
             )}
-            {busy && <AiWorking label={job.coverLetter ? 'Rewriting your cover letter' : 'Writing your cover letter'} />}
+            {busy && <AiWorking steps={['Reading the posting and your CV', 'Picking what fits this role', job.coverLetter ? 'Rewriting your cover letter' : 'Writing your cover letter']} expected={20} shape="letter" />}
             {job.coverLetter && !busy && <Rate key={job.coverLetter} task="agisse_cover" refId={job.id} />}
             {job.coverLetter && !busy && <FreeModelNote me={me} />}
           </section>
@@ -910,7 +911,7 @@ function EvaluateFirst({ job, exhausted, primary = true, onChange, onSpend }: { 
       void onSpend()
     }
   }
-  if (startedAt) return <AiWorking label="Reading the posting and checking it against your CV" startedAt={startedAt} onCancel={abort.cancel} />
+  if (startedAt) return <AiWorking steps={EVALUATE_STEPS} shape="verdict" startedAt={startedAt} onCancel={abort.cancel} />
   return (
     <section className="posting__block saved-posting" aria-labelledby="saved-title">
       <h3 id="saved-title" className="label">Saved, not checked yet</h3>
@@ -1149,7 +1150,7 @@ function PayCheckCard({ job, disabled, onChange, onSpend }: { job: Job; disabled
         <button type="button" className={check ? 'btn btn--quiet' : 'btn btn--ink'} onClick={() => void run()} disabled={busy || disabled} aria-busy={busy}>
           {busy ? 'Checking…' : check ? 'Refresh' : 'Check pay & company health'}
         </button>
-        {busy && <AiWorking label="Searching pay ranges and company news" />}
+        {busy && <AiWorking steps={['Searching pay ranges for this role', 'Reading recent company news', 'Keeping only what has a source']} expected={30} shape="lines" />}
         <p className="booth__model">
           {check ? `Checked ${formatDate(check.at)}. ` : ''}Ranges and news come only from linked search results. No link, no claim. Verify before you rely on it.
         </p>
@@ -1236,7 +1237,7 @@ function OfferBriefCard({ job, disabled, onChange, onSpend }: { job: Job; disabl
       <button type="button" className={brief ? 'btn btn--quiet' : 'btn btn--ink'} onClick={() => void prepare()} disabled={busy || disabled} aria-busy={busy}>
         {busy ? 'Preparing…' : brief ? 'Refresh' : 'Prepare negotiation brief'}
       </button>
-      {busy && <AiWorking label="Researching pay and preparing your brief" />}
+      {busy && <AiWorking steps={['Researching pay for this role', 'Weighing the offer you have', 'Preparing your brief']} expected={30} shape="lines" />}
     </section>
   )
 }
@@ -1288,7 +1289,7 @@ function CheckCard({ job, disabled, onSpend }: { job: Job; disabled: boolean; on
           <SearchIcon aria-hidden="true" /> {busy ? 'Checking…' : check ? 'Check again' : 'Check against the posting & ATS'}
         </button>
       </div>
-      {busy && <AiWorking label="Checking every line against the posting and ATS" />}
+      {busy && <AiWorking steps={['Reading the posting', 'Checking every line of your CV', 'Checking how an ATS reads it']} shape="lines" />}
       {check && (
         <div aria-live="polite">
           <p>{check.verdict}</p>

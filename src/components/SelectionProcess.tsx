@@ -1,4 +1,5 @@
 import { AiWorking } from '@/components/AiWorking'
+import { REVIEW_STEPS } from '@/lib/ai-wait'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
 import { Check, Clock, ExternalLink, X } from 'lucide-react'
@@ -61,7 +62,7 @@ export function SelectionProcess({ job, me, onSpend }: { job: Job; me: Me; onSpe
       <button type="button" className={s ? 'btn btn--quiet' : 'btn btn--ink'} onClick={() => void research()} disabled={busy || exhausted} aria-busy={busy}>
         {busy ? 'Researching…' : label}
       </button>
-      {busy && <AiWorking label="Searching public sources for this selection process" />}
+      {busy && <AiWorking steps={['Searching public sources', 'Reading what candidates report', 'Laying out the selection process']} expected={30} shape="lines" />}
       {exhausted && (
         <p className="notice" role="status">
           <Clock aria-hidden="true" />
@@ -256,7 +257,7 @@ function Practice({ job, me, question, last, disabled, onSpend }: { job: Job; me
           <button type="button" className="btn btn--sm" onClick={() => void submit()} disabled={busy || disabled || answer.trim().length < 20} aria-busy={busy}>
             {busy ? 'Reviewing…' : 'Review answer'}
           </button>
-          {busy && <AiWorking label="Reviewing your answer" onCancel={abort.cancel} />}
+          {busy && <AiWorking steps={REVIEW_STEPS} expected={18} shape="lines" onCancel={abort.cancel} />}
           {error && <ErrorNote text={error} />}
           {feedback && <FeedbackView feedback={feedback} />}
           {feedback && <FreeModelNote me={me} className="prep__meta" />}

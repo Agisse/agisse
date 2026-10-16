@@ -384,7 +384,7 @@ function MatchTab({ cv, stored, exhausted, onSpend }: { cv: string; stored: bool
             <Sparkles aria-hidden="true" /> {busy ? 'Reading…' : 'Match my CV'}
           </button>
         </div>
-        {busy && <AiWorking label={busy === 'pasted' ? 'Pulling the keywords, then reading your CV for each one' : 'Reading your CV for each keyword'} />}
+        {busy && <AiWorking steps={[...(busy === 'pasted' ? ['Pulling the keywords from the posting'] : []), 'Reading your CV for each keyword', 'Marking what is missing']} shape="lines" />}
         {error && (
           <p className="notice notice--error" role="alert">
             <AlertCircle aria-hidden="true" /> <span>{error}</span>
@@ -542,6 +542,7 @@ function LinkedinTab({ me, exhausted, onSpend }: { me: Me; exhausted: boolean; o
                 <Wand2 aria-hidden="true" /> {busy ? 'Writing…' : ideas ? 'Three more' : 'Suggest headlines'}
               </button>
             </div>
+            {busy && <AiWorking steps={['Reading your CV and your board', 'Writing headlines', 'Checking each one against your CV']} expected={20} shape="lines" />}
           </section>
         </div>
       )}

@@ -356,7 +356,7 @@ function BoothRunning({ pending, onCancel }: { pending: Pending; onCancel: () =>
           </p>
         </div>
       </header>
-      <AiWorking label="Finding and ranking people at this company" startedAt={pending.startedAt} onCancel={onCancel} />
+      <AiWorking steps={['Finding people at this company', 'Ranking them for you']} expected={30} startedAt={pending.startedAt} onCancel={onCancel} />
       <div className="badge-grid">
         {Array.from({ length: 6 }, (_, i) => (
           <GhostBadge key={i} rank={i + 1} live />
