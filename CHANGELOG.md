@@ -6,6 +6,10 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+### Changed
+
+- Faster answers: AI features on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Free models stay as the fallback.
+
 ### For contributors and self-hosters
 
 - The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.

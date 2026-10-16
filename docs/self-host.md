@@ -90,7 +90,7 @@ Each key turns one feature on, and Agisse works without it.
 
 | Key | Turns on |
 |---|---|
-| `OPENROUTER_API_KEY` | The server's AI key; free models cost nothing. Without it, each user connects their own key under Profile → AI |
+| `OPENROUTER_API_KEY` | The server's AI key. The default list starts with Mistral Small 4 (about $0.002 an action); remove it from `OPENROUTER_MODELS` to use free models only, which cost nothing. Without it, each user connects their own key under Profile → AI |
 | `EXA_API_KEY` | People search |
 | `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` | Job search by city, and more postings in the feed |
 | `RESEND_API_KEY` | Emails (otherwise they are logged to the console) |
@@ -109,7 +109,7 @@ Your copy has every feature the code has; agisse.xyz holds nothing back. What di
 |---|---|---|
 | Features | All | All: the same code |
 | Job feed | The curated hosted feed | Empty until you add a provider or the Arbeitnow importer |
-| AI | Free models on agisse.xyz's key, or your own key | Your server key, or each user's own |
+| AI | Mistral Small 4 (EU) and free models on agisse.xyz's key, or your own key | Your server key, or each user's own |
 | Setup | None: sign up | One command, or a Cloudflare deploy |
 | Shared prep (interview questions, test reports) | From every student on agisse.xyz | From your own users |
 | Your users' data | agisse.xyz is the controller | You are |

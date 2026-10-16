@@ -171,7 +171,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? 'Runs on free models.' : me.credit && me.credit.left > 0 ? `${euro(me.credit.left)} of your ${euro(me.credit.granted)} starter credit left · then free models` : me.budget.paused && me.budget.paused !== 'cap' ? 'Runs on free models. Your own OpenRouter key keeps you going today.' : 'Runs on free models. Your own OpenRouter key gives sharper results.'}</p>
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? "Runs on Agisse's shared AI." : me.credit && me.credit.left > 0 ? `${euro(me.credit.left)} of your ${euro(me.credit.granted)} starter credit left` : me.budget.paused && me.budget.paused !== 'cap' ? "Runs on Agisse's shared AI. Your own OpenRouter key keeps you going today." : "Runs on Agisse's shared AI. Your own OpenRouter key gives sharper results."}</p>
         {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
       </section>
 
