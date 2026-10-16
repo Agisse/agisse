@@ -2142,8 +2142,24 @@
 .test-line__links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); margin: 0; }
 .test-line__links a:not(.btn) { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; }
 .test-line__links svg { width: 14px; height: 14px; }
+/* Posting header: where it stands and the one date that matters, in one line; the history opens under More. */
+.posting__now { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); margin: var(--space-2) 0 0; font-size: var(--fs-14); color: var(--ink-2); }
+.posting__now .status-pill { color: var(--ink); }
+.posting .booth__aside { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-1) var(--space-4); }
+.posting .booth__aside .booth__domain { margin: 0; min-height: 44px; }
+.posting__more .timeline { flex-direction: column; gap: var(--space-1); }
+.posting__more .timeline li + li::before { content: none; }
+@media (max-width: 640px) {
+  .posting .booth__aside { justify-content: space-between; }
+}
+/* The one filled step, with the status updates as a quiet row under it. */
+.posting__next { display: grid; justify-items: start; gap: var(--space-2); }
+.posting__next > .posting__actions { row-gap: 0; margin-left: calc(-1 * var(--space-2)); }
 /* "Which test?": one inline question under the status, asked once per job at assessment. */
 .which-test { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin: var(--space-2) 0 0; font-size: var(--fs-15); color: var(--ink-2); }
 .which-test > label { flex-basis: 100%; color: var(--ink); }
 .which-test > .field__input { flex: 1 1 10rem; max-width: 16rem; min-width: 0; min-height: 44px; }
 .which-test > .notice, .which-test > [role='alert'] { flex-basis: 100%; }
+/* In the posting header it sits under the status line as quietly as the line itself. */
+.posting__now + .which-test { font-size: var(--fs-14); }
+.posting__now + .which-test > label { color: var(--ink-2); }

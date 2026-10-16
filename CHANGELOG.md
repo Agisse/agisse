@@ -28,6 +28,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- A job's page has one blue button, chosen by where your application stands: Prepare my application, Prepare for the next round, Practise the test, Rehearse the interview or Prepare to negotiate. Got a test, Rejected and the other updates sit quietly under it. The header shows where it stands and the next date in one line; the full history is under More.
 - Emails say "free and open source" in the footer once Agisse launches, instead of "invite-only beta".
 - Prepare opens on the one practice to do next: the tests or interview you have coming up soonest, else your weakest area. Every test sits under "All tests", your progress stays folded at the bottom, and the Interviews tab starts on your upcoming interview.
 - **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
