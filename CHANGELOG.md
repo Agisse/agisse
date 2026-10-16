@@ -23,6 +23,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
 - Creating an account now asks you to confirm you're 18 or over, in the line that links the terms.
 - The privacy policy and terms now match what Agisse does: CVs are stored in the EU, AI output and notes are kept 90 days, every cookie is named, Agisse is free, and you must be 18 or over.

@@ -2,7 +2,7 @@
 import { and } from 'drizzle-orm'
 import { PgDialect } from 'drizzle-orm/pg-core'
 import { programmeFilters, type ProgrammeQuery } from './programmes.ts'
-import { countryLabel, fieldLabel, nextKinds } from '../../shared/programmes.ts'
+import { countryLabel, EUROPE, fieldLabel, nextKinds } from '../../shared/programmes.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -38,4 +38,8 @@ eq(fieldLabel('consulting'), 'Consulting', 'known field')
 eq(fieldLabel('computer science'), 'Computer science', 'free field')
 eq(countryLabel('US'), 'United States', 'country')
 eq(countryLabel('nl'), 'Netherlands', 'lower-case country')
+// Europe first: the EU, the EEA, the UK and Switzerland, nothing else.
+eq(EUROPE.length, 32, 'European countries')
+for (const c of ['GB', 'CH', 'NO', 'BE']) if (!EUROPE.includes(c)) throw new Error(`${c} missing from EUROPE`)
+for (const c of ['US', 'IN', 'SG', 'TR']) if (EUROPE.includes(c)) throw new Error(`${c} in EUROPE`)
 console.log('programmes ok')
