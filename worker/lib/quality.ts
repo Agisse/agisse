@@ -3,7 +3,11 @@
 import { sql } from 'drizzle-orm'
 import type { Db } from '../db'
 import type { StatusChange } from '../../shared/types'
+import { lastMonday, outcomeStats, type OutcomeRow, type OutcomeStats } from '../../shared/outcomes'
 import { calibrate, RANK_BUCKETS, scoreRows, SCORE_BUCKETS, type PromptRow, type QualityReport } from '../../shared/quality'
+
+/** The tracker opt-out as a where-clause on `profile p` (left-joined; no profile row counts): the twin of countsTracker in shared/quality.ts. */
+export const sharesOutcomes = sql`coalesce((p.data->>'shareOutcomes')::boolean, true)`
 
 export type ModelStats = { task: string; model: string; answered: number; failed: number; flagged: number; down: number }
 
@@ -93,7 +97,7 @@ export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
     db.execute<{ score: number; history: StatusChange[]; appliedAt: Date | null; share: boolean | null }>(sql`
       select j.score, j.history, j.applied_at as "appliedAt", (p.data->>'shareOutcomes')::boolean as share from job j
       left join profile p on p.user_id = j.user_id
-      where j.score is not null and coalesce((p.data->>'shareOutcomes')::boolean, true)`),
+      where j.score is not null and ${sharesOutcomes}`),
     db.execute<{ rank: number; status: string | null }>(sql`
       select rank, status from person where search_id is not null and contacted_at < now() - interval '7 days'`),
     db.execute<{ task: string; prompt: string | null; model: string | null; note: string; at: Date }>(sql`
@@ -111,4 +115,32 @@ export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
     rankCalibration: calibrate(people.rows.map((p) => ({ value: p.rank, hit: p.status === 'replied' || p.status === 'call booked' || p.status === 'referred' })), RANK_BUCKETS),
     complaints: complaints.rows.map((c) => ({ ...c, at: new Date(c.at).toISOString() })),
   }
+}
+
+// ponytail: per-isolate cache for a day, like modelRanking; figures only change on Mondays anyway. Cleared wholesale past 500 employers.
+const outcomes = new Map<string, { at: number; data: OutcomeStats | null }>()
+const OUTCOMES_TTL = 24 * 60 * 60 * 1000
+
+/** Outcome figures for one employer, by its companyKey() (worker/lib/assessments.ts), as of last Monday; null below MIN_USERS or when the query fails. */
+export async function employerOutcomes(db: Db, companyKey: string): Promise<OutcomeStats | null> {
+  const asOf = lastMonday(new Date())
+  const key = `${asOf.toISOString()}\u0000${companyKey}`
+  const hit = outcomes.get(key)
+  if (hit && Date.now() - hit.at < OUTCOMES_TTL) return hit.data
+  try {
+    // ponytail: scans job by company; add a job(lower(company)) expression index when this shows up in slow logs.
+    // The key matches companyKey(): trimmed, lowercased, whitespace collapsed.
+    const rows = await db.execute<OutcomeRow>(sql`
+      select j.user_id as "userId", j.history, j.applied_at as "appliedAt" from job j
+      left join profile p on p.user_id = j.user_id
+      where regexp_replace(lower(trim(j.company)), '\\s+', ' ', 'g') = ${companyKey}
+        and jsonb_array_length(j.history) > 0 and ${sharesOutcomes}`)
+    if (outcomes.size > 500) outcomes.clear()
+    outcomes.set(key, { at: Date.now(), data: outcomeStats(rows.rows, asOf) })
+  } catch (err) {
+    // A figure is a nicety: without it the posting shows nothing.
+    console.warn('[quality] outcomes failed', err)
+    return null
+  }
+  return outcomes.get(key)!.data
 }

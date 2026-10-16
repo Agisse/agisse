@@ -5,7 +5,7 @@ description: What Agisse collects, why, who processes it and how to exercise you
 
 # Privacy policy
 
-_Last updated: 15 October 2026_
+_Last updated: 16 October 2026_
 
 Agisse is in beta; full access is by invite. You must be at least 18 to use it. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
 
@@ -25,7 +25,7 @@ Agisse is in beta; full access is by invite. You must be at least 18 to use it. 
 
 We never sell your data and never use it to advertise to you.
 
-**Outcomes from your tracker.** The status changes in your tracker and their dates (applied, test, interview, offer) may be counted, with other users', to show how employers respond, for example "6 of 23 got a test within about 10 days". Agisse doesn't show these figures yet. When it does, a figure appears only when at least 10 people are behind it, and never names you. To leave your tracker out, turn off **Count my tracker anonymously** in Profile & settings.
+**Outcomes from your tracker.** The status changes in your tracker and their dates (applied, test, interview, offer) may be counted, with other users', to show how employers respond, for example "From 20+ applicants in the past year: 35% got a test". A figure appears on a posting only when at least 10 people are behind it. It covers the past 12 months and changes once a week; counts are shown as bands (10+, 20+, 50+) and rates are rounded to 5%. It never names you. To leave your tracker out, turn off **Count my tracker anonymously** in Profile & settings.
 
 **Which test you got.** When a job in your tracker reaches Online test, Agisse asks once which publisher sent the test; answering is optional. We store the publisher you picked for your own job, or that you skipped. Other students see it only as a count per employer over the last 12 months, for example "SHL · reported by 3 students this year", and only once at least 2 students reported it; never with your name. To leave your answers out of the counts, turn off **Count my tracker anonymously** in Profile & settings. Your answer is deleted when you delete the job or your account.
 

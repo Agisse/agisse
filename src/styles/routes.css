@@ -1148,6 +1148,9 @@
 .req__fold > summary { cursor: pointer; list-style: none; }
 .req__fold > summary::after { margin-left: 6px; }
 .req__fold > summary:hover { color: var(--blue-ink); }
+.outcome-line { font-size: var(--fs-14); color: var(--ink-2); }
+.outcome-line > summary { display: flex; align-items: center; min-height: 44px; text-wrap: pretty; }
+.outcome-line > p { margin: var(--space-1) 0 var(--space-2); }
 .req__importance { font-weight: 400; font-size: var(--fs-13); color: var(--ink-2); }
 .req__quote, .req__evidence, .req__mitigation { margin-top: 2px; font-size: var(--fs-14); color: var(--ink-2); }
 .req__quote { font-style: italic; }
