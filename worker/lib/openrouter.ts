@@ -170,7 +170,7 @@ export async function generateStructured<T>(opts: {
   const rank = opts.meter?.rank?.[opts.schemaName]
   const isFree = (m: string) => m.endsWith(':free')
   const free = byRank([...new Set([...opts.preferredModels.filter(isFree), ...freeModels(models)])].slice(0, 5), rank)
-  // Agisse's key: the credit's paid models while it lasts, any paid entries in OPENROUTER_MODELS (none on agisse.xyz), then the free chain. Smart's pricier models only on the seeker's own key.
+  // Agisse's key: the credit's paid models while it lasts, any paid entries in OPENROUTER_MODELS (Mistral Small 4 on agisse.xyz), then the free chain. Smart's pricier models only on the seeker's own key.
   const smart = byok ? opts.meter?.smart : undefined
   const paid = smart
     ? byRank([...new Set([...smart.preferred, ...smartModels(models, smart.maxUsdPerM)])].slice(0, 3), rank)
