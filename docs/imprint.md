@@ -5,14 +5,8 @@ description: Who runs Agisse.
 
 # Imprint
 
-Agisse is operated by:
+Agisse is a free, open-source project run by **Lennart Steen**, a private person in Brussels, Belgium. It is not a company, so it has no enterprise or VAT number.
 
-**Lennart Steen**
-TODO (postal address)
-Brussels, Belgium
-
-- Company number: **TODO (enterprise number)**
-- VAT: **TODO (if applicable)**
 - Email: [hello@agisse.xyz](mailto:hello@agisse.xyz)
 - Web: [agisse.xyz](https://agisse.xyz)
 

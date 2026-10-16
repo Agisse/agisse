@@ -13,6 +13,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
+- The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.
 
 ## [0.1.0] - 2026-10-16
 
