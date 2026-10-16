@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- On a saved job at an employer Agisse knows, one quiet line names its online test, for example "Online test: SHL (numerical, abstract, deductive) · Practise". Tap it for the rounds, practice of exactly those tests, the provider's own free samples, and the employer's guide. Nothing shows when the test is unknown. Employer guides in the docs now list that employer's own tests, what each measures, how long it runs (marked when only candidates report it), and link the provider's free practice.
 - How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
 - Count my tracker anonymously, in Profile: on by default. Agisse may later show how employers respond, counted over at least 10 people and never naming anyone; turn it off to leave your tracker out.
 - Education, a new tab for what comes after a degree that isn't a job: master's, MBA and PhD programmes and funded PhD positions. One search, filters for type, country, field, language and tuition, "Closing soon" and a Saved list, ordered by your degree. Each programme opens to its facts and one link: apply on the institution's own page.
