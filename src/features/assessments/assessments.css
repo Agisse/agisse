@@ -19,6 +19,16 @@
   font-size: var(--fs-14);
   color: var(--ink-2);
 }
+/* "Which test?" answers, as counts. */
+.prep__reported {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-14);
+  color: var(--ink-2);
+}
 .prep__tag {
   font-family: var(--font-display);
   font-weight: 600;

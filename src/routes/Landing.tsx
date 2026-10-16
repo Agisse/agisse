@@ -111,10 +111,11 @@ export function Landing() {
               A co-pilot, not an autopilot.
             </h2>
             {LAUNCH ? (
-              // The founder's note takes the paragraph's place (the table below says the same); the launch-day PR fills it and links the manifesto.
               <figure className="mt-5">
-                <blockquote className="text-lg text-pretty text-muted-foreground">“[founder quote]”</blockquote>
-                <figcaption className="mt-3 text-sm font-medium">[photo] [founder name], who started Agisse</figcaption>
+                <blockquote className="text-lg text-pretty text-muted-foreground">
+                  “I built Agisse to help people learn about AI while searching and applying for jobs. Agisse means taking action in French.”
+                </blockquote>
+                <figcaption className="mt-3 text-sm font-medium">Lennart, founder of Agisse</figcaption>
               </figure>
             ) : (
               <p className="mt-5 text-lg text-pretty text-muted-foreground">
@@ -500,7 +501,7 @@ const LAUNCH_FAQ: [string, ReactNode][] = [
   ['Is it free, and how is it funded?', 'Yes, it’s free: no paid plan, no ads, and your data is never sold. Try it on free AI models. For real use, connect your own OpenRouter key and pay OpenRouter directly. The hosting costs little.'],
   ['Where does my data live?', <>In a database in the EU. With your own AI key, requests go straight to your provider. Download your data or delete your account in Profile at any time. <Doc href="/docs/data-flow">What goes where</Doc></>],
   ['Does Agisse work for employers?', 'No. Agisse is on your side only: it never scores or ranks candidates for employers, never sells or shares your data with them, and no employer can pay to appear in your feed.'],
-  ['Who’s behind it?', '[founder name], [one line about you]. Agisse is an open-source project, not a company.'],
+  ['Who’s behind it?', 'Lennart started Agisse to help people learn about AI while searching and applying for jobs. It is an open-source project, not a company.'],
   ['Can I use it from Claude, ChatGPT or Codex?', <>From Claude, Codex, Cursor and other MCP clients: sign in with your Agisse account and they can read your feed and tracker. <Doc href="/docs/mcp">Set it up</Doc></>],
   ['Is it open source, and what isn’t open?', <>All the code is open source (AGPL). The job data on agisse.xyz isn’t: the hosted service collects and maintains it. Your own copy starts with an empty feed. <Doc href="/docs/self-host">Run it yourself</Doc></>],
 ]

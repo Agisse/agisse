@@ -14,6 +14,7 @@ import { Segmented } from '../components/Segmented'
 import posthog from '../lib/posthog'
 import { SelectionProcess } from '../components/SelectionProcess'
 import { OnlineTestLine } from '../components/OnlineTest'
+import { WhichTest } from '../components/WhichTest'
 import { PrepGhost } from '../components/PrepGhost'
 import { OpenRoles, type OnSave } from '../components/OpenRoles'
 import { VacancyFeed } from '../components/VacancyFeed'
@@ -562,6 +563,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
             <span className={`status-pill status-pill--${job.status}`}>{STATUS_LABEL[job.status] ?? statusName(job.status)}</span>
             {job.nextAt && NEXT_AT_LABEL[job.status] && <span>{NEXT_AT_LABEL[job.status]} {formatDate(job.nextAt)}</span>}
           </p>
+          {job.status === 'assessment' && <WhichTest jobId={job.id} company={job.company} counted={me.profile?.shareOutcomes !== false} />}
           {tab !== 'prepare' && <OnlineTestLine jobId={job.id} company={job.company} />}
           </div>
         </div>

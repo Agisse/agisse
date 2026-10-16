@@ -14,13 +14,17 @@ import { skillProgress } from '../analytics/skills'
 import { Sparkline } from './Sparkline'
 import { MODE_HINT, MODE_LABEL, practiceHref } from './modes'
 import { PROVIDER_GAMES, providerGames, type ProviderGame } from '../../../../shared/assessment-catalog'
+import { testCountLine, type TestCount } from '../../../../shared/test-reports'
 import { MockInterview } from '../../../components/MockInterview'
 import { PrepGhost } from '../../../components/PrepGhost'
 import { ErrorNote } from '../../../components/ErrorNote'
 import '../assessments.css'
 
 const SOURCE_ORDER: AssessmentSource['kind'][] = ['official', 'provider', 'university', 'candidate report', 'forum']
-const REPORTED: Record<ReportKind, string> = {
+// 'test reported' is the one-tap "Which test?" answer, shown as counts (shared/test-reports.ts), not filed here.
+type FiledKind = Exclude<ReportKind, 'test reported'>
+const FILED = REPORT_KINDS.filter((k): k is FiledKind => k !== 'test reported')
+const REPORTED: Record<FiledKind, string> = {
   'assessment changed': 'the assessment changed',
   'test no longer used': 'the test is no longer used',
   'new game encountered': 'a new game',
@@ -43,7 +47,7 @@ export function AssessmentPrep({ job, me, onSpend }: { job: Job; me: Me; onSpend
     try {
       const { assessment } = await api.researchAssessment(job.id)
       posthog.capture('assessment_researched', { found: Boolean(assessment), confidence: assessment?.confidence ?? null })
-      res.setData((prev) => ({ assessment, reports: prev?.reports ?? [] }))
+      res.setData((prev) => ({ tests: [], testsChanged: 0, askTest: false, ...prev, assessment, reports: prev?.reports ?? [] }))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not research this process')
     } finally {
@@ -57,6 +61,7 @@ export function AssessmentPrep({ job, me, onSpend }: { job: Job; me: Me; onSpend
 
   const assessment = res.data?.assessment ?? null
   const reports = res.data?.reports ?? []
+  const tests = res.data?.tests ?? []
   const plan = trainingPlan(assessment)
   const drill = drillPlan(sessions.data ?? [], plan.allocation)
   const drillMin = Math.round(drill.reduce((t, d) => t + d.seconds, 0) / 60)
@@ -66,13 +71,14 @@ export function AssessmentPrep({ job, me, onSpend }: { job: Job; me: Me; onSpend
     <div className="prep">
       {error && <ErrorNote text={error} />}
       {assessment ? (
-        <Detected assessment={assessment} reports={reports} jobId={job.id} />
+        <Detected assessment={assessment} reports={reports} tests={tests} testsChanged={res.data?.testsChanged ?? 0} jobId={job.id} />
       ) : (
         <section className="posting__block" aria-labelledby="prep-none">
           <h3 id="prep-none" className="label">
             Online test
           </h3>
           <p className="prep__lede">Find which test {job.company} uses, so you can practise for it.</p>
+          <TestCounts tests={tests} />
           <button type="button" className="btn" onClick={() => void research()} disabled={busy || exhausted} aria-busy={busy}>
             {busy ? 'Looking…' : 'Find the test'}
           </button>
@@ -222,10 +228,23 @@ function Stages({ stages, jobId }: { stages: string[]; jobId: string }) {
   )
 }
 
-function Detected({ assessment: a, reports, jobId }: { assessment: CompanyAssessment; reports: AssessmentReport[]; jobId: string }) {
+/** What students said they were sent, as counts; never who. */
+function TestCounts({ tests }: { tests: TestCount[] }) {
+  if (!tests.length) return null
+  return (
+    <ul className="prep__reported" aria-label="Tests students reported">
+      {tests.map((t) => (
+        <li key={t.provider}>{testCountLine(t)}</li>
+      ))}
+    </ul>
+  )
+}
+
+function Detected({ assessment: a, reports, tests, testsChanged, jobId }: { assessment: CompanyAssessment; reports: AssessmentReport[]; tests: TestCount[]; testsChanged: number; jobId: string }) {
   const provider = providerProfile(a.provider)
   const since = reports.filter((r) => r.createdAt > a.sourceDate)
-  const counts = REPORT_KINDS.map((k) => [k, since.filter((r) => r.kind === k).length] as const).filter(([, n]) => n > 0)
+  // A reported test that contradicts this intel counts as "the provider changed"; the intel stays as sourced.
+  const counts = FILED.map((k) => [k, since.filter((r) => r.kind === k).length + (k === 'provider changed' ? testsChanged : 0)] as const).filter(([, n]) => n > 0)
   const sources = [...a.sources].sort((x, y) => SOURCE_ORDER.indexOf(x.kind) - SOURCE_ORDER.indexOf(y.kind))
   return (
     <section className="posting__block" aria-labelledby="prep-detected">
@@ -253,6 +272,7 @@ function Detected({ assessment: a, reports, jobId }: { assessment: CompanyAssess
       {a.stages.length > 0 && <Stages stages={a.stages} jobId={jobId} />}
       {a.notes && <p className="prep__meta">{a.notes}</p>}
       {provider && <p className="prep__meta">{provider.note}</p>}
+      <TestCounts tests={tests} />
       {counts.map(([k, n]) => (
         <p key={k} className="notice" role="note">
           <AlertCircle aria-hidden="true" />
@@ -311,7 +331,7 @@ function Drills({ jobId, order }: { jobId: string; order: GameId[] }) {
 }
 
 function ReportForm({ jobId, onReported }: { jobId: string; onReported: (r: AssessmentReport) => void }) {
-  const [kind, setKind] = useState<ReportKind>('assessment changed')
+  const [kind, setKind] = useState<FiledKind>('assessment changed')
   const [detail, setDetail] = useState('')
   const [state, setState] = useState<'idle' | 'busy' | 'sent' | string>('idle')
   const submit = async (e: FormEvent) => {
@@ -335,8 +355,8 @@ function ReportForm({ jobId, onReported }: { jobId: string; onReported: (r: Asse
       <div className="prep__report-row">
         <label className="field">
           <span className="field__label">What changed</span>
-          <select className="field__input" value={kind} onChange={(e) => setKind(e.target.value as ReportKind)}>
-            {REPORT_KINDS.map((k) => (
+          <select className="field__input" value={kind} onChange={(e) => setKind(e.target.value as FiledKind)}>
+            {FILED.map((k) => (
               <option key={k} value={k}>
                 {k[0]!.toUpperCase() + k.slice(1)}
               </option>
