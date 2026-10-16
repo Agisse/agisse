@@ -2,7 +2,7 @@
 # Installs a packed tarball (`npm pack`) in an empty folder and runs it the way `npx agisse` does:
 # the server answers, a synthetic account signs up and loads the feed, and a second one can't reach its records.
 # CI runs it under Node and Bun.
-# Usage: sh scripts/npx-smoke.sh agisse-0.0.0.tgz [node|bun]
+# Usage: sh scripts/npx-smoke.sh agisse-<version>.tgz [node|bun]
 set -e
 tgz=$(realpath "$1")
 runtime=${2:-node}

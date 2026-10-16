@@ -39,9 +39,11 @@ jobs:
       - name: npx agisse from the packed tarball, on Node and Bun
         run: |
           npm run build:local
+          sh scripts/source-archive.sh
           npm pack --ignore-scripts
-          sh scripts/npx-smoke.sh agisse-0.0.0.tgz node
-          sh scripts/npx-smoke.sh agisse-0.0.0.tgz bun
+          tgz="$(node -e "const p=require('./package.json'); process.stdout.write(p.name+'-'+p.version+'.tgz')")"
+          sh scripts/npx-smoke.sh "$tgz" node
+          sh scripts/npx-smoke.sh "$tgz" bun
 
   gitleaks:
     runs-on: ubuntu-latest
