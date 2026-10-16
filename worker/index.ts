@@ -57,6 +57,7 @@ import {
   toSearch,
 } from './lib/shared'
 import { mails } from './lib/email'
+import { sendDeadlineEmails, validUnsubscribe } from './lib/reminders'
 import { exportUserData } from './lib/export'
 import { deleteInactiveAccounts, deleteStaleWaitlist, eraseAccounts, pruneAdminActions, pruneModelOutput } from './lib/retention'
 import { repoNumbers } from './lib/github'
@@ -313,11 +314,22 @@ const TRIAL_ROUTES = [
   /^POST \/api\/profile\/extract$/,
   /^PATCH \/api\/people\/[^/]+$/,
   /^POST \/api\/me\/invite$/,
+  /^PUT \/api\/me\/deadline-email$/,
 ]
+
+// The Monday deadline email's unsubscribe link, signed so it works signed out (worker/lib/reminders.ts). GET only shows a
+// button, since mail scanners open links; POST turns the email off, and is also what List-Unsubscribe-Post one-click sends.
+app.on(['GET', 'POST'], '/api/unsubscribe', async (c) => {
+  const userId = c.req.query('u') ?? ''
+  const ok = await validUnsubscribe(c.env.BETTER_AUTH_SECRET, userId, c.req.query('t') ?? '')
+  if (ok && c.req.method === 'POST') await c.get('db').update(schema.user).set({ deadlineEmail: false }).where(eq(schema.user.id, userId))
+  const body = !ok ? '<p>This unsubscribe link is not valid. Turn the email off in Profile instead.</p>' : c.req.method === 'POST' ? '<p>Done. No more Monday deadline emails. Turn them back on in Profile.</p>' : '<form method="post"><button type="submit">Stop the Monday deadline emails</button></form>'
+  return c.html(`<!doctype html><meta name="viewport" content="width=device-width"><title>Agisse</title><body style="font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 16px">${body}</body>`, ok ? 200 : 400)
+})
 
 // ---- Session guard for everything below ----
 app.use('/api/*', async (c, next) => {
-  if (c.req.path.startsWith('/api/auth') || c.req.path.startsWith('/api/invite/') || c.req.path === '/api/health' || c.req.path === '/api/public/stats') return next()
+  if (c.req.path.startsWith('/api/auth') || c.req.path.startsWith('/api/invite/') || c.req.path === '/api/health' || c.req.path === '/api/public/stats' || c.req.path === '/api/unsubscribe') return next()
   const session = await c.get('auth').api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'Sign in to continue.' }, 401)
   const user = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, session.user.id) })
@@ -653,7 +665,7 @@ async function trialUsed(db: Db, userId: string) {
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
-  const { id, name, email, isAdmin, budgetEur, creditEur, creditGrantedEur } = c.get('user')
+  const { id, name, email, isAdmin, budgetEur, creditEur, creditGrantedEur, deadlineEmail } = c.get('user')
   const [{ profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
     loadMeProfile(db, userId),
     loadBudget(db, c.env, userId, budgetEur),
@@ -661,7 +673,15 @@ app.get('/api/me', async (c) => {
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: { id, name, email, isAdmin }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+  return c.json({ user: { id, name, email, isAdmin, deadlineEmail }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null })
+})
+
+// The Monday deadline email (worker/lib/reminders.ts); off until the seeker turns it on in Profile.
+app.put('/api/me/deadline-email', async (c) => {
+  const parsed = z.object({ on: z.boolean() }).safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Send on: true or false.' }, 400)
+  await c.get('db').update(schema.user).set({ deadlineEmail: parsed.data.on }).where(eq(schema.user.id, c.get('userId')))
+  return c.json({ on: parsed.data.on })
 })
 
 /** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
@@ -2484,7 +2504,8 @@ app.onError((err, c) => {
 
 export default {
   fetch: app.fetch,
-  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, and apply retention.
+  // Daily (wrangler.jsonc triggers): mark saved postings whose public board dropped them as closed, apply retention,
+  // and on Mondays send the deadline emails seekers opted in to.
   async scheduled(_event: ScheduledController, env: Env) {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
@@ -2494,5 +2515,6 @@ export default {
     await pruneModelOutput(db)
     await pruneExaCache(db)
     console.log('inactive accounts', await deleteInactiveAccounts(env, db))
+    console.log('deadline emails', await sendDeadlineEmails(env, db))
   },
 } satisfies ExportedHandler<Env>
