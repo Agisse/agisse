@@ -40,6 +40,7 @@ Last updated October 2026.
 |---|---|
 | Cloudflare Workers and R2 | Free tier |
 | Neon Postgres | Free tier |
+| AI on Agisse's key: Mistral Small 4 (EU); tailored CVs on free models | Paid, with a daily cap |
 
 Paid by: Lennart, the founder, out of pocket. No ads, no selling data, no paid placement in the feed, and no paid plans. When you connect your own AI key, your provider bills you directly, and Agisse sees none of that money.
 
