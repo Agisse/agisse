@@ -26,6 +26,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Today leads with one thing to do and one button: the next setup step, the soonest deadline, test, interview or follow-up, a test to practise for one of your applications, or your best-fitting saved role. Due items say what to do, for example "Follow up with Lowlands Bank". The pipeline is one quiet line instead of five numbers, Coming up shows three items with the rest a tap away, and Get started folds into one line under the card.
 - Prepare opens on the one practice to do next: the tests or interview you have coming up soonest, else your weakest area. Every test sits under "All tests", your progress stays folded at the bottom, and the Interviews tab starts on your upcoming interview.
 - **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.
