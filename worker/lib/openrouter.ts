@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { COMPAT, type UserKey } from './byok'
+import { listModels as planModels, respond } from './chatgpt'
 import { redactor } from './redact'
 
 declare global {
@@ -282,6 +283,8 @@ async function generateDirect<T>(
   const effort = opts.strong?.effort ?? 'low'
   // Dropped after a model rejects it: the seeker may pick a model that doesn't reason.
   let reasoning = true
+  // ChatGPT plans may not take structured output; then the schema goes in the prompt, as for free models.
+  let format = true
   for (let i = 0; i < 2; i++) {
     const remaining = deadline - (Date.now() - started)
     if (remaining < 8_000) break
@@ -302,6 +305,23 @@ async function generateDirect<T>(
         if (res.stop_reason === 'refusal') throw new Error(`refused (${res.stop_details?.category ?? 'no category'})`)
         content = res.content.find((b) => b.type === 'text')?.text
         model = res.model
+      } else if (k.provider === 'chatgpt') {
+        // The seeker's ChatGPT plan through the Responses API (worker/lib/chatgpt.ts); no model picked means the plan's default.
+        model = k.model || (await planModels(k.key))[0] || ''
+        if (!model) throw new Error('404 no model on this plan')
+        const res = await respond(
+          k.key,
+          {
+            model,
+            instructions: format ? opts.system : `${opts.system}\n\nReply with only a JSON object matching this JSON Schema, no prose:\n${JSON.stringify(opts.schema)}`,
+            input: [{ role: 'user', content: opts.user }],
+            ...(reasoning && { reasoning: { effort } }),
+            ...(format && { text: { format: { type: 'json_schema', name: opts.schemaName, strict: true, schema: opts.schema } } }),
+          },
+          remaining,
+        )
+        content = res.text
+        model = res.model || model
       } else {
         const compat = COMPAT[k.provider]!
         const res = await fetch(`${compat.base}/chat/completions`, {
@@ -339,6 +359,7 @@ async function generateDirect<T>(
       console.warn('[byok]', k.provider, k.model, 'failed:', error.slice(0, 300))
       attempts.push({ model: k.model, error })
       if (/^400 .*reasoning/i.test(error)) reasoning = false
+      else if (/^400 .*unsupported_capability/.test(error)) format = false
       // A rejected key or unknown model won't fix itself on a second try.
       if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError || err instanceof Anthropic.NotFoundError || /^(401|403|404) /.test(error)) break
     }

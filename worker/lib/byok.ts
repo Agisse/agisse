@@ -1,4 +1,4 @@
-// Bring your own key: a seeker's own OpenRouter, OpenAI, Anthropic, Gemini or Mistral key pays for their text generation.
+// Bring your own key: a seeker's own OpenRouter, OpenAI, Anthropic, Gemini or Mistral key, or their ChatGPT plan (worker/lib/chatgpt.ts), pays for their text generation.
 // The key is AES-GCM encrypted at rest (key derived from BETTER_AUTH_SECRET, user id as associated data, so a row
 // copied to another user won't decrypt), checked against the provider before it is stored, and never sent back
 // to the browser: the client only sees the provider, model and last four characters.
@@ -7,11 +7,12 @@ import { eq } from 'drizzle-orm'
 import type { Db } from '../db'
 import * as schema from '../db/schema'
 import type { AiProvider } from '../../shared/types'
+import { listModels, refreshGrant, revoke, type Grant } from './chatgpt'
 
 export type UserKey = { provider: AiProvider; key: string; model: string }
 
-/** Default model per provider; for OpenRouter empty means Agisse's own chain, a model id goes first in it. */
-export const DEFAULT_MODEL: Record<AiProvider, string> = { openrouter: '', openai: 'gpt-5-mini', anthropic: 'claude-opus-5-5', gemini: 'gemini-3.8-flash', mistral: 'mistral-large-latest' }
+/** Default model per provider; for OpenRouter empty means Agisse's own chain, a model id goes first in it; for ChatGPT, the plan's first listed model. */
+export const DEFAULT_MODEL: Record<AiProvider, string> = { openrouter: '', openai: 'gpt-5-mini', anthropic: 'claude-opus-5-5', gemini: 'gemini-3.8-flash', mistral: 'mistral-large-latest', chatgpt: '' }
 
 /** OpenAI-compatible chat endpoints; Anthropic goes through its SDK, OpenRouter through Agisse's chain. */
 export const COMPAT: Partial<Record<AiProvider, { base: string; maxTokens: 'max_completion_tokens' | 'max_tokens' }>> = {
@@ -20,8 +21,8 @@ export const COMPAT: Partial<Record<AiProvider, { base: string; maxTokens: 'max_
   mistral: { base: 'https://api.mistral.ai/v1', maxTokens: 'max_tokens' },
 }
 
-// Mistral keys carry no prefix.
-const PREFIX: Record<AiProvider, string> = { openrouter: 'sk-or-', openai: 'sk-', anthropic: 'sk-ant-', gemini: 'AIza', mistral: '' }
+// Mistral keys carry no prefix. ChatGPT is never pasted (PUT /api/ai-key refuses it); its access token is a JWT.
+const PREFIX: Record<AiProvider, string> = { openrouter: 'sk-or-', openai: 'sk-', anthropic: 'sk-ant-', gemini: 'AIza', mistral: '', chatgpt: 'eyJ' }
 
 /** Shape check before any network call: the right prefix, no whitespace, sane length. */
 export function keyLooksValid(provider: AiProvider, key: string) {
@@ -54,6 +55,7 @@ export async function open(secret: string, userId: string, sealed: string) {
 /** One cheap authenticated call; for OpenAI and Anthropic it also proves the model exists for this key. Returns an error message or null. */
 export async function verifyKey(k: UserKey): Promise<string | null> {
   try {
+    if (k.provider === 'chatgpt') return !k.model || (await listModels(k.key)).includes(k.model) ? null : 'Your ChatGPT plan cannot use that model.'
     if (k.provider === 'anthropic') {
       await new Anthropic({ apiKey: k.key, maxRetries: 0, timeout: 10_000 }).models.retrieve(k.model)
       return null
@@ -73,6 +75,7 @@ export async function verifyKey(k: UserKey): Promise<string | null> {
 /** Model ids the key can use, for the model picker; empty when the provider won't list them. */
 export async function listKeyModels(k: UserKey): Promise<string[]> {
   try {
+    if (k.provider === 'chatgpt') return await listModels(k.key)
     if (k.provider === 'anthropic') {
       const page = await new Anthropic({ apiKey: k.key, maxRetries: 0, timeout: 10_000 }).models.list({ limit: 100 })
       return page.data.map((m) => m.id)
@@ -88,14 +91,50 @@ export async function listKeyModels(k: UserKey): Promise<string[]> {
   }
 }
 
-/** The user's key, decrypted; null when none is set or it no longer decrypts (e.g. the auth secret was rotated). */
+/** The user's key, decrypted; null when none is set or it no longer decrypts (e.g. the auth secret was rotated).
+ *  For ChatGPT the key is a fresh access token: refreshed here when it has under five minutes left, as a request can take two. */
 export async function loadUserKey(db: Db, env: Env, userId: string): Promise<UserKey | null> {
   const row = await db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId) })
   if (!row) return null
+  let plain: string
   try {
-    return { provider: row.provider, key: await open(env.BETTER_AUTH_SECRET, userId, row.sealed), model: row.model }
+    plain = await open(env.BETTER_AUTH_SECRET, userId, row.sealed)
   } catch {
     console.warn('[byok] key for', userId, 'does not decrypt; ignoring it')
     return null
   }
+  if (row.provider !== 'chatgpt') return { provider: row.provider, key: plain, model: row.model }
+  const grant = await freshGrant(db, env, userId, JSON.parse(plain) as Grant)
+  return grant && { provider: 'chatgpt', key: grant.access, model: row.model }
+}
+
+// Refresh tokens rotate, so two refreshes of one grant at once would burn it: one at a time per user.
+// ponytail: per-process, which is all of `npx agisse`; a hosted server would need a row lock across isolates.
+const refreshing = new Map<string, Promise<Grant | null>>()
+
+export function freshGrant(db: Db, env: Env, userId: string, g: Grant, now = Date.now()): Promise<Grant | null> {
+  if (g.expiresAt - now > 5 * 60_000) return Promise.resolve(g)
+  const running = refreshing.get(userId)
+  if (running) return running
+  const p = (async () => {
+    // OpenAI unreachable: keep the token while it still works, and skip this request's plan usage once it doesn't.
+    const next = await refreshGrant(g).catch((err) => {
+      console.warn('[chatgpt] refresh failed', err instanceof Error ? err.message : err)
+      return undefined
+    })
+    if (next === undefined) return g.expiresAt > now ? g : null
+    // A dead refresh token: the tokens go, and Profile shows Connect again.
+    if (!next) await db.delete(schema.aiKey).where(eq(schema.aiKey.userId, userId))
+    else await db.update(schema.aiKey).set({ sealed: await seal(env.BETTER_AUTH_SECRET, userId, JSON.stringify(next)) }).where(eq(schema.aiKey.userId, userId))
+    return next
+  })().finally(() => refreshing.delete(userId))
+  refreshing.set(userId, p)
+  return p
+}
+
+/** Ends a connected ChatGPT plan's session at OpenAI before its row goes (Disconnect, Delete account); best effort. */
+export async function revokePlan(db: Db, env: Env, userId: string) {
+  const row = await db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId) })
+  if (row?.provider !== 'chatgpt') return
+  await open(env.BETTER_AUTH_SECRET, userId, row.sealed).then((plain) => revoke(JSON.parse(plain) as Grant), () => {})
 }

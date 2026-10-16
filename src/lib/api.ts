@@ -44,7 +44,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean; /** Opted in to the Monday deadline email. */ deadlineEmail: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null }
+export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean; /** Opted in to the Monday deadline email. */ deadlineEmail: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null; /** "Connect ChatGPT" is offered: local mode, or a hosted server OpenAI admitted. */ chatgpt: boolean }
 /** No school, employers, organizations or skills: nothing to find shared ground with. */
 export function profileIsEmpty(me: Me) {
   const p = me.profile
@@ -56,7 +56,7 @@ export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
 export type AccessStatus = 'pending' | 'approved' | 'rejected'
-export type LiveSwitch = { key: 'GLOBAL_DAILY_USD_CAP' | 'FREE_DAILY_ACTIONS' | 'FREE_DAILY_ACTIONS_ALL' | 'MONTHLY_BUDGET_EUR' | 'FEED_DAILY_PAGES'; value: string; changedBy: string | null; changedAt: string | null }
+export type LiveSwitch = { key: 'GLOBAL_DAILY_USD_CAP' | 'FREE_DAILY_ACTIONS' | 'FREE_DAILY_ACTIONS_ALL' | 'MONTHLY_BUDGET_EUR' | 'FEED_DAILY_PAGES' | 'CHATGPT_PLAN'; value: string; changedBy: string | null; changedAt: string | null }
 export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number; freeLimitToday: boolean; /** Admins only: accounts that joined with their share link, and the credit those spent. */ joined: { count: number; creditUsedEur: number } | null }
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */

@@ -4,6 +4,7 @@ import { captcha, jwt } from 'better-auth/plugins'
 import { eq, and, gt, isNull, or, sql } from 'drizzle-orm'
 import { mails } from './lib/email'
 import { eraseOutsideCascade } from './lib/retention'
+import { revokePlan } from './lib/byok'
 import { newReferralCode, readCookie, resolveReferral, waitlistPosition } from './lib/waitlist'
 import { mcp } from '@better-auth/mcp'
 import type { Db } from './db'
@@ -125,7 +126,7 @@ export function createAuth(env: Env, db: Db, origin: string) {
         enabled: true,
         // Every other table cascades from user; the MCP OAuth tables have no foreign key, so their tokens and consents go here, with the PDF and the analytics person.
         beforeDelete: async (user) => {
-          await eraseOutsideCascade(env, db, [user.id])
+          await Promise.all([eraseOutsideCascade(env, db, [user.id]), revokePlan(db, env, user.id)])
         },
       },
       additionalFields: {

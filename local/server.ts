@@ -179,6 +179,8 @@ const env = {
   API_LIMITER: limiter(60),
   CF_VERSION_METADATA: { id: version, tag: '', timestamp: '' },
   PUBLIC_LAUNCH: '0',
+  // ChatGPT plan usage is allowed for locally run open-source apps (worker/lib/chatgpt.ts).
+  AGISSE_LOCAL: '1',
 } as unknown as Env
 const ctx = { waitUntil: (p: Promise<unknown>) => void p.catch(console.error), passThroughOnException() {}, props: {} } as unknown as ExecutionContext
 
