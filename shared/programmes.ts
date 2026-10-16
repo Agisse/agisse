@@ -4,6 +4,8 @@ import { VACANCY_FUNCTIONS } from './listings'
 
 export const PROGRAMME_KINDS = { master: "Master's", mba: 'MBA', phd: 'PhD', phd_position: 'Funded PhD' } as const
 export type ProgrammeKind = keyof typeof PROGRAMME_KINDS
+/** Agisse's audience: the EU, the EEA, the UK and Switzerland. Their programmes rank first. */
+export const EUROPE = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH']
 export const STUDY_MODES: Record<string, string> = { full_time: 'Full-time', part_time: 'Part-time', online: 'Online' }
 
 export type Programme = {

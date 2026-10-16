@@ -2,7 +2,7 @@ import { and, asc, desc, eq, gte, isNull, lte, or, sql, type SQL } from 'drizzle
 import type { Db } from '../db'
 import { schema } from '../db'
 import { plainText } from '../../shared/listings'
-import { nextKinds, type Programme, type ProgrammeFacets } from '../../shared/programmes'
+import { EUROPE, nextKinds, type Programme, type ProgrammeFacets } from '../../shared/programmes'
 import { degreeQuery, PAGE } from './vacancies'
 
 export type ProgrammeQuery = {
@@ -65,7 +65,7 @@ const toProgramme = ({ rankThe, rankQs, rankFt, ...r }: Row): Programme => ({
  * One page of open programmes, ranked for the seeker like the job feed, with no model call:
  * 50% their degree's field words in the programme's text, 15% a picked field, 15% the institution's best ranking
  * (top 500 stretched to 0–1), 10% the next step after their degree (a master's after a bachelor's, a PhD after a master's),
- * 10% a deadline within a month. With "closing soon" on, soonest deadline first.
+ * 10% a deadline within a month. With "closing soon" on, soonest deadline first. Europe's programmes come before the rest either way.
  */
 export async function searchProgrammes(db: Db, userId: string, f: ProgrammeQuery, degree = ''): Promise<{ programmes: Programme[]; more: boolean; total: number }> {
   const tsq = degreeQuery(degree)
@@ -77,7 +77,8 @@ export async function searchProgrammes(db: Db, userId: string, f: ProgrammeQuery
   const step = next.length ? sql`(${p.kind} = ANY(${textArray(next)}))::int` : sql`0`
   const soon = sql`coalesce((${p.deadline} <= current_date + 30)::int, 0)`
   const score = sql`(0.5 * ${fit} + 0.15 * ${field} + 0.15 * ${prestige} + 0.1 * ${step} + 0.1 * ${soon})`
-  const order = f.deadlineWithin ? [asc(p.deadline), desc(score)] : [desc(score), desc(p.firstSeen)]
+  const europe = sql`coalesce(${p.country} = ANY(${textArray(EUROPE)}), false)`
+  const order = f.deadlineWithin ? [desc(europe), asc(p.deadline), desc(score)] : [desc(europe), desc(score), desc(p.firstSeen)]
   const where = and(...programmeFilters(f, userId))
   const [rows, [count]] = await Promise.all([
     db
