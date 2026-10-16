@@ -38,6 +38,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Getting started is shorter: three screens instead of four. Choose your CV and Agisse moves on by itself. The fields it suggests come from your CV, and your country from your browser's language; one tap undoes either. The level question is gone (both internships and graduate roles show; Filters narrows it), and LinkedIn import sits behind "No PDF at hand?". Right after a CV upload, the feed no longer asks you to add your résumé.
 - One employer under any spelling: "KPMG Belgium", "KPMG Advisory BV" and "kpmg" count as KPMG, and "PricewaterhouseCoopers" as PwC, for the outcome line, the "Which test?" counts, the online test on file and contacts on the board. Look-alikes stay apart: Bain Capital is not Bain, and EYE is not EY. The floors stay the same: at least 10 people, or 2 students, counted once each however they spelled it.
 - The launch homepage says what Agisse is in its first lines: a free, open-source job copilot for students and graduates in Europe. Under Get started: Never applies for you · Your data stays yours · Code on GitHub. On phones the headline breaks cleanly and the footer line no longer wraps after a dot.
 - Analytics collect less: page addresses reach PostHog without their query string or ids, clicks and heatmaps are no longer recorded (only named actions such as saving a job), and nothing is sent when your browser asks not to be tracked.

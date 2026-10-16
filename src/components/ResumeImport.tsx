@@ -109,15 +109,19 @@ export function ResumeImport({ onExtracted, autosave }: { onExtracted: (p: Profi
             Cancel
           </Button>
         ) : (
-          <span className={cn(buttonVariants({ variant: 'outline' }), 'pointer-events-none h-10 px-4')} aria-hidden="true">
+          <span className={cn(buttonVariants({ variant: autosave ? 'default' : 'outline' }), 'pointer-events-none h-10 px-4')} aria-hidden="true">
             Choose PDF
           </span>
         )}
       </label>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${id}-li`}>Or from LinkedIn</Label>
-        <div className="flex flex-col gap-2 sm:flex-row">
+      {/* Folded: the PDF is the fast path, LinkedIn the fallback. */}
+      <details className="flex flex-col gap-1.5">
+        <summary className="w-fit cursor-pointer list-none text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline [&::-webkit-details-marker]:hidden">
+          No PDF at hand? Use your LinkedIn profile
+        </summary>
+        <Label htmlFor={`${id}-li`} className="sr-only">LinkedIn profile URL</Label>
+        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <Input
             id={`${id}-li`}
             className="h-10 px-3 sm:flex-1"
@@ -133,7 +137,7 @@ export function ResumeImport({ onExtracted, autosave }: { onExtracted: (p: Profi
             {phase.kind === 'linkedin' ? 'Reading…' : 'Fill from LinkedIn'}
           </Button>
         </div>
-      </div>
+      </details>
       {(phase.kind === 'extracting' || phase.kind === 'linkedin') && <AiWorking label="Picking out school, work, organizations, skills" />}
 
       {phase.kind === 'done' && (
