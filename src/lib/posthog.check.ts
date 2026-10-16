@@ -1,5 +1,5 @@
 // Run: npx tsx src/lib/posthog.check.ts
-import { scrubUrl } from './posthog.ts'
+import { scrubUrl } from '../../shared/scrub-url.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (got !== want) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)

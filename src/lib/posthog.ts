@@ -1,13 +1,11 @@
 import type { CaptureResult, PostHog, Properties } from 'posthog-js'
+import { scrubUrl } from '../../shared/scrub-url'
 
 const posthogKey = import.meta.env?.VITE_POSTHOG_KEY
 const posthogHost = import.meta.env?.VITE_POSTHOG_HOST
 
-// Query strings and fragments carry reset tokens, invite codes and OAuth requests, and paths carry job and search ids,
-// so PostHog gets /jobs/:id and nothing after it. UTM tags still arrive: posthog-js copies them into their own properties first.
-export const scrubUrl = (url: string) =>
-  url.replace(/[?#].*$/s, '').replace(/\/(?:[0-9a-f]{8}-[0-9a-f-]{27}|(?=[^/]*\d)[\w-]{8,})(?=\/|$)/gi, '/:id')
 
+// UTM tags still arrive: posthog-js copies them into their own properties before this runs.
 const scrubbed = (props: Properties | undefined) => {
   for (const k in props) if (/(url|pathname|referrer)$/.test(k) && typeof props[k] === 'string') props[k] = scrubUrl(props[k])
 }

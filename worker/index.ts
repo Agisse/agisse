@@ -10,6 +10,7 @@ import { createDb, dbTiming, schema, type Db } from './db'
 import { forgetSwitches, isSwitch, switchRows, SWITCHES, withSwitches } from './lib/settings'
 import { isAdminEmail, createAuth, unexpired, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
+import { scrubUrl } from '../shared/scrub-url'
 import { checkClosedPostings } from './lib/closed'
 import { employerOutcomes, qualityReport } from './lib/quality'
 import { APP_CSP, DOCS_CSP } from './lib/csp'
@@ -96,16 +97,21 @@ type Variables = {
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // Sentry wraps everything else, so it must be the first middleware registered.
-// Request bodies and cookies never go to Sentry: a body can hold a CV, a note or an own AI key.
-const scrub = <E extends { request?: { data?: unknown; cookies?: unknown } }>(event: E) => {
+// Request bodies and cookies never go to Sentry: a body can hold a CV, a note or an own AI key. Addresses lose their
+// query string and ids, like PostHog's (shared/scrub-url.ts).
+const scrub = <E extends { request?: { url?: string; query_string?: unknown; data?: unknown; cookies?: unknown } }>(event: E) => {
   if (event.request) {
+    if (event.request.url) event.request.url = scrubUrl(event.request.url)
+    delete event.request.query_string
     delete event.request.data
     delete event.request.cookies
   }
   return event
 }
+// SDK v11 collects user info, cookies, query strings and bodies unless told not to (`sendDefaultPii` is gone).
+const dataCollection = { userInfo: false, cookies: false, urlQueryParams: false, httpBodies: [], genAI: { inputs: false, outputs: false }, databaseQueryData: false, stackFrameVariables: false }
 // Errors are always sent; a trace costs ~6–11 ms and 5–20 kB per request (docs/performance.md), so one in ten is traced.
-app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1, enableLogs: true, sendDefaultPii: false, beforeSend: scrub, beforeSendTransaction: scrub })))
+app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1, enableLogs: true, dataCollection, beforeSend: scrub, beforeSendTransaction: scrub })))
 
 // agisse.xyz's zone redirects http → https and www → apex itself; this stays for self-hosted zones without
 // those rules (hashed build files skip the Worker, see wrangler.jsonc). Local dev stays on http.
