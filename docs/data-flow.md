@@ -16,6 +16,7 @@ This page describes what the code does: what is stored, where, and which outside
 | Original résumé PDF | R2: `resumes/<userId>.pdf` | One per user, replaced on re-upload |
 | Own AI key | Postgres: `ai_key` | AES-GCM encrypted, never sent back to the browser; only the last four characters are shown |
 | Saved postings, tracker, notes, drafts | Postgres: `job` | Per user |
+| Saved programmes | Postgres: `saved_programme` | Per user: the programme's link and when it was saved |
 | Pasted posting text | Postgres: `posting` | Shared across users, so two people who paste the same job reuse one evaluation. It holds the posting, not anyone's CV |
 | People found at a company | Postgres: `search`, `person` | Public profile text from Exa, per user |
 | Practice answers, interview and assessment prep | Postgres: `practice_answer`, `interview_question_set`, `training_session`, … | Per user. Mock-interview video stays in the browser |
@@ -26,6 +27,7 @@ This page describes what the code does: what is stored, where, and which outside
 | Web search cache | Postgres: `exa_cache` | Deleted after 7 days |
 | Company facts | Postgres: `company` | From Wikidata, refreshed after 30 days |
 | Job feed | Postgres: `vacancy`, `profile_embedding`, `vacancy_fit` | Written by a feed provider outside this repo, see below |
+| Education programmes | Postgres: `programme` | Public facts about programmes, written by a provider outside this repo ([education contract](/education-contract)); no personal data |
 
 Deleting an account removes the user's own rows (foreign keys cascade) and their PDF in R2. Shared rows, such as how a company's hiring rounds run (`assessment_intel`, `selection_intel`), stay, with the link to the user removed.
 
