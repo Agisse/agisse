@@ -516,7 +516,7 @@ const Doc = ({ href, children }: { href: string; children: ReactNode }) => (
 const LAUNCH_FAQ: [string, ReactNode][] = [
   ['How is the score made?', <>Agisse lists what a posting asks for and checks each point against your CV. Below 4.0 out of 5 it calls the role a long shot and names the gaps. <Doc href="/docs/methodology">How the score works</Doc></>],
   ['Does it apply for me?', 'No, on purpose. Auto-apply bots flood recruiters, who then filter harder. Agisse drafts; you submit and send, from your own accounts.'],
-  ['Is it free, and how is it funded?', 'Yes, it’s free: no paid plan, no ads, and your data is never sold. Try it on free AI models. For real use, connect your own OpenRouter key and pay OpenRouter directly. The hosting costs little.'],
+  ['Is it free, and how is it funded?', 'Yes, it’s free: no paid plan, no ads, and your data is never sold. Try the AI features free on Agisse’s key. For real use, connect your own OpenRouter key and pay OpenRouter directly. The hosting costs little.'],
   ['Where does my data live?', <>In a database in the EU. With your own AI key, requests go straight to your provider. Download your data or delete your account in Profile at any time. <Doc href="/docs/data-flow">What goes where</Doc></>],
   ['Does Agisse work for employers?', 'No. Agisse is on your side only: it never scores or ranks candidates for employers, never sells or shares your data with them, and no employer can pay to appear in your feed.'],
   ['Who’s behind it?', 'Lennart started Agisse to help people learn about AI while searching and applying for jobs. It is an open-source project, not a company.'],

@@ -433,7 +433,8 @@ ${source}
 ${jobText(job)}`
   const { data, model } = await generateStructured({
     apiKey: env.OPENROUTER_API_KEY,
-    preferredModels: preferredModels(env),
+    // Free models only on Agisse's key (owner, 2026-10-16): the eval judged their CVs 3.9 against Mistral Small 4's 2.9–3.0.
+    preferredModels: preferredModels(env).filter((m) => m.endsWith(':free')),
     system,
     user: user + style,
     schemaName: 'agisse_cv',

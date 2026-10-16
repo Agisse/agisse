@@ -1,7 +1,7 @@
 // Run: npx tsx worker/lib/jobs.check.ts
 import { readFileSync } from 'node:fs'
 import { FAIRNESS } from './pipeline.ts'
-import { coverProblem, evaluationBrief, finalizeCheck, fitToLimit, shortTextProblem, finalizeEvaluation, postingFacts, postingKey, recommendationFor, verifyCv } from './jobs.ts'
+import { coverProblem, draftCover, tailorCv, evaluationBrief, finalizeCheck, fitToLimit, shortTextProblem, finalizeEvaluation, postingFacts, postingKey, recommendationFor, verifyCv } from './jobs.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -157,3 +157,19 @@ eq(cv4.changes?.map((c) => c.change), ['Reworded the KBC bullet'], 'change for d
 if (!evaluationBrief('posting', null, 'cv').system.includes(FAIRNESS)) throw new Error('evaluation prompt lacks FAIRNESS')
 eq(readFileSync('worker/lib/jobs.ts', 'utf8').split('${FAIRNESS}').length - 1, 3, 'prompts with FAIRNESS in jobs.ts')
 console.log('fairness check passed')
+
+// Routing on Agisse's key: tailored CVs skip the paid default and go straight to the free chain; cover letters start on it.
+const asked: string[] = []
+globalThis.fetch = (async (url: string, init?: RequestInit) => {
+  if (String(url).endsWith('/chat/completions')) asked.push(JSON.parse(String(init?.body)).model)
+  return new Response('{}', { status: 500 })
+}) as unknown as typeof fetch
+console.warn = console.error = () => {}
+const routeEnv = { OPENROUTER_API_KEY: 'sk-server', OPENROUTER_MODELS: 'mistralai/mistral-small-2603,a/free:free' } as unknown as Env
+const routeJob = { company: 'Example', role: 'Analyst', jdText: 'posting', evaluation: { requirements: [], keywords: [] } } as unknown as Parameters<typeof tailorCv>[1]
+await tailorCv(routeEnv, routeJob, null, 'cv text').catch(() => {})
+eq([...new Set(asked)], ['a/free:free'], 'tailored CV models')
+asked.length = 0
+await draftCover(routeEnv, routeJob, null, 'cv text', 'Sam').catch(() => {})
+eq(asked[0], 'mistralai/mistral-small-2603', 'cover letter first model')
+console.log('routing check passed')

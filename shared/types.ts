@@ -23,7 +23,7 @@ export type Profile = {
   background: string
   /** Premium accounts get 300 characters per connection note, free ones 200. */
   linkedinPremium: boolean
-  /** Smart = paid models within a price cap, only on the seeker's own OpenRouter key; Agisse's key always uses free models. */
+  /** Smart = paid models within a price cap, only on the seeker's own OpenRouter key; Agisse's key uses OPENROUTER_MODELS (Mistral Small 4, then free models). */
   smartModel: boolean
   /** Tracker status changes may count, anonymised and only with 10+ others, towards response figures other users see. */
   shareOutcomes: boolean
