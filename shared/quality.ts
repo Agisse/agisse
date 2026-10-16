@@ -61,10 +61,13 @@ export function progressed(history: StatusChange[], appliedAt: Date | string | n
   return null
 }
 
+/** "Count my tracker anonymously" (profile.shareOutcomes): on unless the seeker turned it off. The SQL twin is `sharesOutcomes` in worker/lib/quality.ts. */
+export const countsTracker = (share: boolean | null | undefined) => share !== false
+
 /** Score calibration rows: seekers who turned off "Count my tracker anonymously" (shareOutcomes false) are left out, and so are pending applications. */
 export function scoreRows(jobs: { score: number; history: StatusChange[]; appliedAt: Date | string | null; share: boolean | null }[], now: Date) {
   return jobs.flatMap((j) => {
-    const hit = j.share === false ? null : progressed(j.history, j.appliedAt, now)
+    const hit = !countsTracker(j.share) ? null : progressed(j.history, j.appliedAt, now)
     return hit === null ? [] : [{ value: j.score, hit }]
   })
 }

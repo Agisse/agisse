@@ -5,7 +5,7 @@ description: What Agisse collects, why, who processes it and how to exercise you
 
 # Privacy policy
 
-_Last updated: 15 October 2026_
+_Last updated: 16 October 2026_
 
 Agisse is in beta; full access is by invite. You must be at least 18 to use it. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
 
@@ -25,7 +25,7 @@ Agisse is in beta; full access is by invite. You must be at least 18 to use it. 
 
 We never sell your data and never use it to advertise to you.
 
-**Outcomes from your tracker.** The status changes in your tracker and their dates (applied, test, interview, offer) may be counted, with other users', to show how employers respond, for example "6 of 23 got a test within about 10 days". Agisse doesn't show these figures yet. When it does, a figure appears only when at least 10 people are behind it, and never names you. To leave your tracker out, turn off **Count my tracker anonymously** in Profile & settings.
+**Outcomes from your tracker.** The status changes in your tracker and their dates (applied, test, interview, offer) may be counted, with other users', to show how employers respond, for example "From 20+ applicants in the past year: 35% got a test". A figure appears on a posting only when at least 10 people are behind it. It covers the past 12 months and changes once a week; counts are shown as bands (10+, 20+, 50+) and rates are rounded to 5%. It never names you. To leave your tracker out, turn off **Count my tracker anonymously** in Profile & settings.
 
 **Monday deadline email.** Off unless you turn on **Email me on Mondays about deadlines this week** in Profile & settings. On Mondays we then email you the roles in your tracker that close that week, and tests, interviews and offer replies that fall in it, through Resend. Nothing new is stored beyond the on/off choice, and no email goes out in a week with nothing due. The email has no tracking pixel. Turn it off in Profile or with the unsubscribe link in any of these emails.
 
