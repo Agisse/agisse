@@ -189,7 +189,8 @@ export type CompanyAssessment = {
   interview?: { prepSec: number; answerSec: number; retakes: number; questions: number } | null
 }
 
-export const REPORT_KINDS = ['assessment changed', 'test no longer used', 'new game encountered', 'provider changed'] as const
+// 'test reported' is the one-tap "Which test?" answer (shared/test-reports.ts), not a correction filed in the form.
+export const REPORT_KINDS = ['assessment changed', 'test no longer used', 'new game encountered', 'provider changed', 'test reported'] as const
 export type ReportKind = (typeof REPORT_KINDS)[number]
 export type AssessmentReport = { id: string; company: string; kind: ReportKind; detail: string | null; createdAt: string }
 

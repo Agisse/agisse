@@ -285,6 +285,9 @@ export const PROVIDER_GAMES: ProviderGame[] = [
   }),
 ]
 
+/** Every publisher with a game in the catalogue: the choices for "Which test?". */
+export const PUBLISHERS = [...new Set(PROVIDER_GAMES.map((g) => g.provider))]
+
 export const providerGame = (id: string) => PROVIDER_GAMES.find((x) => x.id === id) ?? null
 export const providerGames = (provider: string) => PROVIDER_GAMES.filter((x) => x.provider === provider)
 
