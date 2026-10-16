@@ -17,13 +17,14 @@ The easiest: paste `Read https://agisse.xyz/agent.md and set up my own Agisse.` 
 You need Node 20 or later, or Bun.
 
 ```sh
-npx github:Agisse/agisse
+npx agisse
 ```
 
 Agisse runs on `http://localhost:3000` and keeps everything in `./agisse-data/`: the database (an embedded Postgres), uploaded CVs and a secret made on the first run. From a clone, `npm install && npm run build && npm run local` does the same.
 
 - **AI:** each user connects their own key under Profile → AI. To give everyone the server's key, start it with `OPENROUTER_API_KEY` set. The other [optional keys](#optional-keys) work the same way, except the `VITE_*` ones, which are set when the app is built.
-- **Jobs:** the feed starts empty. Stop Agisse, run `npx github:Agisse/agisse import-feed` to load public roles from Arbeitnow, and start it again. Run it again to refresh.
+- **Jobs:** the feed starts empty. Stop Agisse, run `npx agisse import-feed` to load public roles from Arbeitnow, and start it again. Run it again to refresh.
+- **Admin:** sign up, stop Agisse, run `npx agisse admin you@example.com` and start it again. You approve other accounts at `/admin`.
 - **Settings:** `PORT` and `AGISSE_DATA` change the port and the folder. With `DATABASE_URL`, Agisse uses your Neon database instead of the embedded one.
 
 What it lacks next to Cloudflare:
@@ -32,8 +33,7 @@ What it lacks next to Cloudflare:
 - rate limits count per process and reset on restart;
 - one Agisse per data folder;
 - no email without `RESEND_API_KEY`: emails print to the console;
-- backups are copies of `agisse-data/`, taken while Agisse is stopped;
-- no admin yet on the embedded database: every account stays a trial account, as there's no SQL editor to run [Become the admin](#_4-become-the-admin) in. With `DATABASE_URL`, use Neon's.
+- backups are copies of `agisse-data/`, taken while Agisse is stopped.
 
 ## On Cloudflare
 
@@ -128,7 +128,7 @@ If other people use your copy, you are the controller of their data under the GD
 
 ## Getting help
 
-Ask in [GitHub Discussions](https://github.com/agisse/agisse/discussions). Help comes from the community, on a best-effort basis, with no response times. Only the two ways above are supported.
+Ask in [GitHub Discussions](https://github.com/Agisse/agisse/discussions). Help comes from the community, on a best-effort basis, with no response times. Only the two ways above are supported.
 
 ## Name and logo
 
