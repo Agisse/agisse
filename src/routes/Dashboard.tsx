@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
-import { AlertCircle, ArrowRight, BriefcaseBusiness, Check, ChevronRight, Pencil, Search, UserRound } from 'lucide-react'
+import { AlertCircle, ArrowRight, BriefcaseBusiness, Check, ChevronRight, Pencil, Play, Search, UserRound } from 'lucide-react'
 import type { JobStatus } from '../../shared/types'
 import { EMPTY_FEED_PREFS } from '../../shared/listings'
 import { api, profileIsEmpty, type Me } from '../lib/api'
-import { formatDate, remembered, useResource } from '../lib/hooks'
+import { remembered, useResource } from '../lib/hooks'
 import { dueItems } from '../lib/followup'
+import { dueCard, personHref, todayNext, when, type Step, type TodayCard } from '../lib/today'
 import { weekCounts } from '../lib/week'
 import { InviteCard } from '../components/InviteCard'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -16,22 +17,19 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-/** The pipeline at a glance: each stage's count, one link to My jobs. */
+/** The pipeline in one line: each stage that has jobs, one link to My jobs. */
 const STAGES: [string, JobStatus[]][] = [
-  ['Saved', ['saved']],
-  ['To decide', ['evaluated']],
-  ['Applied', ['applied', 'responded']],
-  ['Interviewing', ['assessment', 'interview']],
-  ['Offer', ['offer']],
+  ['saved', ['saved']],
+  ['to decide', ['evaluated']],
+  ['applied', ['applied', 'responded']],
+  ['interviewing', ['assessment', 'interview']],
+  ['with an offer', ['offer']],
 ]
 
-const DAY = 86_400_000
-/** "Today", "Tomorrow", or the date; past ones are marked overdue. */
-function when(iso: string, now = new Date()) {
-  const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
-  const days = Math.round((midnight(new Date(iso)) - midnight(now)) / DAY)
-  return { text: days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : formatDate(iso), overdue: days < 0 }
-}
+/** Coming up shows this many rows; the rest open on tap. */
+const SHOWN = 3
+
+const ICON: Record<TodayCard['kind'], ReactNode> = { step: <ArrowRight />, job: <BriefcaseBusiness />, person: <UserRound />, practice: <Play />, role: <BriefcaseBusiness />, clear: <Search /> }
 
 function greeting(name: string, now = new Date()) {
   const h = now.getHours()
@@ -40,20 +38,20 @@ function greeting(name: string, now = new Date()) {
   return first && !first.includes('@') ? `${hello}, ${first}` : hello
 }
 
-/** A section heading: small, semibold, sentence case; an optional quiet action on the right. */
-function SectionHead({ id, children, action }: { id: string; children: ReactNode; action?: ReactNode }) {
+/** A section heading: small, semibold, sentence case. */
+function SectionHead({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <div className="flex min-h-8 items-center justify-between gap-3 px-1">
-      <h2 id={id} className="m-0 text-[15px] font-semibold tracking-tight text-foreground">{children}</h2>
-      {action}
-    </div>
+    <h2 id={id} className="m-0 flex min-h-8 items-center px-1 text-[15px] font-semibold tracking-tight text-foreground">
+      {children}
+    </h2>
   )
 }
 
 /** One inset grouped list (iOS Settings style): hairline ring, rows divided by hairlines. */
 const GROUP = 'overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10'
+const QUIET_LINK = 'text-primary underline-offset-4 hover:underline'
 
-/** Today: what to do next, the shape of the search, and what is coming up. The assistant lives in the dock. */
+/** Today: the one thing to do next, then what else is coming up, then the search in a line or two. The assistant lives in the dock. */
 export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> }) {
   const trial = !!me.trial
   const people = useResource(() => api.contacted().then((r) => r.people), [])
@@ -66,14 +64,20 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
   const allJobs = jobs.data ?? []
 
   // First run: four steps from an empty profile to a first application, each read from data already loaded.
-  const steps: { done: boolean; label: string; href: string }[] = [
-    { done: !profileIsEmpty(me), label: 'Import your résumé', href: '/welcome' },
+  const steps: Step[] = [
+    { done: !profileIsEmpty(me), label: 'Upload your CV', detail: 'Agisse matches roles and practice to it.', action: 'Upload CV', href: '/welcome' },
     ...(trial
       ? []
       : [
-          { done: JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) !== JSON.stringify(EMPTY_FEED_PREFS), label: 'Say what you are looking for', href: '/welcome?step=looking' },
-          { done: allJobs.length > 0, label: 'Save a role', href: '/jobs?view=feed' },
-          { done: allJobs.some((j) => j.appliedAt), label: 'Apply to one', href: '/jobs?view=track' },
+          {
+            done: JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) !== JSON.stringify(EMPTY_FEED_PREFS),
+            label: 'Say what you’re looking for',
+            detail: 'Role, country and level. Your feed fills from it.',
+            action: 'Choose',
+            href: '/welcome?step=looking',
+          },
+          { done: allJobs.length > 0, label: 'Save a role', detail: 'Pick one from your feed to track it here.', action: 'Open feed', href: '/jobs?view=feed' },
+          { done: allJobs.some((j) => j.appliedAt), label: 'Apply to one', detail: 'Mark it applied and Today reminds you to follow up.', action: 'Open my jobs', href: '/jobs?view=track' },
         ]),
   ]
   const week = weekCounts(allJobs)
@@ -99,18 +103,19 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
   }
 
   const nextStep = loading ? undefined : steps.find((s) => !s.done)
-  const checklist = nextStep && steps.length > 1
-
-  // The one primary: the next first-run step, else the first thing due (then left out of the list).
-  const first = nextStep ? undefined : due[0]
-  const rest = first ? due.slice(1) : due
+  const checklist = !!nextStep && steps.length > 1
+  const card = loading ? undefined : todayNext({ step: nextStep, due, jobs: allJobs, trial })
+  // The card shows the first thing due, so the list leaves it out.
+  const rest = card?.kind === 'job' || card?.kind === 'person' ? due.slice(1) : due
+  const [showAll, setShowAll] = useState(false)
   // Until the lists answer, this browser's last answer decides whether Coming up's placeholder draws, so it doesn't vanish under the seeker.
   const [hadMore] = useState(() => remembered('coming-up', ['some', 'none'], 'none') === 'some')
   useEffect(() => {
     if (!loading) remembered('coming-up', ['some', 'none'], 'none', rest.length ? 'some' : 'none')
   }, [loading, rest.length])
-  const personHref = (p: { id: string; search: { id: string } | null }) => (p.search ? `/s/${p.search.id}#p-${p.id}` : '/contacts?view=contacted')
   const offers = allJobs.filter((j) => j.status === 'offer').length
+  const pipeline = STAGES.map(([label, statuses]) => [allJobs.filter((j) => statuses.includes(j.status)).length, label] as const).filter(([n]) => n > 0)
+  const cvNudge = !profileIsEmpty(me) && (me.cvReview?.score ?? 0) < 85
 
   return (
     <main className="mx-auto flex w-full max-w-[960px] flex-col gap-8 px-4 pt-6 pb-8 md:px-10 md:pt-10 md:pb-16">
@@ -123,91 +128,49 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
         </Alert>
       )}
 
-      {/* The one primary: first-run checklist, else the next thing due, else a way in. */}
-      {loading ? (
+      {/* The one primary: the next first-run step, else the first thing due, else a test or a role, else a way in. */}
+      {!card ? (
         <Card className="gap-3 rounded-2xl p-5" aria-busy="true" aria-label="Loading">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-6 w-2/3" />
           <Skeleton className="h-4 w-1/3" />
         </Card>
-      ) : checklist ? (
-        <Card className="gap-0 rounded-2xl p-0">
-          <div className="flex items-baseline justify-between gap-3 px-5 pt-5 pb-4">
-            <h2 className="m-0 text-xl font-semibold tracking-tight">Get started</h2>
-            <span className="text-sm text-muted-foreground tabular-nums">
-              {steps.filter((s) => s.done).length} of {steps.length} done
-            </span>
-          </div>
-          <ol className="m-0 list-none border-t border-border p-0" aria-label="Getting started">
-            {steps.map((s) => {
-              const isNext = s === nextStep
-              return (
-                <li key={s.label} className={cn('flex min-h-14 items-center gap-3 border-b border-border px-5 py-3 last:border-b-0', isNext && 'bg-primary/5')}>
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'grid size-6 shrink-0 place-items-center rounded-full',
-                      s.done ? 'bg-primary text-primary-foreground' : isNext ? 'ring-2 ring-primary ring-inset' : 'ring-1 ring-foreground/20 ring-inset',
-                    )}
-                  >
-                    {s.done && <Check className="size-3.5" strokeWidth={3} />}
-                  </span>
-                  {s.done ? (
-                    <span className="flex-1 text-[15px] text-muted-foreground">
-                      {s.label}
-                      <span className="sr-only"> (done)</span>
-                    </span>
-                  ) : isNext ? (
-                    <>
-                      <span className="flex-1 text-[15px] font-medium">{s.label}</span>
-                      <Button size="lg" className="h-10 px-4 max-md:h-11" render={<Link href={s.href} />}>
-                        Start <ArrowRight data-icon="inline-end" aria-hidden="true" />
-                      </Button>
-                    </>
-                  ) : (
-                    <Link href={s.href} className="flex-1 text-[15px] text-foreground no-underline hover:underline underline-offset-4">
-                      {s.label}
-                    </Link>
-                  )}
-                </li>
-              )
-            })}
-          </ol>
-        </Card>
       ) : (
-        <UpNext
-          {...(nextStep
-            ? { title: nextStep.label, detail: 'Your next step', href: nextStep.href, action: 'Start', icon: <ArrowRight /> }
-            : first?.kind === 'person'
-              ? {
-                  title: first.label === 'follow up' ? `Follow up with ${first.person.name}` : `Close ${first.person.name}: no reply`,
-                  detail: `${first.person.company} · ${when(first.at).text}`,
-                  overdue: when(first.at).overdue,
-                  href: personHref(first.person),
-                  action: first.label === 'follow up' ? 'Follow up' : 'Close',
-                  icon: <UserRound />,
-                }
-              : first
-                ? {
-                    title: `${first.job.company}: ${first.label}`,
-                    detail: `${first.job.role} · ${when(first.at).text}`,
-                    overdue: when(first.at).overdue,
-                    href: first.href,
-                    action: 'Open',
-                    icon: <BriefcaseBusiness />,
-                  }
-                : {
-                    title: 'Nothing due',
-                    detail: 'Set a date on an application and it shows up here when it comes close.',
-                    href: trial ? '/contacts' : '/jobs',
-                    action: trial ? 'Find people' : 'Find a job',
-                    icon: <Search />,
-                    quiet: true,
-                  })}
-        />
+        <UpNext card={card}>
+          {checklist && (
+            <details className="group px-1 text-sm text-muted-foreground">
+              <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 rounded-md outline-none select-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                Getting started: <span className="tabular-nums">{steps.filter((s) => s.done).length} of {steps.length}</span> done
+                <ChevronRight className="size-4 transition-transform duration-150 group-open:rotate-90" aria-hidden="true" />
+              </summary>
+              <ol className="m-0 flex list-none flex-col gap-1 p-0 pb-1" aria-label="Getting started">
+                {steps.map((s) => (
+                  <li key={s.label} className="flex min-h-9 items-center gap-2.5">
+                    <span
+                      aria-hidden="true"
+                      className={cn('grid size-5 shrink-0 place-items-center rounded-full', s.done ? 'bg-primary text-primary-foreground' : s === nextStep ? 'ring-2 ring-primary ring-inset' : 'ring-1 ring-foreground/20 ring-inset')}
+                    >
+                      {s.done && <Check className="size-3" strokeWidth={3} />}
+                    </span>
+                    {s.done ? (
+                      <span>
+                        {s.label}
+                        <span className="sr-only"> (done)</span>
+                      </span>
+                    ) : (
+                      <Link href={s.href} className="text-foreground no-underline underline-offset-4 hover:underline">
+                        {s.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </UpNext>
       )}
 
-      {/* Coming up: everything else due, soonest first; hidden when there's nothing else. */}
+      {/* Coming up: everything else due, soonest first; the first few, the rest on tap; hidden when there's nothing else. */}
       {(loading ? hadMore : rest.length > 0) && (
         <section aria-labelledby="due-title" aria-busy={loading} className="flex flex-col gap-2">
           <SectionHead id="due-title">Coming up</SectionHead>
@@ -225,25 +188,25 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
               ))
             ) : (
               <ul className="m-0 list-none p-0">
-                {rest.map((d) => {
+                {(showAll ? rest : rest.slice(0, SHOWN)).map((d) => {
                   const w = when(d.at)
-                  const person = d.kind === 'person'
+                  const c = dueCard(d)
                   return (
-                    <li key={person ? `p-${d.person.id}` : `j-${d.job.id}`} className="border-b border-border last:border-b-0">
+                    <li key={d.kind === 'person' ? `p-${d.person.id}` : `j-${d.job.id}`} className="border-b border-border last:border-b-0">
                       <Link
-                        href={person ? personHref(d.person) : d.href}
+                        href={d.kind === 'person' ? personHref(d.person) : d.href}
                         className="flex min-h-14 items-center gap-3 px-4 py-3 text-foreground no-underline transition-colors duration-150 outline-none hover:bg-muted/60 focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                       >
                         <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground [&_svg]:size-4">
-                          {person ? <UserRound /> : <BriefcaseBusiness />}
+                          {ICON[c.kind]}
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="truncate text-[15px] font-medium">{person ? `${d.person.name} · ${d.person.company}` : `${d.job.company} · ${d.job.role}`}</span>
-                          <span className="truncate text-[13px] text-muted-foreground">{d.label}</span>
+                          <span className="truncate text-[15px] font-medium">{c.title}</span>
+                          <span className="truncate text-[13px] text-muted-foreground">{c.detail.split(' · ')[0]}</span>
                         </span>
                         <span className={cn('flex shrink-0 items-center gap-1 text-[13px] tabular-nums', w.overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>
                           {w.overdue && <AlertCircle className="size-3.5" aria-hidden="true" />}
-                          {w.text}
+                          {w.text.charAt(0).toUpperCase() + w.text.slice(1)}
                           {w.overdue && <span className="sr-only">, overdue</span>}
                         </span>
                         <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" aria-hidden="true" />
@@ -254,94 +217,96 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
               </ul>
             )}
           </div>
+          {!loading && rest.length > SHOWN && (
+            <Button variant="ghost" size="sm" className="self-start text-muted-foreground max-md:h-11" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+              {showAll ? 'Show fewer' : `Show ${rest.length - SHOWN} more`}
+            </Button>
+          )}
         </section>
       )}
 
-      {!trial && allJobs.length > 0 && (
-        <section aria-labelledby="pipeline-title" className="flex flex-col gap-2">
-          <SectionHead
-            id="pipeline-title"
-            action={
-              offers > 1 && (
-                <Button variant="link" size="sm" className="h-8 px-1" render={<Link href="/jobs?view=offers" />}>
-                  Compare offers
-                </Button>
-              )
-            }
-          >
-            Pipeline
-          </SectionHead>
-          <Link
-            href="/jobs?view=track"
-            className={cn(GROUP, 'grid grid-cols-5 divide-x divide-border text-foreground no-underline transition-colors duration-150 outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring')}
-          >
-            {STAGES.map(([label, statuses]) => {
-              const n = allJobs.filter((j) => statuses.includes(j.status)).length
-              return (
-                <span key={label} className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-3">
-                  <span className={cn('text-xl font-semibold tracking-tight tabular-nums', n === 0 && 'text-muted-foreground/60')}>{n}</span>
-                  <span className="max-w-full truncate text-[11px] text-muted-foreground sm:text-xs">{label}</span>
+      {/* The search in a line or two: the pipeline, this week against an optional goal, and a CV nudge while it has room to grow. */}
+      {((!trial && allJobs.length > 0) || cvNudge) && (
+        <section aria-labelledby="search-title" className="flex flex-col gap-1 px-1 text-sm text-muted-foreground">
+          <h2 id="search-title" className="sr-only">
+            Your search
+          </h2>
+          {!trial && allJobs.length > 0 && (
+            <>
+              <p className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <Link href="/jobs?view=track" className="inline-flex min-h-9 flex-wrap items-center gap-y-1 text-muted-foreground no-underline underline-offset-4 hover:text-foreground hover:underline">
+                  {pipeline.map(([n, label], i) => (
+                    <span key={label} className="whitespace-nowrap">
+                      {i > 0 && <span aria-hidden="true" className="px-1.5">·</span>}
+                      <span className="font-medium text-foreground tabular-nums">{n}</span> {label}
+                    </span>
+                  ))}
+                  <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
+                </Link>
+                {offers > 1 && (
+                  <Link href="/jobs?view=offers" className={QUIET_LINK}>
+                    Compare offers
+                  </Link>
+                )}
+              </p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <span className="flex items-center gap-1.5">
+                  This week: <span className="font-medium text-foreground tabular-nums">{goal ? `${week.applied} of ${goal}` : week.applied}</span> applied
+                  {week.interviews > 0 && (
+                    <>
+                      {' · '}
+                      <span className="font-medium text-foreground tabular-nums">{week.interviews}</span> {week.interviews === 1 ? 'interview' : 'interviews'}
+                    </>
+                  )}
+                  {goal > 0 && week.applied >= goal && <Check className="size-4 text-[var(--green)]" role="img" aria-label="goal reached" />}
                 </span>
-              )
-            })}
-          </Link>
-
-          {/* This week: applications sent against an optional goal, one slim line. */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 pt-1 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              This week: <span className="font-medium text-foreground tabular-nums">{goal ? `${week.applied} of ${goal}` : week.applied}</span> applied
-              {week.interviews > 0 && (
-                <>
-                  {' · '}
-                  <span className="font-medium text-foreground tabular-nums">{week.interviews}</span> {week.interviews === 1 ? 'interview' : 'interviews'}
-                </>
-              )}
-              {goal > 0 && week.applied >= goal && <Check className="size-4 text-[var(--green)]" role="img" aria-label="goal reached" />}
-            </span>
-            {goal > 0 && <Progress value={Math.min(100, (week.applied / goal) * 100)} aria-label="Weekly goal" className="w-24 flex-none sm:w-32" />}
-            <span className="ml-auto">
-              {editGoal ? (
-                <label className="flex items-center gap-2">
-                  Weekly goal
-                  <Input
-                    className="h-9 w-16 text-center tabular-nums max-md:h-11"
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={99}
-                    placeholder="–"
-                    autoFocus
-                    value={goal || ''}
-                    onChange={(e) => changeGoal(e.target.valueAsNumber)}
-                    onBlur={() => setEditGoal(false)}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === 'Escape') && setEditGoal(false)}
-                  />
-                </label>
-              ) : (
-                <Button variant="ghost" size="sm" className="text-muted-foreground max-md:h-11" onClick={() => setEditGoal(true)}>
-                  <Pencil data-icon="inline-start" aria-hidden="true" />
-                  {goal ? 'Change goal' : 'Set a weekly goal'}
-                </Button>
-              )}
-            </span>
-          </div>
-        </section>
-      )}
-
-      {/* A nudge only while the CV has room to grow; a strong score needs no reminder. */}
-      {!profileIsEmpty(me) && (me.cvReview?.score ?? 0) < 85 && (
-        <p className="m-0 px-1 text-sm text-muted-foreground">
-          {me.cvReview ? (
-            <>
-              CV score <span className="tabular-nums">{me.cvReview.score}/100</span>.{' '}
-              <Link href="/prepare/cv" className="text-primary underline-offset-4 hover:underline">Fix the flagged lines</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/prepare/cv" className="text-primary underline-offset-4 hover:underline">Score your CV</Link>, free.
+                {goal > 0 && <Progress value={Math.min(100, (week.applied / goal) * 100)} aria-label="Weekly goal" className="w-24 flex-none sm:w-32" />}
+                {editGoal ? (
+                  <label className="flex items-center gap-2">
+                    Weekly goal
+                    <Input
+                      className="h-9 w-16 text-center tabular-nums max-md:h-11"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={99}
+                      placeholder="–"
+                      autoFocus
+                      value={goal || ''}
+                      onChange={(e) => changeGoal(e.target.valueAsNumber)}
+                      onBlur={() => setEditGoal(false)}
+                      onKeyDown={(e) => (e.key === 'Enter' || e.key === 'Escape') && setEditGoal(false)}
+                    />
+                  </label>
+                ) : (
+                  <Button variant="ghost" size="sm" className="-ml-2 text-muted-foreground max-md:h-11" onClick={() => setEditGoal(true)}>
+                    <Pencil data-icon="inline-start" aria-hidden="true" />
+                    {goal ? 'Change goal' : 'Set a weekly goal'}
+                  </Button>
+                )}
+              </div>
             </>
           )}
-        </p>
+          {cvNudge && (
+            <p className="m-0 flex min-h-9 items-center">
+              {me.cvReview ? (
+                <span>
+                  CV score <span className="tabular-nums">{me.cvReview.score}/100</span>.{' '}
+                  <Link href="/prepare/cv" className={QUIET_LINK}>
+                    Fix the flagged lines
+                  </Link>
+                </span>
+              ) : (
+                <span>
+                  <Link href="/prepare/cv" className={QUIET_LINK}>
+                    Score your CV
+                  </Link>
+                  , free.
+                </span>
+              )}
+            </p>
+          )}
+        </section>
       )}
 
       {/* Invites wait until the seeker has used Agisse once; a waitlisted account (no checklist) still sees its place and the code field. */}
@@ -350,29 +315,33 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
   )
 }
 
-/** The one thing to do next: a prominent card with its single primary action. `quiet` is the nothing-due state. */
-function UpNext({ title, detail, href, action, icon, overdue, quiet }: { title: string; detail: string; href: string; action: string; icon: ReactNode; overdue?: boolean; quiet?: boolean }) {
+/** The one thing to do next: a prominent card with its single primary action; `children` sit quietly under it. */
+function UpNext({ card, children }: { card: TodayCard; children?: ReactNode }) {
+  const quiet = card.kind === 'clear'
   return (
     <section aria-labelledby="next-title" className="flex flex-col gap-2">
-      <SectionHead id="next-title">{quiet ? 'All clear' : 'Up next'}</SectionHead>
+      <h2 id="next-title" className="sr-only">
+        {quiet ? 'All clear' : 'Up next'}
+      </h2>
       <Card className="flex-row flex-wrap items-center gap-4 rounded-2xl p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_4px_16px_rgb(0_0_0/0.04)] sm:flex-nowrap">
         <span
           aria-hidden="true"
           className={cn('grid size-11 shrink-0 place-items-center rounded-xl [&_svg]:size-5', quiet ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary')}
         >
-          {icon}
+          {ICON[card.kind]}
         </span>
         <div className="flex min-w-0 flex-1 basis-48 flex-col gap-0.5">
-          <p className="m-0 text-lg leading-snug font-semibold tracking-tight text-balance text-foreground">{title}</p>
-          <p className={cn('m-0 text-sm', overdue ? 'text-destructive' : 'text-muted-foreground')}>
-            {detail}
-            {overdue && ', overdue'}
+          <p className="m-0 text-lg leading-snug font-semibold tracking-tight text-balance text-foreground">{card.title}</p>
+          <p className={cn('m-0 text-sm text-pretty', card.overdue ? 'text-destructive' : 'text-muted-foreground')}>
+            {card.detail}
+            {card.overdue && <span className="sr-only">, overdue</span>}
           </p>
         </div>
-        <Button size="lg" className="h-10 px-4 max-sm:w-full max-md:h-11" render={<Link href={href} />}>
-          {action}
+        <Button size="lg" className="h-10 px-4 max-sm:w-full max-md:h-11" render={<Link href={card.href} />}>
+          {card.action}
         </Button>
       </Card>
+      {children}
     </section>
   )
 }

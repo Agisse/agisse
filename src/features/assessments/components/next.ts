@@ -20,7 +20,7 @@ const inDays = (at: string | null, now: number) => {
 const sentence = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 const testsLine = (t: KnownTests) => `${t.publisher ? `They use ${t.publisher}. ` : ''}About ${t.minutes} min.`
 
-const DRILL: NextPractice = { title: 'Daily drill', detail: 'A few minutes on your weakest skills, getting harder as you improve.', href: practiceHref(null, 'drill'), action: 'Start the drill' }
+export const DRILL: NextPractice = { title: 'Daily drill', detail: 'A few minutes on your weakest skills, getting harder as you improve.', href: practiceHref(null, 'drill'), action: 'Start the drill' }
 const STEP: Record<NextStep['area'], Pick<NextPractice, 'title' | 'action' | 'href'>> = {
   games: { title: 'Drill your weakest skill', action: 'Start the drill', href: '' },
   answers: { title: 'Practise an interview answer', action: 'Practise an interview', href: '/prepare/interviews' },
