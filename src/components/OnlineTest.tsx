@@ -17,7 +17,8 @@ export function OnlineTestLine({ jobId, company }: { jobId: string; company: str
   return (
     <details className="test-line">
       <summary>
-        Online test: {providers.map(providerName).join(', ')}{what && ` (${what})`} · <span className="test-line__cue">Practise</span>
+        Online test: {providers.map(providerName).join(', ')}{what && ` (${what})`}
+        <span className="test-line__more">· <span className="test-line__cue">Practise</span></span>
       </summary>
       <div className="test-line__body">
         <ol aria-label={`${c.company} selection process`}>
@@ -27,7 +28,7 @@ export function OnlineTestLine({ jobId, company }: { jobId: string; company: str
         </ol>
         <p className="test-line__links">
           {tests.length > 0 && (
-            <Link href={practiceHref(jobId, 'simulation', tests.map((t) => t.id))} className="btn btn--sm btn--primary">
+            <Link href={practiceHref(jobId, 'simulation', tests.map((t) => t.id))} className="btn btn--sm">
               <Play aria-hidden="true" /> Practise {tests.length > 1 ? `the ${tests.length} tests` : tests[0]!.name}
             </Link>
           )}
