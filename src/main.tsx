@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './lib/posthog'
+import './lib/sentry'
 import './styles/base.css'
 import App from './App'
 
