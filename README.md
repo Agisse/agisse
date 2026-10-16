@@ -26,8 +26,6 @@ All the code is open (AGPL-3.0). The job feed on agisse.xyz isn't: a self-hosted
 
 ⭐ **Star us if you believe students deserve honest job advice.**
 
-Hired with Agisse: [0 stories](HIRED.md). Got the job? Share yours there.
-
 ## Self-host
 
 Same app, three ways. The code is open; agisse.xyz's job feed is not, so your copy starts with an empty one. Fill it with your own provider ([feed contract](docs/feed-contract.md)) or public roles from Arbeitnow.
