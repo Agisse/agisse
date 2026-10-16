@@ -1,10 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link, useLocation } from 'wouter'
+import { useLocation } from 'wouter'
 import { Check } from 'lucide-react'
 import { EMPTY_PROFILE, type Profile } from '../../shared/types'
-import { EMPTY_FEED_PREFS, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, type FeedLevel, type FeedPrefs } from '../../shared/listings'
+import { EMPTY_FEED_PREFS, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, type FeedPrefs } from '../../shared/listings'
 import { api, type Me } from '../lib/api'
-import { mergeResume } from '../lib/profile'
+import { localeCountry, mergeResume, suggestFields } from '../lib/profile'
 import { ResumeImport } from '../components/ResumeImport'
 import { BoothSignMark } from '../components/BoothSignMark'
 import { Button } from '@/components/ui/button'
@@ -15,26 +15,36 @@ import { cn } from '@/lib/utils'
 import posthog from '../lib/posthog'
 import { AuthError } from './SignIn'
 
-const LEVELS = { internship: 'Internship', entry: 'Graduate or junior role', any: 'Open to both' } as const
 // The countries most seekers start from; the feed has every other one.
 const FIRST_COUNTRIES = ['BE', 'NL', 'FR', 'DE', 'LU', 'GB', 'IE', 'CH', 'ES', 'IT', 'DK', 'SE', 'EU'] as const
 
 const chip =
   'h-11 gap-1.5 rounded-lg border-border px-4 text-[0.9375rem] font-normal text-foreground aria-pressed:border-primary aria-pressed:bg-primary/8 aria-pressed:text-primary dark:aria-pressed:bg-primary/15'
 
-/** First run after sign-up: the CV, then what the seeker is after (level, fields, where; one question a screen), then the feed those answers shape. Every step can be skipped. */
+/**
+ * First run after sign-up: the CV, then fields and where (one question a screen, both prefilled), then the feed ranked
+ * against that CV. Level is left at "both"; the feed's filters change it. Every step can be skipped.
+ */
 export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
   const [, navigate] = useLocation()
-  // "looking" is one saved step shown as three screens.
-  const steps = ['cv', 'level', 'fields', 'where'] as const
+  // "looking" is one saved step shown as two screens.
+  const steps = ['cv', 'fields', 'where'] as const
   // ?step=looking reopens at that step (the Today checklist links there).
   const [step, setStep] = useState(() => {
     const q = new URLSearchParams(window.location.search).get('step') ?? ''
-    return Math.max(0, (steps as readonly string[]).indexOf(q === 'looking' ? 'level' : q))
+    return Math.max(0, (steps as readonly string[]).indexOf(q === 'looking' ? 'fields' : q))
   })
   const at = steps[step]!
   const [profile, setProfile] = useState<Profile>(() => ({ ...EMPTY_PROFILE, ...me.profile }))
-  const [prefs, setPrefs] = useState<FeedPrefs>(() => ({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }))
+  // Smart defaults: fields from the CV, the country from the browser's language. Both are visible and one tap to undo.
+  // Only before the seeker has saved any: after that, an empty list is their answer ("every field", "all of Europe").
+  const [fresh] = useState(() => JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) === JSON.stringify(EMPTY_FEED_PREFS))
+  const [prefs, setPrefs] = useState<FeedPrefs>(() => {
+    const p = { ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }
+    const here = localeCountry(VACANCY_COUNTRIES)
+    return fresh ? { ...p, functions: suggestFields(profile), countries: here ? [here] : [] } : p
+  })
+  const [fromCv, setFromCv] = useState(() => fresh && prefs.functions.length > 0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const first = me.user.name.split(' ')[0]
@@ -61,9 +71,16 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
     }
   }
 
+  // Read the CV, then straight on: the next screen already shows what it found.
   const fromResume = (p: Profile) => {
     const { profile: next, filled } = mergeResume(profile, p)
     setProfile(next)
+    const fields = suggestFields(next)
+    if (fresh && fields.length) {
+      setPrefs((prev) => ({ ...prev, functions: fields }))
+      setFromCv(true)
+    }
+    if (at === 'cv') advance()
     if (filled) void save(next)
     return filled
   }
@@ -74,15 +91,15 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
     window.scrollTo(0, 0)
   }
 
-  const next = () => {
+  const advance = () => {
     if (at === 'cv') posthog.capture('onboarding_step', { step: 'cv' })
     go(step + 1)
   }
 
   const saveLooking = async () => {
-    const next_ = { ...profile, jobFeed: prefs }
-    if (await save(next_)) {
-      setProfile(next_)
+    const withFeed = { ...profile, jobFeed: prefs }
+    if (await save(withFeed)) {
+      setProfile(withFeed)
       posthog.capture('onboarding_step', { step: 'looking' })
       // The answers just shaped the feed, so that's where to start. Busy until it opens, so a second click can't finish twice.
       setBusy(true)
@@ -129,34 +146,13 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
 
       <main key={at} className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 pt-10 pb-8 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 sm:px-6 sm:pt-16">
         {at === 'cv' && (
-          <Screen title={<>Welcome{first ? `, ${first}` : ''}. Start with your CV.</>} lede="Agisse reads it once to learn your school, work and skills. That is what it matches roles against and what makes your messages personal.">
+          <Screen title={<>Welcome{first ? `, ${first}` : ''}. Start with your CV.</>} lede="Agisse reads it once and ranks open roles by how well they fit you.">
             <ResumeImport onExtracted={fromResume} autosave />
           </Screen>
         )}
 
-        {at === 'level' && (
-          <Screen title="What level are you aiming for?" lede="This shapes your job feed. Change it whenever you like from Jobs.">
-            <ToggleGroup
-              value={[prefs.level]}
-              onValueChange={(v) => v[0] && setPrefs({ ...prefs, level: v[0] as FeedLevel })}
-              orientation="vertical"
-              aria-label="Level"
-              className="w-full"
-            >
-              {(Object.keys(LEVELS) as (keyof typeof LEVELS)[]).map((l) => (
-                <ToggleGroupItem key={l} value={l} variant="outline" className={cn(chip, 'h-14 justify-between rounded-xl text-base')}>
-                  {LEVELS[l]}
-                  <span className="grid size-5 place-items-center rounded-full border border-border group-aria-pressed/toggle:border-primary group-aria-pressed/toggle:bg-primary group-aria-pressed/toggle:text-primary-foreground">
-                    {prefs.level === l && <Check aria-hidden="true" className="size-3!" strokeWidth={3} />}
-                  </span>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </Screen>
-        )}
-
         {at === 'fields' && (
-          <Screen title="Which fields interest you?" lede="Pick as many as you like.">
+          <Screen title="Which fields interest you?" lede={fromCv ? 'Picked from your CV. Change any.' : 'Pick as many as you like, or none for every field.'}>
             {toggles('Fields', prefs.functions, (functions) => setPrefs({ ...prefs, functions }), Object.entries(VACANCY_FUNCTIONS))}
           </Screen>
         )}
@@ -176,22 +172,16 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
 
       <footer className="sticky bottom-0 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:border-0">
         <div className="mx-auto flex w-full max-w-xl flex-col-reverse gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pt-0 sm:pb-10">
-          {at === 'cv' ? (
-            <Button
-              variant="ghost"
-              className="h-11 text-muted-foreground"
-              render={<Link href="/profile" onClick={() => posthog.capture('onboarding_step', { step: 'cv-manual' })} />}
-              nativeButton={false}
-            >
-              Fill it in by hand instead
-            </Button>
-          ) : (
+          {step > 0 ? (
             <Button type="button" variant="ghost" className="h-11 text-muted-foreground" onClick={() => go(step - 1)}>
               Back
             </Button>
+          ) : (
+            <span />
           )}
-          <Button type="button" className="h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36" disabled={busy} onClick={at === 'where' ? () => void saveLooking() : next}>
-            {busy && <Spinner />} {at !== 'where' ? 'Continue' : busy ? 'Saving…' : 'See my roles'}
+          {/* The CV screen's own action is Choose PDF and it moves on by itself, so its footer only offers the way past. */}
+          <Button type="button" variant={at === 'cv' ? 'ghost' : 'default'} className={cn('h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36', at === 'cv' && 'text-muted-foreground')} disabled={busy} onClick={at === 'where' ? () => void saveLooking() : advance}>
+            {busy && <Spinner />} {at === 'cv' ? 'Continue without a CV' : at === 'fields' ? 'Continue' : busy ? 'Saving…' : 'See my roles'}
           </Button>
         </div>
       </footer>

@@ -398,7 +398,8 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
         </div>
       )}
 
-      {!profiled && !noFeed && (
+      {/* Until the feed provider embeds a new CV, the degree already ranks the feed, so only nudge when there is none. */}
+      {!profiled && !noFeed && !profile?.degree && (
         <p className="index-card__profile-nudge">
           <IdCard aria-hidden="true" />
           <span><Link href="/profile">Add your résumé</Link> to rank these by fit.</span>
