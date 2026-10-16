@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Every new account gets a one-time €1 credit for the better model on Agisse's key. A link or invite with its own credit replaces it.
 - On a posting's Overview, one quiet line on how this employer responded to other Agisse users in the past year, for example "From 20+ applicants in the past year: 35% got a test, 15% an interview · first reply in ~9 days". Shown only with at least 10 people behind it, updated each Monday; tap it to see how it's counted. Trackers with counting turned off are left out.
 - On a saved job at an employer Agisse knows, one quiet line names its online test, for example "Online test: SHL (numerical, abstract, deductive) · Practise". Tap it for the rounds, practice of exactly those tests, the provider's own free samples, and the employer's guide. Nothing shows when the test is unknown. Employer guides in the docs now list that employer's own tests, what each measures, how long it runs (marked when only candidates report it), and link the provider's free practice.
 - Email me on Mondays about deadlines this week, in Profile: off by default. On Mondays, one short email lists the roles in your tracker that close that week, and tests, interviews and offer replies due. No email in a week with nothing due; one click unsubscribes.
