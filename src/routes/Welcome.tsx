@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'wouter'
 import { Check } from 'lucide-react'
 import { EMPTY_PROFILE, type Profile } from '../../shared/types'
@@ -38,6 +38,14 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const first = me.user.name.split(' ')[0]
+  // Google sends a new account here with ?new=google, the one place its sign-up is known; dropped so a reload doesn't count it twice.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('new') !== 'google') return
+    posthog.capture('account_created', { method: 'google' })
+    url.searchParams.delete('new')
+    window.history.replaceState(null, '', url)
+  }, [])
 
   const save = async (next: Profile) => {
     setBusy(true)

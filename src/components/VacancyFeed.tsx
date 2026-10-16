@@ -252,6 +252,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
       setAsking({ v, state: 'done', jobId })
       onApplied()
       posthog.capture('feed_applied_prompt', { action: 'yes' })
+      posthog.capture('job_status_changed', { status: 'applied', source: 'feed' })
     } catch {
       setAsking({ v, state: 'failed' })
     }
