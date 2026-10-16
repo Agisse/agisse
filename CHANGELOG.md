@@ -9,6 +9,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Added
 
 - When a job moves to Online test, one optional question under its status: "Which test did they send?", with the test publishers and Not sure. Skip it and it doesn't come back for that job. The employer's Prepare tab then shows counts, never names: "SHL · reported by 3 students this year", once at least 2 students reported it. When at least 2 students report a different publisher than the one on file, the existing "the provider changed" warning shows next to it, and what's on file stays. Turn off Count my tracker anonymously to leave your answers out of the counts.
+- Every new account gets a one-time €1 credit for the better model on Agisse's key. A link or invite with its own credit replaces it.
 - On a posting's Overview, one quiet line on how this employer responded to other Agisse users in the past year, for example "From 20+ applicants in the past year: 35% got a test, 15% an interview · first reply in ~9 days". Shown only with at least 10 people behind it, updated each Monday; tap it to see how it's counted. Trackers with counting turned off are left out.
 - On a saved job at an employer Agisse knows, one quiet line names its online test, for example "Online test: SHL (numerical, abstract, deductive) · Practise". Tap it for the rounds, practice of exactly those tests, the provider's own free samples, and the employer's guide. Nothing shows when the test is unknown. Employer guides in the docs now list that employer's own tests, what each measures, how long it runs (marked when only candidates report it), and link the provider's free practice.
 - Email me on Mondays about deadlines this week, in Profile: off by default. On Mondays, one short email lists the roles in your tracker that close that week, and tests, interviews and offer replies due. No email in a week with nothing due; one click unsubscribes.
@@ -27,6 +28,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- Emails say "free and open source" in the footer once Agisse launches, instead of "invite-only beta".
 - Prepare opens on the one practice to do next: the tests or interview you have coming up soonest, else your weakest area. Every test sits under "All tests", your progress stays folded at the bottom, and the Interviews tab starts on your upcoming interview.
 - **Education:** programmes in Europe (the EU, the EEA, the UK and Switzerland) come first, in Best match and in Closing soon. The rest follow, and the country filter still finds them.
 - Agisse no longer sets a `sidebar_state` cookie. Nothing read it.

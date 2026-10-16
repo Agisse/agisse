@@ -23,7 +23,7 @@ export async function sendEmail(env: Env, to: string, subject: string, lines: Ar
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
 ${lines.map((l) => `<p style="margin:0 0 14px">${typeof l === 'string' ? escape(l) : `<a href="${escape(l.href)}" style="color:#111">${escape(l.text)}</a>`}</p>`).join('')}
 ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">${escape(cta.label)}</a></p>` : ''}
-<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · invite-only beta · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a>${unsubscribe ? ` · <a href="${escape(unsubscribe)}" style="color:#888">Unsubscribe</a>` : ''}</p></div>`
+<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · ${Number(env.PUBLIC_LAUNCH) === 1 ? 'free and open source' : 'invite-only beta'} · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a>${unsubscribe ? ` · <a href="${escape(unsubscribe)}" style="color:#888">Unsubscribe</a>` : ''}</p></div>`
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
