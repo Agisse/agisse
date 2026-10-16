@@ -6,7 +6,7 @@ export function FreeModelNote({ me, className = 'verdict__note' }: { me: Me; cla
   if (me.aiKey || me.trial || (me.credit && me.credit.left > 0)) return null
   return (
     <p className={className}>
-      Runs on free models. <Link href="/profile#ai-heading">Your own OpenRouter key gives sharper results</Link>.
+      Runs on Agisse's shared AI. <Link href="/profile#ai-heading">Your own OpenRouter key gives sharper results</Link>.
     </p>
   )
 }

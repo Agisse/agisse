@@ -34,9 +34,12 @@
     { "pattern": "www.agisse.xyz", "custom_domain": true }
   ],
   "vars": {
-    // Comma-separated preference list for Agisse's key: free models only (owner, 2026-10-14), then auto-discovered ":free" ones.
-    // If Agisse's key ever pays for a model again, put Haiku first ("anthropic/claude-haiku-5.5"), never "openrouter/auto".
-    "OPENROUTER_MODELS": "nvidia/nemotron-3-ultra-550b-a55b:free,nvidia/nemotron-3-super-120b-a12b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
+    // Comma-separated preference list for Agisse's key, never "openrouter/auto". Paid entries are tried first, then the ":free" ones, then auto-discovered ":free" models.
+    // Mistral Small 4 on Mistral's EU endpoint first (owner, 2026-10-16): free models took 15-90 s. About $0.002 an action; FREE_DAILY_ACTIONS_ALL bounds it (600/day ≈ €34/month at most).
+    // Tailored CVs use only the ":free" entries (tailorCv in worker/lib/jobs.ts): free models scored 3.9 there, Mistral 2.9–3.0.
+    // Paid entries get a second try before the free chain. Nemotron Ultra after Super: it timed out on every eval call (2026-10-16).
+    // Self-hosters who want no spend: drop the first entry.
+    "OPENROUTER_MODELS": "mistralai/mistral-small-2603,nvidia/nemotron-3-super-120b-a12b:free,nvidia/nemotron-3-ultra-550b-a55b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
     // Accounts with a one-time credit (invite, an admin's ref link, or the sign-up credit) get these on Agisse's key first, until the credit is spent.
     "OPENROUTER_CREDIT_MODELS": "anthropic/claude-haiku-5.5",
     // One-time credit in € for every new account (owner, 2026-10-16). An invite's or an admin's ref link's credit replaces it.
