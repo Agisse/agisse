@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
-import { ArrowRight, Check, Copy, ExternalLink, Plus, Send, X } from 'lucide-react'
+import { ArrowRight, Check, ChevronRight, Copy, ExternalLink, Plus, Send, Star, X } from 'lucide-react'
 import '../styles/landing.css'
 import posthog from '../lib/posthog'
 import { BoothSignMark } from '../components/BoothSignMark'
@@ -8,6 +8,7 @@ import { Button } from '../components/ui/button'
 import { cn } from '@/lib/utils'
 
 const SIGN_UP = '/sign-in?mode=sign-up'
+const REPO = 'https://github.com/Agisse/agisse'
 const track = (position: string) => () => posthog.capture('landing_cta_clicked', { position })
 
 type Stats = { open: number; companies: number; countries: number; stars?: number | null; hired?: number | null }
@@ -34,6 +35,18 @@ export function Landing() {
             <BoothSignMark className="size-7!" />
             <span aria-hidden="true">Agisse</span>
           </Link>
+          {LAUNCH && (
+            <Button variant="ghost" nativeButton={false} className="h-10 gap-1.5 px-3 text-sm" render={<a href={REPO} onClick={track('github-nav')} />}>
+              <GitHubMark />
+              <span className="sr-only">GitHub</span>
+              {!!stats?.stars && (
+                <span className="text-muted-foreground tabular-nums">
+                  {stats.stars.toLocaleString('en')}
+                  <span className="sr-only"> stars</span>
+                </span>
+              )}
+            </Button>
+          )}
           <Button variant="ghost" nativeButton={false} className="h-10 px-3 text-sm" render={<Link href="/sign-in" />}>
             Sign in
           </Button>
@@ -58,16 +71,21 @@ export function Landing() {
               : 'Agisse ranks the roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare.'}
           </p>
           <div className="mt-9 flex flex-col items-center gap-4">
-            <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
-              Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
-            </Button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
+                Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
+              </Button>
+              {LAUNCH && (
+                <Button variant="outline" nativeButton={false} className="h-12 rounded-full px-6 text-base has-data-[icon=inline-start]:pl-5" render={<a href={REPO} onClick={track('github-hero')} />}>
+                  <Star data-icon="inline-start" aria-hidden="true" /> Star on GitHub
+                </Button>
+              )}
+            </div>
             <p className="text-sm text-balance text-muted-foreground">
               {LAUNCH ? (
                 <>
-                  <span className="whitespace-nowrap">Never applies for you ·</span> <span className="whitespace-nowrap">Your data stays yours ·</span>{' '}
-                  <a href="https://github.com/Agisse/agisse" className="whitespace-nowrap underline underline-offset-4 hover:text-foreground">
-                    Code on GitHub
-                  </a>
+                  <span className="whitespace-nowrap">Free and open source ·</span> <span className="whitespace-nowrap">AGPL-3.0 ·</span>{' '}
+                  <span className="whitespace-nowrap">Never applies for you</span>
                 </>
               ) : (
                 'Invite-only beta, free while it lasts.'
@@ -168,6 +186,8 @@ export function Landing() {
           )}
         </section>
 
+        {LAUNCH && <BuiltInTheOpen stats={stats} />}
+
         <section id="faq" aria-labelledby="faq-title" className={cn(WRAP, 'mt-28 grid gap-8 sm:mt-40 md:grid-cols-[1fr_2fr] md:gap-16')}>
           <h2 id="faq-title" className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Questions
@@ -194,7 +214,6 @@ export function Landing() {
           <Button nativeButton={false} className="mt-8 h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('close')} />}>
             Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
           </Button>
-          {LAUNCH && <OnboardAgent />}
         </section>
       </main>
 
@@ -245,27 +264,84 @@ const TONE = {
 
 const AGENT_PROMPT = 'Read https://agisse.xyz/agent.md and set up my own Agisse.'
 
-/** Self-hosting in one prompt: copies a line for Claude Code, Codex or Cursor, which reads /agent.md and does the setup. */
-function OnboardAgent() {
+/** Copies text and says so for two seconds. */
+function useCopy(position: string, text: string) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
-    posthog.capture('landing_cta_clicked', { position: 'agent' })
-    navigator.clipboard.writeText(AGENT_PROMPT).then(() => {
+    posthog.capture('landing_cta_clicked', { position })
+    navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }, () => {})
   }
+  return [copied, copy] as const
+}
+
+/** Everything that is public, one tap away: run it yourself (npx, or one prompt for an agent), then the code, costs and reasons. */
+function BuiltInTheOpen({ stats }: { stats: Stats | null }) {
+  const [npxCopied, copyNpx] = useCopy('npx', 'npx agisse')
+  const [promptCopied, copyPrompt] = useCopy('agent', AGENT_PROMPT)
+  const rows: [string, string, string, ReactNode?][] = [
+    [REPO, 'Code', 'Every line, under the AGPL-3.0', stats?.stars ? <><Star className="size-3.5" aria-hidden="true" /> {stats.stars.toLocaleString('en')}<span className="sr-only"> stars</span></> : null],
+    [`${REPO}/blob/main/CHANGELOG.md`, 'Changelog', 'What changed, release by release'],
+    ['/docs/open', 'Costs', 'What agisse.xyz has and costs to run'],
+    ['/docs/methodology', 'Methodology', 'How the score is made'],
+    ['/docs/manifesto', 'Manifesto', 'Why Agisse exists'],
+    ['/docs/contributors', 'Contributors', 'Everyone who helped, with code or without'],
+    ...(stats?.hired ? [[`${REPO}/blob/main/HIRED.md`, 'Hired', `${stats.hired.toLocaleString('en')} people hired with Agisse`] as [string, string, string]] : []),
+  ]
   return (
-    <div className="mt-4 flex flex-col items-center gap-3">
-      <Button variant="outline" className="h-12 rounded-full px-7 text-base" onClick={copy}>
-        {copied ? <Check data-icon="inline-start" aria-hidden="true" /> : <Copy data-icon="inline-start" aria-hidden="true" />}
-        {copied ? 'Copied. Paste it into your agent' : 'Onboard your agent'}
-      </Button>
-      <p className="text-sm text-balance text-muted-foreground">
-        Run your own copy: Claude Code, Codex or Cursor sets it up from <a href="/agent.md" className="underline underline-offset-4 hover:text-foreground">one prompt</a>.
-      </p>
-      <span className="sr-only" aria-live="polite">{copied ? 'Prompt copied' : ''}</span>
-    </div>
+    <section id="open" aria-labelledby="open-title" className={cn(WRAP, 'mt-28 sm:mt-40')}>
+      <div className="mx-auto max-w-2xl">
+        <div className="text-center">
+          <h2 id="open-title" className="text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+            Built in the open.
+          </h2>
+          <p className="mt-5 text-lg text-pretty text-muted-foreground">Read the code, check what it does with your data, or run your own copy on your computer.</p>
+        </div>
+        <div className="mt-10 flex items-center gap-3 rounded-2xl bg-muted py-2 pr-2 pl-5">
+          <code className="min-w-0 flex-1 truncate font-mono text-[0.95rem]">
+            <span className="text-muted-foreground select-none" aria-hidden="true">$ </span>npx agisse
+          </code>
+          <Button variant="ghost" className="h-11 shrink-0 rounded-xl px-3" onClick={copyNpx}>
+            {npxCopied ? <Check data-icon="inline-start" aria-hidden="true" /> : <Copy data-icon="inline-start" aria-hidden="true" />}
+            {npxCopied ? 'Copied' : 'Copy'}
+          </Button>
+        </div>
+        <p className="mt-3 text-center text-sm text-pretty text-muted-foreground">
+          Node 20 or Bun.{' '}
+          <span className="whitespace-nowrap">Or let Claude Code, Codex or Cursor</span> set it up from{' '}
+          <button type="button" className="-my-3 inline-block py-3 font-medium text-primary underline-offset-4 hover:underline" onClick={copyPrompt}>
+            {promptCopied ? 'copied, paste it in' : 'one prompt'}
+          </button>
+          .
+        </p>
+        <span className="sr-only" aria-live="polite">{npxCopied ? 'Command copied' : promptCopied ? 'Prompt copied' : ''}</span>
+        <ul className="mt-8 divide-y divide-border overflow-hidden rounded-2xl border border-border">
+          {rows.map(([href, label, text, extra]) => (
+            <li key={label}>
+              <a href={href} className="flex min-h-14 items-center gap-4 px-5 py-3 text-foreground no-underline transition-colors hover:bg-muted">
+                <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:gap-4">
+                  <span className="shrink-0 font-medium sm:w-28">{label}</span>
+                  <span className="text-sm text-pretty text-muted-foreground sm:truncate sm:text-base">{text}</span>
+                </span>
+                {extra && <span className="flex items-center gap-1 text-sm text-muted-foreground tabular-nums">{extra}</span>}
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+/** GitHub's mark, drawn: lucide no longer ships brand icons. */
+function GitHubMark() {
+  return (
+    <svg viewBox="0 0 16 16" className="size-4" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+    </svg>
   )
 }
 
@@ -544,8 +620,8 @@ const LAUNCH_FOOTER: [string, string][] = [
   ['/docs/privacy', 'Privacy'],
   ['/docs/terms', 'Terms'],
   ['/docs/imprint', 'Imprint'],
-  ['https://github.com/Agisse/agisse/blob/main/CHANGELOG.md', 'Changelog'],
-  ['https://github.com/Agisse/agisse', 'GitHub'],
+  [`${REPO}/blob/main/CHANGELOG.md`, 'Changelog'],
+  [REPO, 'GitHub'],
   ['https://www.linkedin.com/company/agisse-xyz/', 'LinkedIn'],
   ['mailto:hello@agisse.xyz', 'hello@agisse.xyz'],
 ]
@@ -557,7 +633,7 @@ function launchFooter(stats: Stats | null): [string, ReactNode][] {
     const stars = stats?.stars ? (
       <span className="tabular-nums">
         {' '}
-        <span aria-hidden="true">★</span> {stats.stars.toLocaleString('en')}
+        <Star className="inline size-3.5 align-[-2px]" aria-hidden="true" /> {stats.stars.toLocaleString('en')}
         <span className="sr-only"> stars</span>
       </span>
     ) : null

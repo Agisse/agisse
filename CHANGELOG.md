@@ -12,6 +12,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- The homepage reads as open source: a GitHub link with the live star count in the header, "Star on GitHub" next to Get started, and the license under it. A new "Built in the open" section has a copyable `npx agisse`, the one-prompt agent setup, and links to the code, changelog, costs, methodology, manifesto and contributors.
 - Faster answers: job evaluations, cover letters, outreach and prep on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Tailored CVs stay on free models, which write them better. Free models stay as the fallback.
 
 ### For contributors and self-hosters
