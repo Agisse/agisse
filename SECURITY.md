@@ -18,7 +18,7 @@ Only the latest `main` is supported. Self-hosters should stay current.
 
 ## If personal data leaks
 
-This is the runbook for agisse.xyz. Lennart Steen runs agisse.xyz and is the data controller, so he decides each step. If you run your own copy, you are the controller of it: use your own data protection authority and your own contacts.
+This is the runbook for agisse.xyz. Lennart Steen runs agisse.xyz and is the data controller, so they decide each step. If you run your own copy, you are the controller of it: use your own data protection authority and your own contacts.
 
 1. **Stop it.** Close the hole first (revert, take the route down, revoke access), then rotate what may be exposed: `DATABASE_URL` (a new Neon password), the R2 and Cloudflare API tokens, `OPENROUTER_API_KEY`, `EXA_API_KEY`, `RESEND_API_KEY`, `SENTRY_DSN`. Rotating `BETTER_AUTH_SECRET` signs everyone out and makes saved own AI keys unreadable (they're encrypted with it), so users have to reconnect them. Do it if the database or the secret leaked.
 2. **Write it down.** Note what happened, when you found out, which data and how many people, and what you did. GDPR art. 33(5) asks for a record of every breach, including the ones you don't report.

@@ -6,6 +6,10 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ## [Unreleased]
 
+### For contributors and self-hosters
+
+- The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.
+
 ## [0.1.0] - 2026-10-16
 
 ### Added
