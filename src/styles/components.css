@@ -72,6 +72,11 @@
   height: 16px;
   margin: 0;
 }
+/* A label without a hint wraps beside its box, not under it. */
+.field--check > span:only-of-type {
+  flex: 1 1 0;
+  min-width: 0;
+}
 .field__hint {
   font-family: var(--font-body);
   font-size: var(--fs-12);

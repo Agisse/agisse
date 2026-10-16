@@ -30,6 +30,8 @@ export const user = pgTable('user', {
   referredBy: text('referred_by'),
   // When the daily cron emailed that this account will be deleted after 24 months unused (worker/lib/retention.ts).
   inactiveWarnedAt: timestamp('inactive_warned_at'),
+  // Opted in to the Monday email about deadlines and interviews this week (worker/lib/reminders.ts). Off by default.
+  deadlineEmail: boolean('deadline_email').notNull().default(false),
   image: text('image'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
