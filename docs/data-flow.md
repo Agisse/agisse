@@ -40,6 +40,7 @@ Deleting an account removes the user's own rows (foreign keys cascade) and their
 | Neon | Always | Everything stored above |
 | Cloudflare R2 | Résumé upload | The PDF |
 | OpenRouter | An AI feature, on the server's key or the user's OpenRouter key | What the feature needs, such as résumé text, profile and a posting |
+| Mistral AI, EU endpoint only (through OpenRouter) | Most AI features on the server's key, by default (`OPENROUTER_MODELS`); not tailored CVs | The same |
 | OpenAI, Anthropic, Google Gemini or Mistral | An AI feature, when the user connected that provider's key | The same, sent straight to that provider instead of OpenRouter |
 | Exa | People and company search (`EXA_API_KEY`) | The company, role and search terms |
 | Wikidata | Company facts | A company's website domain |
