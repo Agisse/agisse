@@ -1,7 +1,7 @@
 // What each provider's games are and which companies use them at which stage. Hand-curated from public sources
 // (provider pages, company careers pages, gameassessmentprep.com write-ups), checked 2026-10. Timings and round counts
 // marked in `note` as reconstructed are candidates' reports, not provider-published.
-import type { CompanyAssessment, GameId } from './assessments'
+import { PROVIDERS, type CompanyAssessment, type GameId } from './assessments'
 
 export type ProviderGame = {
   /** Stable id used in practice URLs: `<provider>-<game>`. */
@@ -35,6 +35,15 @@ const SOVA_PRACTICE = 'https://www.sovaassessment.com/candidate-preparation-hub'
 const SAVILLE_PRACTICE = 'https://www.savilleassessment.com/practice-tests'
 const KF_PRACTICE = 'https://www.kornferry.com/careers/candidates/candidate-guide-assessments'
 const AON_PRACTICE = 'https://www.aon.com/en/capabilities/talent-and-rewards/prepare-for-your-online-assessment'
+const WG_PRACTICE = 'https://www.talentlens.com/practice-tests.html'
+
+const EXTRA_NAMES: Record<string, string> = { 'mckinsey-solve': 'McKinsey Solve', criteria: 'Criteria', saville: 'Saville', 'talent-q': 'Korn Ferry (Talent Q)', 'watson-glaser': 'Watson-Glaser', harver: 'Harver' }
+export const providerName = (id: string) => PROVIDERS.find((p) => p.id === id)?.name ?? EXTRA_NAMES[id] ?? id
+/** URL segment for a firm or provider page: "Bain & Company" → "bain-and-company". */
+export const slug = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+/** Each provider's own free practice page, for the providers that publish one. */
+export const OFFICIAL_PRACTICE: Record<string, string> = { shl: SHL_PRACTICE, cappfinity: CAPP_PRACTICE, sova: SOVA_PRACTICE, saville: SAVILLE_PRACTICE, 'talent-q': KF_PRACTICE, aon: AON_PRACTICE, 'watson-glaser': WG_PRACTICE }
 
 const g = (provider: string, slug: string, name: string, gameId: GameId, measures: string, realDuration: number | null, realRounds: number | null, extra: Partial<ProviderGame> = {}): ProviderGame => ({
   id: `${provider}-${slug}`,
@@ -270,7 +279,7 @@ export const PROVIDER_GAMES: ProviderGame[] = [
   // Watson-Glaser III (TalentLens), common at UK and EU law firms.
   g('watson-glaser', 'critical-thinking', 'Watson-Glaser Critical Thinking', 'critical-reasoning', 'Critical thinking', 1800, 40, {
     basis: 'confirmed',
-    practiceUrl: 'https://www.talentlens.com/practice-tests.html',
+    practiceUrl: WG_PRACTICE,
     guide:
       'Format: 40 items in five sections: inference (rated from true to false), recognising assumptions, deduction, interpretation and evaluating arguments. Timing: 30 minutes in most versions. Tactics: each section has its own rule, so read its instructions: deduction asks what must follow, interpretation what follows beyond reasonable doubt. For assumptions, ask whether the statement still makes sense without it. A strong argument is important and directly about the question, even if you disagree.',
   }),
@@ -286,18 +295,18 @@ export const UNTRAINABLE: { provider: string; name: string; note: string }[] = [
   { provider: 'plum', name: 'Plum survey', note: 'A 25-minute untimed survey of personality and problem solving. Rank honestly.' },
 ]
 
-export type CuratedAssessment = Omit<CompanyAssessment, 'id'> & { aliases?: string[] }
+/** `tests`: the provider game ids the online test is made of; `unless`: other firms whose name contains this one. */
+export type CuratedAssessment = Omit<CompanyAssessment, 'id'> & { aliases?: string[]; unless?: string[]; tests: string[] }
 
 const gap = (path: string, title: string) => ({ url: `https://www.gameassessmentprep.com${path}`, title, kind: 'candidate report' as const })
 const D = '2026-10-05'
 const base = { location: null, weightsEstimated: true, difficulty: null, scoringDimensions: [], sourceDate: D, origin: 'curated' as const, skills: [] }
 const ids = (provider: string, names: string[]) => names.map((n) => `${provider}-${n}`)
-const gamesOf = (pgIds: string[]) => [...new Set(pgIds.map((id) => providerGame(id)!.gameId))]
 
 const PYMETRICS_ALL = ids('pymetrics', ['balloons', 'cards', 'digits', 'easy-or-hard', 'faces', 'keypresses', 'stop', 'arrows', 'lengths', 'towers', 'money-exchange-1', 'money-exchange-2'])
 
 /** Known processes. `stages` name the real games so the prep page can link each one. */
-export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
+const ROWS: Omit<CuratedAssessment, 'gameTypes'>[] = [
   {
     ...base,
     company: 'McKinsey',
@@ -305,7 +314,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'mckinsey-solve',
     assessmentTypes: ['game-based'],
-    gameTypes: gamesOf(['mckinsey-solve-sea-wolf', 'mckinsey-solve-redrock']),
+    tests: ['mckinsey-solve-sea-wolf', 'mckinsey-solve-redrock'],
     stages: ['1. McKinsey Solve: Sea Wolf, Redrock (about 65 min; 85 min invitations add a third scenario)', '2. First round: two case interviews plus Personal Experience Interview (about 45 min each)', '3. Final round: two or three partner interviews'],
     timeLimits: 'Sea Wolf about 30–35 min, Redrock about 35 min',
     sources: [gap('/employers/mckinsey-solve', 'McKinsey Solve guide')],
@@ -319,7 +328,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'pymetrics',
     assessmentTypes: ['game-based', 'video interview'],
-    gameTypes: gamesOf(PYMETRICS_ALL),
+    tests: PYMETRICS_ALL,
     stages: ['1. Online test (varies by office): pymetrics games or the Casey online case (25–35 min, ends with a 60 s recorded recommendation)', '2. One-way video interview in some channels', '3. Two case and fit rounds'],
     timeLimits: 'pymetrics: about 25 min, 48 h window',
     sources: [gap('/pymetrics/bcg', 'BCG pymetrics guide')],
@@ -331,10 +340,11 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     ...base,
     company: 'Bain',
     aliases: ['bain & company'],
+    unless: ['bain capital'],
     rolePattern: null,
     provider: 'sova',
     assessmentTypes: ['numerical', 'verbal', 'logical', 'situational judgement', 'video interview'],
-    gameTypes: gamesOf(ids('sova', ['numerical', 'verbal', 'logical', 'sjt'])),
+    tests: ids('sova', ['numerical', 'verbal', 'logical', 'sjt']),
     stages: ['1. Online test: Sova numerical, verbal, logical and situational items (Europe, London) or TestGorilla (Amsterdam, some US), 30–40 min', '2. HireVue pre-screen reported in South-East Asia (3 questions)', '3. Case interview rounds'],
     timeLimits: '30–40 min',
     sources: [gap('/pymetrics/bain', 'Bain online test guide')],
@@ -349,7 +359,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'hirevue',
     assessmentTypes: ['video interview', 'game-based'],
-    gameTypes: gamesOf(PYMETRICS_ALL),
+    tests: PYMETRICS_ALL,
     stages: ['1. pymetrics games (used about 2019–2024; recent candidates report video only)', '2. HireVue video interview: 3–5 questions, 30 s prep, 2 min answers', '3. Superday'],
     timeLimits: 'HireVue: 30 s prep, 2 min per answer',
     sources: [gap('/pymetrics/jpmorgan', 'JPMorgan assessment guide')],
@@ -363,7 +373,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'hirevue',
     assessmentTypes: ['video interview'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. HireVue video interview: 3–6 questions, 30 s prep, up to 2 min answers (engineers: HackerRank first)', '2. Superday: 2–5 interviews'],
     timeLimits: 'About 30 min in total',
     sources: [gap('/employers/goldman-sachs', 'Goldman Sachs process guide')],
@@ -378,7 +388,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     location: null,
     provider: 'aon',
     assessmentTypes: ['numerical', 'logical', 'situational judgement', 'game-based', 'video interview'],
-    gameTypes: gamesOf(['aon-scales-numerical', 'aon-switch-challenge']),
+    tests: ['aon-scales-numerical', 'aon-switch-challenge'],
     stages: ['1. Aon battery (EMEA, reported): scales numerical, deductive, chat-based situational test, switchChallenge', '2. HireVue: 3–5 questions, 30 s prep, 1.5 min answers', '3. Superday or assessment centre'],
     timeLimits: 'switchChallenge 6 min',
     sources: [gap('/employers/morgan-stanley', 'Morgan Stanley process guide')],
@@ -392,7 +402,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'hirevue',
     assessmentTypes: ['situational judgement', 'numerical', 'logical', 'video interview'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. UK: Immersive Online Assessment (situational judgement plus reasoning)', '2. Job Simulation or HireVue (Canada official): 6–12 questions, 30–60 s prep, 1–3 min answers, often 2 attempts', '3. Final: group discussion plus about 50 min interview'],
     timeLimits: null,
     sources: [gap('/employers/deloitte', 'Deloitte process guide')],
@@ -403,10 +413,11 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
   {
     ...base,
     company: 'PwC',
+    aliases: ['pricewaterhousecoopers'],
     rolePattern: null,
     provider: 'shl',
     assessmentTypes: ['personality', 'numerical', 'logical', 'video interview'],
-    gameTypes: gamesOf(ids('shl', ['verify-numerical', 'verify-inductive', 'verify-deductive'])),
+    tests: ids('shl', ['verify-numerical', 'verify-inductive', 'verify-deductive']),
     stages: ['1. SHL behavioural profile plus timed Verify Numerical Reasoning, Verify Inductive Reasoning and Verify Deductive Reasoning', '2. SHL on-demand video interview', '3. Virtual assessment centre, then senior-leader interview'],
     timeLimits: null,
     sources: [gap('/employers/pwc', 'PwC process guide')],
@@ -421,7 +432,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'shl',
     assessmentTypes: ['situational judgement', 'personality'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. SHL realistic job preview plus behavioural test', '2. Experience Day'],
     timeLimits: null,
     sources: [gap('/employers/ey', 'EY process guide')],
@@ -434,7 +445,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: null,
     assessmentTypes: ['situational judgement', 'numerical', 'logical', 'video interview'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. Untimed skills test (about 20 min) plus timed cognitive test (36 min)', '2. Video interview with an AI avatar: 6 questions, about 40 min', '3. Launch Pad half-day'],
     timeLimits: 'Cognitive test 36 min',
     sources: [gap('/employers/kpmg', 'KPMG process guide')],
@@ -448,7 +459,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: null,
     assessmentTypes: ['situational judgement', 'game-based', 'coding'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. UK: Discovery Portal, untimed, 60–90 min. India: about 40 min with gamified puzzles. Tech roles: HackerRank', '2. Task-based and strengths interviews'],
     timeLimits: null,
     sources: [gap('/employers/accenture', 'Accenture process guide')],
@@ -461,7 +472,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'hirevue',
     assessmentTypes: ['game-based', 'video interview'],
-    gameTypes: gamesOf(ids('hirevue', ['numerosity', 'flashback', 'digitspan', 'disconumbers', 'shapedance', 'singularity', 'e-motions', 'pulse'])),
+    tests: ids('hirevue', ['numerosity', 'flashback', 'digitspan', 'disconumbers', 'shapedance', 'singularity', 'e-motions', 'pulse']),
     stages: ['1. Games (historically pymetrics; HireVue games reported since): pick of Numerosity, Flashback, Digitspan, Disconumbers, Shapedance, Singularity, E-Motions, Pulse', '2. HireVue video interview', '3. Discovery Centre (UFLP)'],
     timeLimits: 'Games 15–25 min in total',
     sources: [gap('/employers/unilever', 'Unilever process guide'), gap('/hirevue', 'HireVue games guide')],
@@ -475,7 +486,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: null,
     assessmentTypes: ['game-based'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. Game-based behavioural assessment (vendor not named)', '2. Video interview (conditional)', '3. Assessment centre'],
     timeLimits: null,
     sources: [gap('/employers/siemens', 'Siemens process guide')],
@@ -488,7 +499,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: null,
     assessmentTypes: ['personality', 'situational judgement', 'coding'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. Work Style Assessment plus Work Sample Simulation (and coding for tech roles)', '2. Phone screen', '3. Interview loop with a Bar Raiser'],
     timeLimits: null,
     sources: [gap('/employers/amazon', 'Amazon process guide')],
@@ -501,7 +512,7 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
     rolePattern: null,
     provider: 'harver',
     assessmentTypes: ['logical', 'numerical'],
-    gameTypes: [],
+    tests: [],
     stages: ['1. Harver (NOA) cognitive test: analogies, exclusion, number series', '2. Interviews'],
     timeLimits: null,
     sources: [{ url: 'https://www.testprep.nl/en/guide/company-abn-amro-assessment-provider-harver-noa-assessment-practice-explained', title: 'ABN AMRO assessment guide', kind: 'candidate report' }],
@@ -510,9 +521,16 @@ export const CURATED_ASSESSMENTS: CuratedAssessment[] = [
   },
 ]
 
-const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+export const CURATED_ASSESSMENTS: CuratedAssessment[] = ROWS.map((c) => ({ ...c, gameTypes: [...new Set(c.tests.map((id) => providerGame(id)!.gameId))] }))
+
+/** Lower case, no accents, "&" as "and", punctuation as spaces, padded: " j p morgan chase and co ". */
+const norm = (s: string) => ` ${s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim()} `
+const has = (name: string, words: string) => name.includes(norm(words))
 /** The curated rows for a company name: the name or an alias appears as whole words ("JPMorgan Chase & Co." → JPMorgan). */
 export function curatedFor(company: string): CuratedAssessment[] {
-  const name = company.toLowerCase()
-  return CURATED_ASSESSMENTS.filter((c) => [c.company, ...(c.aliases ?? [])].some((n) => new RegExp(`(^|[^a-z0-9])${escape(n.toLowerCase())}($|[^a-z0-9])`).test(name)))
+  const name = norm(company)
+  return CURATED_ASSESSMENTS.filter((c) => [c.company, ...(c.aliases ?? [])].some((n) => has(name, n)) && !c.unless?.some((n) => has(name, n)))
 }
+
+/** The real tests a firm's online stage is made of, in catalogue order. */
+export const testsFor = (c: CuratedAssessment) => c.tests.map((id) => providerGame(id)!)

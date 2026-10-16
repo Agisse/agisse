@@ -13,6 +13,7 @@ import { CompaniesView } from './Scout'
 import { Segmented } from '../components/Segmented'
 import posthog from '../lib/posthog'
 import { SelectionProcess } from '../components/SelectionProcess'
+import { OnlineTestLine } from '../components/OnlineTest'
 import { PrepGhost } from '../components/PrepGhost'
 import { OpenRoles, type OnSave } from '../components/OpenRoles'
 import { VacancyFeed } from '../components/VacancyFeed'
@@ -529,6 +530,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
             {ev && ev.role.remote !== 'unknown' && <span> · {ev.role.remote === 'full' ? 'remote' : ev.role.remote}</span>}
           </p>
           <Timeline job={job} />
+          {tab !== 'prepare' && <OnlineTestLine jobId={job.id} company={job.company} />}
           {job.url && (
             <a
               className="booth__domain"

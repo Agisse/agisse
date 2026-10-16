@@ -2126,3 +2126,16 @@
 .posting__more .posting__status { flex-wrap: wrap; justify-content: space-between; }
 .posting__links { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: 0; font-size: var(--fs-15); }
 .posting__links a { display: inline-flex; align-items: center; min-height: 44px; }
+/* The employer's known online test: one line under the role; stages and practice open on tap. */
+.test-line { margin: var(--space-1) 0 0; font-size: var(--fs-15); color: var(--ink-2); }
+.test-line > summary { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 6px; min-height: 44px; cursor: pointer; list-style: none; }
+.test-line > summary::-webkit-details-marker { display: none; }
+.test-line__cue { color: var(--blue); }
+/* Open, the panel's own button is the way to practise. */
+.test-line[open] .test-line__more { display: none; }
+.test-line > summary:hover .test-line__cue { color: var(--blue-ink); text-decoration: underline; text-underline-offset: 3px; }
+.test-line__body { display: grid; gap: var(--space-2); max-width: 65ch; padding-bottom: var(--space-2); }
+.test-line__body ol { margin: 0; padding-left: 1.25em; display: grid; gap: var(--space-1); color: var(--ink); }
+.test-line__links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-4); margin: 0; }
+.test-line__links a:not(.btn) { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; }
+.test-line__links svg { width: 14px; height: 14px; }
