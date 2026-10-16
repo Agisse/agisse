@@ -72,7 +72,7 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
           {
             done: JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) !== JSON.stringify(EMPTY_FEED_PREFS),
             label: 'Say what you’re looking for',
-            detail: 'Role, country and level. Your feed fills from it.',
+            detail: 'Field and country. Your feed fills from it.',
             action: 'Choose',
             href: '/welcome?step=looking',
           },

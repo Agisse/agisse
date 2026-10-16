@@ -22,3 +22,37 @@ export function mergeResume(current: Profile, fromResume: Profile): { profile: P
   }
   return { profile: next, filled }
 }
+
+// Words on a CV that name a feed field. Clear cases only: a wrong guess costs a tap, a vague one ("business") costs trust.
+const FIELD_WORDS: [string, RegExp][] = [
+  ['software', /\bsoftware|computer science|informatics?\b|informatica|developer|programm/i],
+  ['data', /\bdata\b|analytics|statistic|machine learning/i],
+  ['ib', /investment bank/i],
+  ['audit', /\baudit|accountan|accounting|\btax\b/i],
+  ['corp_finance', /\bfinance\b|financ(i[eë]le?|ial)/i],
+  ['consulting', /consult/i],
+  ['marketing', /marketing|communicati/i],
+  ['legal', /\blaws?\b|\blegal|rechten|\bdroit\b|\bjurist/i],
+  ['engineering', /mechanical|electrical|civil engineer|ingenieur|engineering/i],
+  ['science', /biolog|chemi|physics|bio-?engineer|biomedical/i],
+  ['healthcare', /medicine|medical|nursing|pharmac/i],
+  ['hr', /human resources|\bHR\b|recruit|psycholog/i],
+  ['design', /\bdesign|architect/i],
+  ['policy', /politic|international relations|public (policy|administration)/i],
+  ['education', /teacher|teaching|pedagog/i],
+  ['media', /journalis/i],
+  ['ops', /logistic|supply chain/i],
+  ['sustainability', /sustainab|environmental|climate/i],
+]
+
+/** Up to three feed fields the CV points at, for onboarding to preselect. */
+export function suggestFields(p: Pick<Profile, 'headline' | 'degree' | 'internships' | 'targetIndustries'>): string[] {
+  const text = [p.headline, p.degree, ...p.internships, ...p.targetIndustries].join(' · ')
+  return FIELD_WORDS.filter(([, re]) => re.test(text)).map(([k]) => k).slice(0, 3)
+}
+
+/** The country the browser's language points at (nl-BE → BE), if the feed has it. */
+export function localeCountry(known: Record<string, string>, language = globalThis.navigator?.language ?? ''): string | null {
+  const region = language.split('-')[1]?.toUpperCase()
+  return region && region in known ? region : null
+}
