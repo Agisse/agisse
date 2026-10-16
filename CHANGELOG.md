@@ -8,6 +8,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Added
 
+- Email me on Mondays about deadlines this week, in Profile: off by default. On Mondays, one short email lists the roles in your tracker that close that week, and tests, interviews and offer replies due. No email in a week with nothing due; one click unsubscribes.
 - How it's ranked, next to why a role is in your feed: one quiet link to the docs on how the feed's match is made.
 - Count my tracker anonymously, in Profile: on by default. Agisse may later show how employers respond, counted over at least 10 people and never naming anyone; turn it off to leave your tracker out.
 - Education, a new tab for what comes after a degree that isn't a job: master's, MBA and PhD programmes and funded PhD positions. One search, filters for type, country, field, language and tuition, "Closing soon" and a Saved list, ordered by your degree. Each programme opens to its facts and one link: apply on the institution's own page.

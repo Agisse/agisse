@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "deadline_email" boolean DEFAULT false NOT NULL;
