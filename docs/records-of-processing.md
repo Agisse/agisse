@@ -11,12 +11,11 @@ This is the record for agisse.xyz. A self-hosted copy has its own controller, wh
 
 | | |
 |---|---|
-| Controller | [owner: name] |
-| Address | [owner: address] |
+| Controller | Lennart Steen, who runs Agisse as a private person (no company) |
 | Contact | [hello@agisse.xyz](mailto:hello@agisse.xyz) |
-| Representative / DPO | [owner: none appointed, or name] |
+| Representative / DPO | None appointed (not required: no large-scale processing of special categories, no public authority) |
 | Supervisory authority | Gegevensbeschermingsautoriteit / Autorité de protection des données (Belgium) |
-| Last reviewed | [owner: date] |
+| Last reviewed | 16 October 2026 |
 
 ## Activities
 
@@ -41,7 +40,7 @@ Agisse doesn't ask for special categories of data (GDPR article 9) and doesn't s
 
 ## AI processing of CVs (impact note)
 
-A short assessment in the spirit of a DPIA (article 35). [owner: decide whether a full DPIA is required.]
+A short assessment in the spirit of a DPIA (article 35). The controller decided (16 October 2026) that this short assessment is enough for now; a full DPIA follows before processing grows in scale, for example when a university or campus joins.
 
 - **What's processed:** the CV and profile text a feature needs, and the posting, sent to a language model when the user asks for an evaluation, a tailored CV, a draft or prep. Contact details are removed before the call and put back afterwards. Nothing is sent without the user's action.
 - **Risks:** the model states something about the user that isn't true; it weighs age, gender, nationality, health or a photo; the text leaks through a provider that keeps or trains on it; a posting carries instructions that steer the model.
