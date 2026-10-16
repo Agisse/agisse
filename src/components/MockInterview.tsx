@@ -6,6 +6,7 @@ import { AskAssistant } from '@/components/AskAssistant'
 import { useEffect, useRef, useState } from 'react'
 import { Circle, Mic, Square, Video } from 'lucide-react'
 import { AiWorking } from './AiWorking'
+import { REVIEW_STEPS } from '../lib/ai-wait'
 import { FeedbackView } from './SelectionProcess'
 import { ErrorNote } from './ErrorNote'
 import { fillerCount, type AnswerDelivery, type AnswerFeedback, type InterviewQuestion } from '../../shared/interview'
@@ -65,7 +66,7 @@ export function MockInterview({ job = null, field = 'business', mode = 'one-way'
   const [started, setStarted] = useState(false)
   const [camera, setCamera] = useState(MODE_INFO[mode].camera)
   if (set.error) return <ErrorNote text={set.error} />
-  if (job && mode !== 'presentation' && !set.data) return set.loading ? <AiWorking label="Preparing your interview questions" /> : null
+  if (job && mode !== 'presentation' && !set.data) return set.loading ? <AiWorking steps={['Reading the posting', 'Choosing what this role is likely to ask', 'Preparing your interview questions']} shape="lines" /> : null
 
   const presentation = mode === 'presentation'
   const base = formatFor(mode, set.data?.format)
@@ -336,7 +337,7 @@ function Session({ job, field, mode, camera, questions, format, onSpend, onExit,
       )}
       {phase === 'review' && (
         <>
-          {busy === 'transcribing' && <AiWorking label="Transcribing" />}
+          {busy === 'transcribing' && <AiWorking label="Turning your answer into text" />}
           <label className="field">
             <span className="label">Transcript (fix any mishearing)</span>
             <textarea className="field__input" rows={6} value={transcript} onChange={(e) => setTranscript(e.target.value)} />
@@ -375,7 +376,7 @@ function Session({ job, field, mode, camera, questions, format, onSpend, onExit,
               </button>
             )}
           </div>
-          {busy === 'reviewing' && <AiWorking label="Reviewing your answer" onCancel={abort.cancel} />}
+          {busy === 'reviewing' && <AiWorking steps={REVIEW_STEPS} expected={18} shape="lines" onCancel={abort.cancel} />}
           {feedback && <FeedbackView feedback={feedback} />}
           {story && (
             <p className="prep__meta">

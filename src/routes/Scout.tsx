@@ -469,7 +469,7 @@ function RouteRunning({ input, startedAt, onCancel }: { input: ScoutInput; start
       <header className="route__head">
         <h2 className="display route__title">{scoutTitle(input)}</h2>
       </header>
-      <AiWorking label="Finding companies and checking open company data" startedAt={startedAt} onCancel={onCancel} />
+      <AiWorking steps={['Finding companies that fit', 'Checking open company data']} expected={30} startedAt={startedAt} onCancel={onCancel} />
       <GhostStops live entrance={<Entrance input={input} />} />
     </div>
   )

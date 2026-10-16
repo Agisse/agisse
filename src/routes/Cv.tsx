@@ -184,7 +184,7 @@ export function CvRoute({ me, refreshMe, jobId }: { me: Me; refreshMe: () => Pro
       )}
       {busy && (
         <div className="no-print">
-          <AiWorking label={cv ? 'Rewriting your CV for this posting' : 'Tailoring your CV to this posting'} />
+          <AiWorking steps={['Reading the posting', 'Choosing what to lead with from your CV', cv ? 'Rewriting your CV for this posting' : 'Tailoring your CV to this posting']} shape={cv ? undefined : 'document'} />
         </div>
       )}
 

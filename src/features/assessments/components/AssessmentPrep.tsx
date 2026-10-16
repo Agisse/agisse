@@ -83,7 +83,7 @@ export function AssessmentPrep({ job, me, onSpend }: { job: Job; me: Me; onSpend
             {busy ? 'Looking…' : 'Find the test'}
           </button>
           {exhausted && !busy && <p className="prep__meta">Monthly budget used up. See <Link href="/profile">Profile</Link> for the reset date.</p>}
-          {busy && <AiWorking label="Searching public sources for this assessment" />}
+          {busy && <AiWorking steps={['Searching public sources', 'Working out which test they use']} expected={30} shape="lines" />}
         </section>
       )}
 

@@ -267,7 +267,7 @@ export function Badge({ person, draftingAvailable, index = 0, entering = false, 
                 <button type="button" className="btn" onClick={() => void (step === 'follow up' ? markFollowedUp() : setStatus('no reply'))} disabled={saving}>
                   {step === 'follow up' ? 'Followed up' : 'Mark no reply'}
                 </button>
-                {writing && writingWhat === 'follow-up' && <AiWorking label={`Writing a follow-up to ${person.name.split(' ')[0]}`} />}
+                {writing && writingWhat === 'follow-up' && <AiWorking steps={['Reading your first message', `Writing a follow-up to ${person.name.split(' ')[0]}`]} expected={15} />}
                 {step === 'follow up' && followup && (
                   <>
                     <p className="badge__followup">{followup}</p>
@@ -298,7 +298,7 @@ export function Badge({ person, draftingAvailable, index = 0, entering = false, 
                 ) : (
                   <p>They replied. Prep five questions and three talking points before the call.</p>
                 )}
-                {prepping && <AiWorking label="Writing call prep" />}
+                {prepping && <AiWorking steps={['Reading their profile and the company', 'Writing questions to ask', 'Writing call prep']} expected={20} shape="lines" />}
                 {draftingAvailable && (
                   <button type="button" className="btn" onClick={() => void writePrep(!!person.prep)} disabled={prepping}>
                     <ClipboardList aria-hidden="true" /> {prepping ? 'Writing…' : person.prep ? 'Rewrite prep' : 'Write call prep'}
@@ -359,7 +359,7 @@ export function Badge({ person, draftingAvailable, index = 0, entering = false, 
           </label>
           {writing && writingWhat === 'message' ? (
             <div className="badge__note badge__note--writing">
-              <AiWorking label={`Writing a message to ${person.name.split(' ')[0]} from your profile and theirs`} />
+              <AiWorking steps={['Reading their profile', 'Finding what you have in common', `Writing a message to ${person.name.split(' ')[0]}`]} expected={15} />
             </div>
           ) : (
             <textarea
@@ -375,7 +375,7 @@ export function Badge({ person, draftingAvailable, index = 0, entering = false, 
           )}
           {!draftingAvailable && <p className="badge__draft-hint">Drafting opens after approval. You can still write and copy your own message.</p>}
           {draftingAvailable && person.outreach && !writing && <Rate key={person.outreach} task="agisse_outreach" refId={person.id} />}
-          {writing && writingWhat === 'email' && <AiWorking label={`Writing an email to ${person.name.split(' ')[0]}`} />}
+          {writing && writingWhat === 'email' && <AiWorking steps={['Reading their profile', `Writing an email to ${person.name.split(' ')[0]}`]} expected={15} />}
           {email && (
             <>
               <p className="badge__followup" style={{ whiteSpace: 'pre-wrap' }}>{email}</p>

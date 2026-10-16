@@ -361,25 +361,43 @@
   color: var(--ink);
   letter-spacing: -0.01em;
 }
-.booth__status {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: var(--fs-14);
-  color: var(--ink-2);
+/* An AI wait: the orb, what it is doing now, the seconds, Cancel; then the outline of what is coming. */
+.ai-wait { display: grid; gap: var(--space-4); }
+.ai-wait__head { display: flex; align-items: flex-start; gap: 10px; font-size: var(--fs-14); color: var(--ink-2); }
+.ai-wait__orb { flex: none; margin-top: 1px; }
+.ai-wait__body { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.ai-wait__status { display: grid; gap: 2px; margin: 0; }
+.ai-wait__step { color: var(--ink); font-weight: 500; text-wrap: pretty; animation: ai-step-in 480ms var(--ease-out) both; }
+.ai-wait__slow { color: var(--ink-3); animation: ai-step-in 480ms var(--ease-out) both; }
+.ai-wait__time { flex: none; margin-top: 1px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.ai-wait__cancel { flex: none; margin-top: -6px; }
+/* Where the wait is on its timeline: passed, now, still to come. A position, not a percentage. */
+.ai-wait__dots { display: flex; gap: 4px; }
+.ai-wait__dots > span { width: 6px; height: 4px; border-radius: var(--radius-pill); background: var(--rule); transition: width var(--dur-flip) var(--ease-out), background-color var(--dur-flip) var(--ease-out); }
+.ai-wait__dots > .is-past { background: var(--ink-3); }
+.ai-wait__dots > .is-now { width: 18px; background: var(--blue); }
+@keyframes ai-step-in { from { opacity: 0; transform: translateY(4px); filter: blur(2px); } }
+/* A slow pass of light across the text; a mask, so the text keeps its own colour. */
+.shimmer {
+  -webkit-mask-image: linear-gradient(100deg, #000 40%, rgb(0 0 0 / 0.45) 50%, #000 60%);
+  mask-image: linear-gradient(100deg, #000 40%, rgb(0 0 0 / 0.45) 50%, #000 60%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  animation: ai-step-in 480ms var(--ease-out) both, shimmer 2.4s linear 480ms infinite;
 }
-.booth__status .tnum {
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--ink);
-}
-.ai-working {
-  flex-wrap: wrap;
-}
-.ai-working__icon {
-  width: 14px;
-  height: 14px;
-  color: var(--blue);
+@keyframes shimmer { from { -webkit-mask-position: 100% 0; mask-position: 100% 0; } to { -webkit-mask-position: 0 0; mask-position: 0 0; } }
+.ai-wait__ghost { display: grid; gap: 12px; padding: var(--space-4); border-radius: var(--radius-card); box-shadow: inset 0 0 0 1px var(--rule-soft); }
+.ai-wait__ghost-verdict { display: flex; gap: var(--space-4); margin-bottom: 8px; }
+.ai-wait__ghost .ai-wait__ghost-score { flex: none; width: 72px; height: 64px; border-radius: var(--radius); }
+.ai-wait__ghost-lines { flex: 1; display: grid; align-content: start; gap: 10px; padding-top: 6px; }
+.ai-wait__ghost-row { display: flex; align-items: center; gap: 10px; }
+.ai-wait__ghost .ai-wait__ghost-dot { flex: none; width: 14px; height: 14px; }
+.ai-wait__ghost .ai-wait__ghost-name { justify-self: center; width: 40%; height: 20px; margin-bottom: 8px; }
+.ai-wait__ghost-para { display: grid; gap: 8px; margin-bottom: 6px; }
+@media (max-width: 640px) {
+  .ai-wait__head { flex-wrap: wrap; }
+  .ai-wait__body { flex-basis: 12rem; }
+  .ai-wait__cancel { margin-left: 26px; margin-top: 0; }
 }
 .booth__back {
   display: inline-flex;
@@ -1926,7 +1944,7 @@
 .feed-toast > span { flex: 1 1 14rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .feed-ghost { animation: none; }
+  .feed-ghost, .shimmer, .ai-wait__step, .ai-wait__slow { animation: none; }
 }
 /* Touch: the small icon buttons and pill selects in the feed, board, posting menu and bubble map grow to a 44px target. */
 @media (pointer: coarse) {

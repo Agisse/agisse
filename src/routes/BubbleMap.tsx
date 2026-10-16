@@ -6,6 +6,7 @@ import { normalizeDomain, type BubbleMapSummary, type MapBubble, type SavedCompa
 import { api, isAbort, type Me } from '../lib/api'
 import { boothHref, formatDate, companyNameKey as key, useAbortable, useResource } from '../lib/hooks'
 import { Field } from '../components/Field'
+import { AiWorking } from '../components/AiWorking'
 import { CompanyLogo, LogoCredit, logoUrl } from '../components/CompanyLogo'
 import posthog from '../lib/posthog'
 
@@ -470,6 +471,7 @@ function Board({ me, seed, mapId, onSaved }: { me: Me; seed: { name: string; dom
                   </button>
                 )}
               </div>
+              {busy === node.id && <AiWorking steps={[`Finding companies like ${node.name}`, 'Linking them on your map']} expected={20} onCancel={abort.cancel} />}
             </div>
           )}
           <button type="button" className="btn btn--sm" onClick={save} disabled={saving || loading || (!!savedId.current && !dirty)} aria-busy={saving}>

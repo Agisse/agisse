@@ -57,7 +57,7 @@ function FormAnswer({ job, disabled, onSpend }: Props) {
           </button>
         </div>
       </form>
-      {busy && <AiWorking label="Answering from your CV" />}
+      {busy && <AiWorking steps={['Reading the question', 'Finding what your CV can back', 'Writing the answer']} expected={15} shape="lines" />}
       {error && <p className="notice notice--error" role="alert"><AlertCircle aria-hidden="true" /> <span>{error}</span></p>}
       {answer && !busy && (
         <>
@@ -132,7 +132,7 @@ function ApplicationEmail({ job, disabled, onSpend }: Props) {
           </button>
         </div>
       </form>
-      {busy && <AiWorking label="Writing the email" />}
+      {busy && <AiWorking steps={['Reading the posting', 'Writing the email']} expected={15} shape="letter" />}
       {error && <p className="notice notice--error" role="alert"><AlertCircle aria-hidden="true" /> <span>{error}</span></p>}
       {email && !busy && (
         <>
