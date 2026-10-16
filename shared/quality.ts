@@ -1,5 +1,6 @@
 // The quality report: how generated outputs fare, per task, prompt version and model, and whether scores predict outcomes.
 // Built by worker/lib/quality.ts; shown on /admin and printed by `npm run quality` for the weekly improvement agent (IMPROVE.md).
+import type { StatusChange } from './types'
 
 export type PromptRow = {
   task: string
@@ -23,7 +24,7 @@ export type Bucket = { bucket: string; n: number; hits: number; rate: number | n
 export type QualityReport = {
   since: string
   prompts: PromptRow[]
-  /** Evaluation score → reached responded/assessment/interview/offer, among applications with an outcome. */
+  /** Evaluation score → reached responded/assessment/interview/offer, among applications with an outcome or 30+ days of silence, from seekers who count their tracker. */
   scoreCalibration: Bucket[]
   /** Person rank → replied/call booked/referred, among people contacted over a week ago. */
   rankCalibration: Bucket[]
@@ -46,6 +47,27 @@ export const RANK_BUCKETS = [
   { bucket: '4–10', test: (r: number) => r > 3 && r <= 10 },
   { bucket: '11+', test: (r: number) => r > 10 },
 ]
+
+const HITS = new Set(['responded', 'assessment', 'interview', 'offer'])
+const SILENT_DAYS = 30
+
+/** Did an application progress? true if it ever reached responded or further, false if rejected before that or silent 30+ days after applying, null while pending.
+ * Empty history (postings from before it was kept) is null: its path is unknown. */
+export function progressed(history: StatusChange[], appliedAt: Date | string | null, now: Date): boolean | null {
+  if (!history.length) return null
+  if (history.some((h) => HITS.has(h.status))) return true
+  if (history.some((h) => h.status === 'rejected')) return false
+  if (appliedAt && now.getTime() - new Date(appliedAt).getTime() >= SILENT_DAYS * 86_400_000) return false
+  return null
+}
+
+/** Score calibration rows: seekers who turned off "Count my tracker anonymously" (shareOutcomes false) are left out, and so are pending applications. */
+export function scoreRows(jobs: { score: number; history: StatusChange[]; appliedAt: Date | string | null; share: boolean | null }[], now: Date) {
+  return jobs.flatMap((j) => {
+    const hit = j.share === false ? null : progressed(j.history, j.appliedAt, now)
+    return hit === null ? [] : [{ value: j.score, hit }]
+  })
+}
 
 /** Hit rate per bucket; rate is null below MIN_N. */
 export function calibrate(rows: { value: number; hit: boolean }[], buckets: { bucket: string; test: (v: number) => boolean }[]): Bucket[] {

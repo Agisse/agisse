@@ -2,7 +2,8 @@
 // Feeds model routing (modelRanking → Meter.rank) and the admin report (npm run quality, GET /api/admin/quality).
 import { sql } from 'drizzle-orm'
 import type { Db } from '../db'
-import { calibrate, RANK_BUCKETS, SCORE_BUCKETS, type PromptRow, type QualityReport } from '../../shared/quality'
+import type { StatusChange } from '../../shared/types'
+import { calibrate, RANK_BUCKETS, scoreRows, SCORE_BUCKETS, type PromptRow, type QualityReport } from '../../shared/quality'
 
 export type ModelStats = { task: string; model: string; answered: number; failed: number; flagged: number; down: number }
 
@@ -65,7 +66,8 @@ export async function modelRanking(db: Db) {
 
 /** The admin quality report over the last `days` days; aggregates plus seekers' own thumbs-down notes, never CV or posting text. */
 export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
-  const since = new Date(Date.now() - days * 86_400_000)
+  const now = new Date()
+  const since = new Date(now.getTime() - days * 86_400_000)
   const [prompts, flags, jobs, people, complaints] = await Promise.all([
     db.execute<Omit<PromptRow, 'flags'>>(sql`
       select u.task, coalesce(u.prompt, '?') as prompt, u.model, count(*)::int as n,
@@ -86,9 +88,12 @@ export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
       from usage u, jsonb_each_text(u.flags) as f
       where u.task is not null and u.model is not null and u.created_at > ${since}
       group by 1, 2, 3, 4`),
-    // ponytail: one row per application with an outcome; aggregate in SQL if boards grow past tens of thousands.
-    db.execute<{ score: number; status: string }>(sql`
-      select score, status from job where status in ('responded', 'assessment', 'interview', 'offer', 'rejected')`),
+    // ponytail: one row per scored application; aggregate in SQL if boards grow past tens of thousands.
+    // Seekers who turned off "Count my tracker anonymously" (profile.shareOutcomes) never leave the database; scoreRows checks share again.
+    db.execute<{ score: number; history: StatusChange[]; appliedAt: Date | null; share: boolean | null }>(sql`
+      select j.score, j.history, j.applied_at as "appliedAt", (p.data->>'shareOutcomes')::boolean as share from job j
+      left join profile p on p.user_id = j.user_id
+      where j.score is not null and coalesce((p.data->>'shareOutcomes')::boolean, true)`),
     db.execute<{ rank: number; status: string | null }>(sql`
       select rank, status from person where search_id is not null and contacted_at < now() - interval '7 days'`),
     db.execute<{ task: string; prompt: string | null; model: string | null; note: string; at: Date }>(sql`
@@ -102,7 +107,7 @@ export async function qualityReport(db: Db, days = 90): Promise<QualityReport> {
   return {
     since: since.toISOString(),
     prompts: prompts.rows.map((p) => ({ ...p, flags: flagsBy.get(key(p)) ?? {} })),
-    scoreCalibration: calibrate(jobs.rows.map((j) => ({ value: j.score, hit: j.status !== 'rejected' })), SCORE_BUCKETS),
+    scoreCalibration: calibrate(scoreRows(jobs.rows, now), SCORE_BUCKETS),
     rankCalibration: calibrate(people.rows.map((p) => ({ value: p.rank, hit: p.status === 'replied' || p.status === 'call booked' || p.status === 'referred' })), RANK_BUCKETS),
     complaints: complaints.rows.map((c) => ({ ...c, at: new Date(c.at).toISOString() })),
   }
