@@ -397,7 +397,8 @@
 @media (max-width: 640px) {
   .ai-wait__head { flex-wrap: wrap; }
   .ai-wait__body { flex-basis: 12rem; }
-  .ai-wait__cancel { margin-left: 26px; margin-top: 0; }
+  /* The X lines up with the step text (orb 20px + gap 10px, less the button's 10px padding). */
+  .ai-wait__cancel { margin-left: 20px; margin-top: 0; }
 }
 .booth__back {
   display: inline-flex;

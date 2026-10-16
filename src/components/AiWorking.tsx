@@ -45,7 +45,7 @@ export function AiWorking({
           {/* One polite live region: it speaks when the step changes and once when the wait runs long, never per second. */}
           <p role="status" className="ai-wait__status">
             <span key={at} className="ai-wait__step shimmer">{all[at]}…</span>
-            {elapsed >= SLOW_AFTER && <span className="ai-wait__slow">Still working. Free models can take up to a minute.</span>}
+            {elapsed >= SLOW_AFTER && <span className="ai-wait__slow">Still working. This can take up to a minute.</span>}
           </p>
           {all.length > 1 && (
             <span className="ai-wait__dots" aria-hidden="true">
