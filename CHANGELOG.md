@@ -17,6 +17,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.
+- The README opens with the launch hero: one line on what Agisse is, the license, CI and Scorecard badges, and what's free and what's open. The six translated READMEs follow it.
 - The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.
 - The docs site builds on vite 6.4 instead of vite 5, and drizzle-kit's config loader uses esbuild 0.25: two `overrides` in `package.json` close the vite and esbuild dev-server advisories until vitepress and drizzle-kit ship the fix themselves.
 

@@ -1,18 +1,30 @@
-# Agisse
+<h1 align="center">Agisse</h1>
 
-**English** · [Nederlands](README.nl.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Español](README.es.md) · [Italiano](README.it.md) · [Polski](README.pl.md)
+<p align="center"><strong>Honest job advice for students. Free and open source.</strong></p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue"></a>
+  <a href="https://github.com/Agisse/agisse/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Agisse/agisse/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/Agisse/agisse"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/Agisse/agisse/badge"></a>
+</p>
+
+<p align="center"><strong>English</strong> · <a href="README.nl.md">Nederlands</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.es.md">Español</a> · <a href="README.it.md">Italiano</a> · <a href="README.pl.md">Polski</a></p>
+
+<!-- GIF (20 s, synthetic @example.com data): paste a posting → the score and an honest "don't apply" → a warm intro through a shared university → the tracker. Add it here once recorded. -->
 
 <!-- translations:start -->
-Agisse is a job-search copilot for students and early-career people in Europe. The name is French, from « il faut que j'agisse »: "I must act".
+Agisse is a job-search copilot for students and early-career people in Europe:
 
-- **European roles, ranked against your CV.** Paste any posting for an honest score out of 5: below 4.0, Agisse tells you not to apply.
-- **Warm introductions** through real shared ground: the same university, employer or student organisation. You always send the message yourself; Agisse never automates LinkedIn.
-- **Prep and tracking:** the interview rounds and online tests a company uses, practice with feedback, and one place for every application.
+- **A feed of European roles** ranked against your CV, with an honest apply-or-skip score. Below 4.0 it tells you not to apply.
+- **Warm introductions** grounded in real shared ground: the same university, employer or student organisation. You always send the message yourself; Agisse never logs into your LinkedIn account.
+- **Prep and tracking**: the interview process and online assessments a company uses, practice with feedback, and a board for every application.
 
-Agisse is free and open source ([AGPL-3.0](LICENSE)). Use it at [agisse.xyz](https://agisse.xyz), or run your own copy: see [Self-host](#self-host). The code is open; the job feed on agisse.xyz is not, so a copy you run yourself starts with an empty feed. No ads, no selling your data, no paid placement.
+Free at [agisse.xyz](https://agisse.xyz): try the AI features free on Agisse's key, then connect your own OpenRouter key for real use. Or run your own copy with `npx agisse`: see the [self-host guide](https://agisse.xyz/docs/self-host). No ads, no selling data, no paid placement in the feed.
+
+All the code is open (AGPL-3.0). The job feed on agisse.xyz isn't: a self-hosted copy starts empty, and you fill it with your own source ([feed contract](https://agisse.xyz/docs/feed-contract)).
 <!-- translations:end -->
 
-Hired with Agisse: [0 stories](HIRED.md). Got the job? Share yours there.
+⭐ **Star us if you believe students deserve honest job advice.**
 
 ## Self-host
 

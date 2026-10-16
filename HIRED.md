@@ -15,4 +15,4 @@ To withdraw your story, comment "withdraw" on your issue. Its row then reads "St
 | # | Who | Role | Story |
 |---|---|---|---|
 
-Maintainers: add one row per `hired` issue, in the order they were opened, showing only what the person chose, and update the count in `README.md` in the same commit. Never write a row for someone else.
+Maintainers: add one row per `hired` issue, in the order they were opened, showing only what the person chose, and update the count in `README.md` in the same commit. The first row adds the line under the star line: `Hired with Agisse: [1 story](HIRED.md). Got the job? Share yours there.` Never write a row for someone else.
