@@ -13,6 +13,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### For contributors and self-hosters
 
 - The self-host docs and `SUPPORT.md` use the published package, `npx agisse`, and show how to make yourself the admin on your computer: `npx agisse admin you@example.com`.
+- The docs site builds on vite 6.4 instead of vite 5, and drizzle-kit's config loader uses esbuild 0.25: two `overrides` in `package.json` close the vite and esbuild dev-server advisories until vitepress and drizzle-kit ship the fix themselves.
 
 ## [0.1.0] - 2026-10-16
 
