@@ -47,19 +47,32 @@ export function Landing() {
         <section aria-labelledby="home-title" className={cn(WRAP, 'pt-16 pb-12 text-center sm:pt-28 sm:pb-16')}>
           <h1 id="home-title" className="mx-auto max-w-[22ch] text-[2.5rem] leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
             {LAUNCH ? (
-              <>Stop applying everywhere. <span className="text-muted-foreground sm:block">Act where you fit.</span></>
+              <>Stop applying everywhere. <span className="block text-muted-foreground">Act where you fit.</span></>
             ) : (
               <>Land your first job in Europe. <span className="text-muted-foreground sm:block">With AI on your side.</span></>
             )}
           </h1>
           <p className="mx-auto mt-6 max-w-[34rem] text-lg text-pretty text-muted-foreground sm:text-xl">
-            Agisse ranks the roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare.
+            {LAUNCH
+              ? 'A free, open-source job copilot for students and graduates in Europe. It tells you which roles are worth applying to, and helps you practise each company’s tests.'
+              : 'Agisse ranks the roles that fit your CV, tells you which are worth it, and helps you apply, reach out and prepare.'}
           </p>
           <div className="mt-9 flex flex-col items-center gap-4">
             <Button nativeButton={false} className="h-12 rounded-full px-7 text-base" render={<Link href={SIGN_UP} onClick={track('hero')} />}>
               Get started <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </Button>
-            <p className="text-sm text-balance text-muted-foreground">{LAUNCH ? 'Free with your own AI key · Open source · Made in Europe' : 'Invite-only beta, free while it lasts.'}</p>
+            <p className="text-sm text-balance text-muted-foreground">
+              {LAUNCH ? (
+                <>
+                  <span className="whitespace-nowrap">Never applies for you ·</span> <span className="whitespace-nowrap">Your data stays yours ·</span>{' '}
+                  <a href="https://github.com/Agisse/agisse" className="whitespace-nowrap underline underline-offset-4 hover:text-foreground">
+                    Code on GitHub
+                  </a>
+                </>
+              ) : (
+                'Invite-only beta, free while it lasts.'
+              )}
+            </p>
           </div>
         </section>
 
@@ -182,11 +195,11 @@ export function Landing() {
 
       <footer className="border-t border-border bg-muted">
         <div className={cn(WRAP, 'flex flex-col gap-6 py-10 text-sm text-muted-foreground md:flex-row md:items-center')}>
-          <div className="flex items-center gap-2 md:mr-auto">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:mr-auto">
             <BoothSignMark className="size-6!" />
             <span className="font-semibold text-foreground">Agisse</span>
-            <span aria-hidden="true">·</span>
-            <span>{LAUNCH ? 'On your side only: Agisse never works for employers.' : 'Made in Europe, for Europe'}</span>
+            <span aria-hidden="true" className="hidden md:inline">·</span>
+            <span className="w-full md:w-auto">{LAUNCH ? 'On your side only: Agisse never works for employers.' : 'Made in Europe, for Europe'}</span>
           </div>
           <nav aria-label="Footer" className="-mx-2 flex flex-wrap">
             {(LAUNCH ? launchFooter(stats) : FOOTER).map(([href, label]) => (
@@ -331,7 +344,7 @@ function PersonHead() {
 function FeedShot() {
   return (
     <div className={cn(CARD, 'px-4 pt-4 pb-1 sm:px-5')}>
-      <div className="flex gap-1 rounded-lg bg-muted p-1 text-sm" aria-hidden="true">
+      <div className="flex gap-1 rounded-lg bg-muted p-1 text-xs sm:text-sm" aria-hidden="true">
         {['Best match', 'Closing soon', 'Just opened'].map((v, i) => (
           <span key={v} className={cn('flex-1 truncate rounded-md px-2 py-1 text-center', i === 1 ? 'bg-card font-medium shadow-sm' : 'text-muted-foreground')}>
             {v}
