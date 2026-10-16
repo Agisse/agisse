@@ -19,7 +19,7 @@ Agisse is a job-search copilot for students and early-career people in Europe:
 - **Warm introductions** grounded in real shared ground: the same university, employer or student organisation. You always send the message yourself; Agisse never logs into your LinkedIn account.
 - **Prep and tracking**: the interview process and online assessments a company uses, practice with feedback, and a board for every application.
 
-Free at [agisse.xyz](https://agisse.xyz): try it on free AI models, then connect your own OpenRouter key for real use. Or run your own copy with `npx agisse`: see the [self-host guide](https://agisse.xyz/docs/self-host). No ads, no selling data, no paid placement in the feed.
+Free at [agisse.xyz](https://agisse.xyz): try the AI features free on Agisse's key, then connect your own OpenRouter key for real use. Or run your own copy with `npx agisse`: see the [self-host guide](https://agisse.xyz/docs/self-host). No ads, no selling data, no paid placement in the feed.
 
 All the code is open (AGPL-3.0). The job feed on agisse.xyz isn't: a self-hosted copy starts empty, and you fill it with your own source ([feed contract](https://agisse.xyz/docs/feed-contract)).
 <!-- translations:end -->
