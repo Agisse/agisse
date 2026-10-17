@@ -23,6 +23,7 @@ import { isBlocked, type Listing } from '../../shared/listings'
 import { PatternsPanel } from '../components/PatternsPanel'
 import { Rate } from '../components/Rate'
 import { FreeModelNote } from '../components/FreeModelNote'
+import { DocOptions, type DocAsk } from '../components/DocOptions'
 import { JobWriting } from '../components/JobWriting'
 import { trackerCsv } from '../lib/csv'
 import { primaryAction } from '../lib/posting-action'
@@ -526,12 +527,12 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
     .sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))
     .slice(0, 2)
 
-  const writeCover = async (rewrite: boolean) => {
+  const writeCover = async (rewrite: boolean, ask?: DocAsk) => {
     setBusy(true)
     setDocError(null)
     try {
-      const { job: j } = await api.writeJobDoc(job.id, 'cover', rewrite)
-      posthog.capture('cover_written', { is_rewrite: rewrite, score: job.score })
+      const { job: j } = await api.writeJobDoc(job.id, 'cover', rewrite, ask)
+      posthog.capture('cover_written', { is_rewrite: rewrite, score: job.score, lang: ask?.lang ?? 'en', has_note: Boolean(ask?.note) })
       onChange(j)
     } catch (e) {
       setDocError(e instanceof Error ? e.message : 'Could not write the cover letter')
@@ -660,15 +661,14 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
             {job.coverLetter ? (
               // Keyed on the stored text so a rewrite replaces the draft being edited.
               <LetterField key={job.coverLetter} job={job} onChange={onChange}>
-                <button type="button" className="btn btn--quiet" onClick={() => void writeCover(true)} disabled={busy || exhausted}>
-                  {busy ? 'Rewriting…' : 'Rewrite'}
-                </button>
+                <DocOptions id="cover-rewrite" label={busy ? 'Rewriting…' : 'Rewrite'} action="Rewrite the letter" withLang disabled={busy || exhausted} onRun={(ask) => void writeCover(true, ask)} />
               </LetterField>
             ) : (
               <div className="posting__actions">
                 <button type="button" className="btn" onClick={() => void writeCover(false)} disabled={busy || exhausted} aria-busy={busy}>
                   <FileText aria-hidden="true" /> {busy ? 'Writing…' : 'Write a cover letter'}
                 </button>
+                <DocOptions id="cover-write" label="Language and instructions" action="Write the letter" withLang disabled={busy || exhausted} onRun={(ask) => void writeCover(false, ask)} />
               </div>
             )}
             {busy && <AiWorking steps={['Reading the posting and your CV', 'Picking what fits this role', job.coverLetter ? 'Rewriting your cover letter' : 'Writing your cover letter']} expected={20} shape="letter" />}

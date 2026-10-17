@@ -164,7 +164,8 @@ export const api = {
   quickFit: (jdText: string) => request<{ fit: number; label: string }>('/api/jobs/quick-fit', { method: 'POST', body: JSON.stringify({ jdText }) }),
   updateJob: (id: string, patch: { status?: JobStatus; notes?: string | null; coverLetter?: string; nextAt?: string | null; offer?: OfferTerms | null }) => request<{ job: Job }>(`/api/jobs/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   deleteJob: (id: string) => request<{ ok: true }>(`/api/jobs/${id}`, { method: 'DELETE' }),
-  writeJobDoc: (id: string, doc: 'cv' | 'cover', rewrite = false) => request<{ job: Job }>(`/api/jobs/${id}/${doc}${rewrite ? '?rewrite=1' : ''}`, { method: 'POST' }),
+  writeJobDoc: (id: string, doc: 'cv' | 'cover', rewrite = false, body: { note?: string; lang?: NoteLanguage } = {}) =>
+    request<{ job: Job }>(`/api/jobs/${id}/${doc}${rewrite ? '?rewrite=1' : ''}`, { method: 'POST', body: JSON.stringify(body) }),
   jobAssessment: (jobId: string) => request<{ assessment: CompanyAssessment | null; reports: AssessmentReport[]; tests: TestCount[]; testsChanged: number; askTest: boolean }>(`/api/jobs/${jobId}/assessment`),
   researchAssessment: (jobId: string) => request<{ assessment: CompanyAssessment | null }>(`/api/jobs/${jobId}/assessment/research`, { method: 'POST' }),
   reportAssessment: (input: { jobId: string; kind: ReportKind; detail?: string | null }) => request<{ report: AssessmentReport }>('/api/assessments/reports', { method: 'POST', body: JSON.stringify(input) }),

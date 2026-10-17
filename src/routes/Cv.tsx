@@ -9,6 +9,7 @@ import { useStored } from '../features/interviews/useStored'
 import posthog from '../lib/posthog'
 import { Rate } from '../components/Rate'
 import { FreeModelNote } from '../components/FreeModelNote'
+import { DocOptions } from '../components/DocOptions'
 
 /** "Grade: magna cum laude" → bold label, as in the LaTeX template. */
 const labelled = (s: string): ReactNode => {
@@ -64,12 +65,12 @@ export function CvRoute({ me, refreshMe, jobId }: { me: Me; refreshMe: () => Pro
   const started = useRef(false)
   const templateInput = useRef<HTMLInputElement>(null)
 
-  const write = async (rewrite: boolean) => {
+  const write = async (rewrite: boolean, note = '') => {
     setBusy(true)
     setError(null)
     try {
-      const { job } = await api.writeJobDoc(jobId, 'cv', rewrite)
-      posthog.capture('cv_tailored', { is_rewrite: rewrite, score: job.score, gap_count: job.cv?.gaps.length ?? 0 })
+      const { job } = await api.writeJobDoc(jobId, 'cv', rewrite, { note })
+      posthog.capture('cv_tailored', { is_rewrite: rewrite, score: job.score, gap_count: job.cv?.gaps.length ?? 0, has_note: Boolean(note) })
       setJob(job)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not tailor the CV')
@@ -125,9 +126,7 @@ export function CvRoute({ me, refreshMe, jobId }: { me: Me; refreshMe: () => Pro
         </Link>
         {cv && (
           <div className="posting__actions">
-            <button type="button" className="btn btn--quiet" onClick={() => void write(true)} disabled={busy || exhausted}>
-              <RefreshCw aria-hidden="true" /> {busy ? 'Rewriting…' : 'Rewrite'}
-            </button>
+            <DocOptions id="cv-rewrite" label={<><RefreshCw aria-hidden="true" /> {busy ? 'Rewriting…' : 'Rewrite'}</>} action="Rewrite the CV" disabled={busy || exhausted} onRun={({ note }) => void write(true, note)} />
             <details className="feed-menu posting__more">
               <summary className="btn btn--quiet">
                 <FileCode aria-hidden="true" /> LaTeX

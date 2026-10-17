@@ -1835,11 +1835,19 @@ app.post('/api/feedback', async (c) => {
   return c.json({ ok: true })
 })
 
+const JobDocInput = z.object({
+  // The seeker's instructions for this version, e.g. "lead with my thesis". Cover letters also take a language.
+  note: z.string().trim().max(500).default(''),
+  lang: z.enum(NOTE_LANGUAGES).default('en'),
+})
+
 // Tailored CV and cover letter: written on demand and stored; ?rewrite=1 writes them again. Charged like the evaluation.
 app.post('/api/jobs/:id/:doc{cv|cover}', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const doc = c.req.param('doc') as 'cv' | 'cover'
+  const parsed = JobDocInput.safeParse(await c.req.json().catch(() => ({})))
+  if (!parsed.success) return c.json({ error: 'Instructions are limited to 500 characters' }, 400)
   const row = await findEvaluated(db, c.req.param('id'), userId)
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   if ((doc === 'cv' ? row.cv : row.coverLetter) && c.req.query('rewrite') !== '1') return c.json({ job: toJob(row) })
@@ -1855,8 +1863,8 @@ app.post('/api/jobs/:id/:doc{cv|cover}', async (c) => {
   try {
     const set =
       doc === 'cv'
-        ? { cv: (await tailorCv(c.env, row, profile, resumeText, meter, await userStyle(db, userId, 'agisse_cv', row.id))).cv }
-        : { coverLetter: (await draftCover(c.env, row, profile, resumeText, u?.name ?? '', meter, await userStyle(db, userId, 'agisse_cover', row.id))).letter, coverEdited: false }
+        ? { cv: (await tailorCv(c.env, row, profile, resumeText, meter, await userStyle(db, userId, 'agisse_cv', row.id), parsed.data.note)).cv }
+        : { coverLetter: (await draftCover(c.env, row, profile, resumeText, u?.name ?? '', meter, await userStyle(db, userId, 'agisse_cover', row.id), parsed.data)).letter, coverEdited: false }
     const [updated] = await db.update(schema.job).set({ ...set, updatedAt: new Date() }).where(eq(schema.job.id, row.id)).returning()
     return c.json({ job: toJob(updated ?? row) })
   } catch (err) {

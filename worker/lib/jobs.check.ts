@@ -173,3 +173,13 @@ asked.length = 0
 await draftCover(routeEnv, routeJob, null, 'cv text', 'Sam').catch(() => {})
 eq(asked[0], 'mistralai/mistral-small-2603', 'cover letter first model')
 console.log('routing check passed')
+
+// The seeker's instructions and language reach the cover letter prompt.
+let sent = ''
+globalThis.fetch = (async (url: string, init?: RequestInit) => {
+  if (String(url).endsWith('/chat/completions')) sent = String(init?.body)
+  return new Response('{}', { status: 500 })
+}) as unknown as typeof fetch
+await draftCover(routeEnv, routeJob, null, 'cv text', 'Sam', undefined, '', { note: 'Lead with my thesis', lang: 'nl' }).catch(() => {})
+if (!sent.includes('Lead with my thesis') || !sent.includes('Write in Nederlands')) throw new Error('cover instructions missing from prompt')
+console.log('instructions check passed')
