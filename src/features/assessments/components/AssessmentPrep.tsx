@@ -270,7 +270,12 @@ function Detected({ assessment: a, reports, tests, testsChanged, jobId }: { asse
         <Row label="Last verified" value={monthYear(a.sourceDate)} />
       </dl>
       {a.stages.length > 0 && <Stages stages={a.stages} jobId={jobId} />}
-      {a.notes && <p className="prep__meta">{a.notes}</p>}
+      {a.notes && (
+        <details className="req__fold">
+          <summary className="prep__meta">What the search found</summary>
+          <p className="prep__meta">{a.notes}</p>
+        </details>
+      )}
       {provider && <p className="prep__meta">{provider.note}</p>}
       <TestCounts tests={tests} />
       {counts.map(([k, n]) => (
@@ -282,16 +287,19 @@ function Detected({ assessment: a, reports, tests, testsChanged, jobId }: { asse
         </p>
       ))}
       {sources.length > 0 && (
-        <ul className="prep__sources" aria-label="Sources">
-          {sources.map((s) => (
-            <li key={s.url}>
-              <a href={s.url} target="_blank" rel="noopener noreferrer">
-                {s.title} <ExternalLink aria-hidden="true" />
-              </a>
-              <span className="prep__meta"> {s.kind}</span>
-            </li>
-          ))}
-        </ul>
+        <details className="req__fold">
+          <summary className="prep__meta">Sources · {sources.length}</summary>
+          <ul className="prep__sources">
+            {sources.map((s) => (
+              <li key={s.url}>
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.title} <ExternalLink aria-hidden="true" />
+                </a>
+                <span className="prep__meta"> {s.kind}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </section>
   )

@@ -390,6 +390,7 @@ function Entrance({ input }: { input: ScoutInput }) {
 
 function Stop({ pick, n, saved, dreamed, onSave, onDream }: { pick: ScoutPick; n: number; saved: boolean; dreamed: boolean; onSave: () => void; onDream: () => void }) {
   const f = pick.facts
+  const fromWikidata = !!pick.sourceUrl && /^https:\/\/(www\.)?wikidata\.org\//.test(pick.sourceUrl)
   const facts = f ? [f.industry, f.country, f.employees && `${f.employees.toLocaleString()} people`, f.founded && `since ${f.founded}`].filter(Boolean) : []
   return (
     <li className="stop" style={{ '--i': n } as CSSProperties}>
@@ -415,25 +416,31 @@ function Stop({ pick, n, saved, dreamed, onSave, onDream }: { pick: ScoutPick; n
             <span className="label">Why</span> {pick.why}
           </p>
         )}
-        {pick.profileFit && (
-          <p className="stop__fit">
-            <span className="stop__fit-kind">Your profile</span> {pick.profileFit}
-          </p>
-        )}
-        {(facts.length > 0 || pick.sourceUrl) && (
-          <p className="stop__facts">
-            {facts.length > 0 && <span className="tnum">{facts.join(' · ')}</span>}
-            {pick.sourceUrl && (
-              <a href={pick.sourceUrl} target="_blank" rel="noopener noreferrer">
-                {pick.sourceUrl.includes('wikidata.org') ? 'Wikidata' : 'Source'} <ExternalLink aria-hidden="true" />
-              </a>
+        {/* What it is and why it fits decide; the profile match and the sources open on demand. */}
+        {(pick.profileFit || facts.length > 0 || pick.sourceUrl) && (
+          <details className="req__fold stop__fold">
+            <summary>{pick.profileFit ? 'Your fit and facts' : 'Facts'}</summary>
+            {pick.profileFit && (
+              <p className="stop__fit">
+                <span className="stop__fit-kind">Your profile</span> {pick.profileFit}
+              </p>
             )}
-            {f && !pick.sourceUrl?.includes('wikidata.org') && (
-              <a href={`https://www.wikidata.org/wiki/${f.qid}`} target="_blank" rel="noopener noreferrer">
-                Wikidata <ExternalLink aria-hidden="true" />
-              </a>
+            {(facts.length > 0 || pick.sourceUrl) && (
+              <p className="stop__facts">
+                {facts.length > 0 && <span className="tnum">{facts.join(' · ')}</span>}
+                {pick.sourceUrl && (
+                  <a href={pick.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    {fromWikidata ? 'Wikidata' : 'Source'} <ExternalLink aria-hidden="true" />
+                  </a>
+                )}
+                {f && !fromWikidata && (
+                  <a href={`https://www.wikidata.org/wiki/${f.qid}`} target="_blank" rel="noopener noreferrer">
+                    Wikidata <ExternalLink aria-hidden="true" />
+                  </a>
+                )}
+              </p>
             )}
-          </p>
+          </details>
         )}
         <div className="stop__actions">
           <Link href={boothHref(pick)} className="btn btn--sm" onClick={() => posthog.capture('booth_opened_from_scout', { source: pick.source })}>
@@ -547,10 +554,9 @@ function PastScouts({ scouts, current }: { scouts: Array<{ id: string; input: Sc
         <span className="booth-row__count tnum">{scouts.length}</span>
       </div>
       <ul className="booth-index">
-        {scouts.map((s, i) => (
+        {scouts.map((s) => (
           <li key={s.id}>
             <Link href={scoutHref(s.id)} className="booth-row scout-row" aria-current={s.id === current ? 'page' : undefined}>
-              <span className="booth-row__num tnum">{String(scouts.length - i).padStart(2, '0')}</span>
               <span className="booth-row__details">
                 <span className="booth-row__company">{scoutTitle(s.input)}</span>
                 <span className="booth-row__role">{formatDate(s.createdAt)}</span>

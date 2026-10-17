@@ -288,6 +288,7 @@ function BuiltInTheOpen({ stats }: { stats: Stats | null }) {
     ['/docs/methodology', 'Methodology', 'How the score is made'],
     ['/docs/manifesto', 'Manifesto', 'Why Agisse exists'],
     ['/docs/contributors', 'Contributors', 'Everyone who helped, with code or without'],
+    ['https://tally.so/r/e5ZvLo', 'Build with us', 'Developers who want to work on Agisse'],
     ...(stats?.hired ? [[`${REPO}/blob/main/HIRED.md`, 'Hired', `${stats.hired.toLocaleString('en')} people hired with Agisse`] as [string, string, string]] : []),
   ]
   return (
