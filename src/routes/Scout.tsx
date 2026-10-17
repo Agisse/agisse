@@ -144,7 +144,7 @@ function ScoutRoute({ me, refreshMe, scoutId: picked }: { me: Me; refreshMe: () 
 
   return (
     <>
-      <ScoutForm me={me} busy={!!pending} open={open} compact={!!(shown || pending || scoutId || searched)} onToggle={setFormOpen} onSubmit={run} {...form} />
+      <ScoutForm me={me} busy={!!pending} open={open} compact={!!(shown || pending || scoutId || searched)} canClose={!!(shown || pending || scoutId || searched)} onToggle={setFormOpen} onSubmit={run} {...form} />
 
       {error && !pending && (
         <p className="notice notice--error" role="alert">
@@ -194,7 +194,7 @@ type FormState = {
   setExclude: (v: string[]) => void
 }
 
-function ScoutForm({ me, busy, open, compact, onToggle, onSubmit, ...f }: FormState & { me: Me; busy: boolean; open: boolean; compact: boolean; onToggle: (open: boolean) => void; onSubmit: (i: ScoutInput) => void }) {
+function ScoutForm({ me, busy, open, compact, canClose, onToggle, onSubmit, ...f }: FormState & { me: Me; busy: boolean; open: boolean; compact: boolean; canClose: boolean; onToggle: (open: boolean) => void; onSubmit: (i: ScoutInput) => void }) {
   const [draft, setDraft] = useState('')
   const [touched, setTouched] = useState(false)
   const exhausted = me.budget.used >= me.budget.limit
@@ -226,6 +226,7 @@ function ScoutForm({ me, busy, open, compact, onToggle, onSubmit, ...f }: FormSt
       action="New search"
       open={open}
       compact={compact}
+      canClose={canClose}
       onToggle={onToggle}
     >
       <form className="index-card__form" onSubmit={submit} noValidate>

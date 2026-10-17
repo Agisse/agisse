@@ -355,6 +355,9 @@ A person card that flips in 3D: 14px corners, a small shadow, a hairline, and a 
 - **Do** show one primary blue action per view; everything else is outline, ghost or a link.
 - **Do** keep tap targets at 44px on touch and inputs at 16px on phones.
 - **Do** wrap vendor-imitating light surfaces in `.light-scope`.
+- **Do** give every top-level section (Today, Jobs, Prepare, People) a large title above its segmented tabs; a form under it takes a 20px section title, never a second large one.
+- **Do** mark a disclosure row with a chevron that turns when open (`.index-card__options`, `.posting__fold`), not a plus.
+- **Do** name the destination on a back link ("Jobs", "My jobs", "Today"), as an iOS back button does.
 - **Do** respect `prefers-reduced-motion`: base.css collapses all animation and transition; onboarding uses `motion-safe:` for its 200ms fade-in.
 
 ### Don't:

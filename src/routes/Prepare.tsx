@@ -15,8 +15,8 @@ export function PrepareHub({ children }: { children: ReactNode }) {
   const current = loc.startsWith('/prepare/interviews') ? '/prepare/interviews' : loc.startsWith('/prepare/cv') ? '/prepare/cv' : '/prepare'
   return (
     <>
-      <div className="map prepare-hub">
-        <h1 className="sr-only">{TABS.find(([href]) => href === current)?.[1]}</h1>
+      <div className="map prepare-hub intake">
+        <h1 className="display intake__title">Prepare</h1>
         <nav className="posting-tabs" aria-label="Prepare">
           {TABS.map(([href, label]) => (
             <Link key={href} href={href} aria-current={current === href ? 'page' : undefined}>
