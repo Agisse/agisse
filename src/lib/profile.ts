@@ -1,6 +1,6 @@
 import type { Profile } from '../../shared/types'
 
-const FIELDS: Array<Exclude<keyof Profile, 'linkedinPremium' | 'smartModel' | 'shareOutcomes' | 'jobFeed' | 'answers'>> = ['headline', 'university', 'degree', 'gradYear', 'employers', 'internships', 'organizations', 'interests', 'targetIndustries', 'skills', 'background']
+const FIELDS: Array<Exclude<keyof Profile, 'linkedinPremium' | 'smartModel' | 'shareOutcomes' | 'jobFeed' | 'answers'>> = ['headline', 'university', 'degree', 'gradYear', 'employers', 'internships', 'organizations', 'interests', 'targetIndustries', 'skills', 'languages', 'background']
 
 /** Résumé values win for single fields; list entries are added to what is already there. */
 export function mergeResume(current: Profile, fromResume: Profile): { profile: Profile; filled: number } {

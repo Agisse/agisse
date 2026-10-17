@@ -57,12 +57,27 @@ Before the full check, **Quick look** gives a short verdict on a pasted posting:
 Opening the feed makes no model call. Each role's match is:
 
 ```text
-match = 60% fit + 15% one of your fields + 15% freshness + 10% deadline within two weeks
+match = (45% fit + 15% like what you saved + 15% one of your fields + 15% freshness + 10% deadline within two weeks) x what holds it back
 ```
 
 - **Fit** is the quick look's question, answered ahead of time by the feed provider for your closest roles. Where there's no answer, it's how close your profile and the posting are as embeddings. For a new account without either, it's how well your degree's words match the posting.
+- **Like what you saved** is how close the role is to the nearest role you saved, tailored a CV for or applied to from the feed (the last 20). Until you've kept one, this part counts as fit again.
 - **Freshness** fades from new to zero over 30 days.
 - With several fields picked, the best matches take turns between them, so one big field doesn't bury the others.
+
+**What holds it back** lowers a role without hiding it, and the role says why when you open it:
+
+| The role | Its match |
+|---|---|
+| asks for a language your profile doesn't list ("Asks for German") | halved |
+| asks for 3 or more years, or is marked mid or senior level | x 0.6 |
+| is in law, medicine or teaching, and you picked fields without it | x 0.6 |
+| is an internship and you've graduated, or a graduate job and you have two or more years to go | x 0.85 |
+| is one you already applied to | halved |
+
+Your languages come from your profile (filled from your CV, editable under Skills), else from language names among your skills, else from your CV's Languages section. English counts once any is known. If none is known, no role is lowered for language. Picking languages in the feed's filters hides roles that ask for others instead.
+
+A role you discard in Jobs never comes back, and the same posting found on two sites shows once.
 
 The full details, including how the embeddings are made, are in the [feed contract](/feed-contract#how-the-feed-ranks).
 

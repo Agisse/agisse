@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Check } from 'lucide-react'
 import { EMPTY_PROFILE, type AiProvider, type Profile } from '../../shared/types'
 import { ANSWER_FIELDS } from '../../shared/answer-bank'
+import { spokenLanguages } from '../../shared/listings'
 import { api, profileIsEmpty, type Me } from '../lib/api'
 import { Field, TextField } from '../components/Field'
 import { ChipInput } from '../components/ChipInput'
@@ -99,11 +100,12 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
 
         <details className="index-card__options profile__more" open={more} onToggle={(e) => setMore(e.currentTarget.open)}>
           <summary>
-            <span>Skills, interests, background</span>
+            <span>Skills, languages, interests, background</span>
             <span className="index-card__options-hint">{moreCount(p) ? `${moreCount(p)} filled` : 'Optional'}</span>
           </summary>
           <div className="index-card__options-fields">
             <ChipInput label="Skills" hint="tools, languages, methods" values={p.skills} onChange={(v) => set('skills', v)} placeholder="e.g. Python, SQL, Figma" />
+            <ChipInput label="Languages you speak" hint="roles asking for others move down your feed" values={(p.languages ?? []).map((l) => l[0]!.toUpperCase() + l.slice(1))} onChange={(v) => set('languages', spokenLanguages(v))} placeholder="e.g. English, Dutch" />
             <ChipInput label="Interests" values={p.interests} onChange={(v) => set('interests', v)} placeholder="e.g. cloud, cycling" />
             <ChipInput label="Target industries" values={p.targetIndustries} onChange={(v) => set('targetIndustries', v)} placeholder="e.g. consulting" />
             <TextField
@@ -411,7 +413,7 @@ function DeleteAccount() {
 }
 
 /** Filled entries behind the "Skills, interests, background" fold. */
-const moreCount = (p: Profile) => p.skills.length + p.interests.length + p.targetIndustries.length + (p.background.trim() ? 1 : 0)
+const moreCount = (p: Profile) => p.skills.length + (p.languages?.length ?? 0) + p.interests.length + p.targetIndustries.length + (p.background.trim() ? 1 : 0)
 const answerCount = (p: Profile) => Object.values(p.answers).filter((a) => a.trim()).length
 
 function UsagePanel({ me }: { me: Me }) {

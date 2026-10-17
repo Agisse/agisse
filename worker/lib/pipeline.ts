@@ -5,6 +5,7 @@ import { flag, generateStructured, type Meter } from './openrouter'
 import type { Db } from '../db'
 import type { Goal, Profile, SharedGround, ContactValue } from '../../shared/types'
 import { CONTACT_VALUES, EMPTY_PROFILE, NOTE_LANGUAGE_LABEL, noteLimit, type NoteLanguage } from '../../shared/types'
+import { spokenLanguages } from '../../shared/listings'
 import { BANNED_PHRASES } from '../../shared/text'
 
 export type SearchInput = {
@@ -447,6 +448,7 @@ const ResumeOutput = z.object({
   interests: z.array(z.string()),
   target_industries: z.array(z.string()),
   skills: z.array(z.string()),
+  spoken_languages: z.array(z.string()).default([]),
   background: z.string(),
 })
 
@@ -455,7 +457,7 @@ const stringList = (description: string) => ({ type: 'array', items: { type: 'st
 const resumeSchema = {
   type: 'object',
   additionalProperties: false,
-  required: ['headline', 'university', 'degree', 'grad_year', 'employers', 'internships', 'organizations', 'interests', 'target_industries', 'skills', 'background'],
+  required: ['headline', 'university', 'degree', 'grad_year', 'employers', 'internships', 'organizations', 'interests', 'target_industries', 'skills', 'spoken_languages', 'background'],
   properties: {
     headline: { type: 'string', description: 'Under 60 characters, how the seeker would introduce themselves: level + field + school or current employer, e.g. "Final-year MSc CS student, KU Leuven". Not a copied objective sentence. Empty if unclear.' },
     university: { type: 'string', description: 'Most recent (or current) university or college, official short name. Empty if none.' },
@@ -467,6 +469,7 @@ const resumeSchema = {
     interests: stringList('Personal or professional interests named in the résumé, 1–3 words each.'),
     target_industries: stringList('Industries the résumé explicitly names as the seeker\'s target (objective, summary or "seeking …" line), 1–2 words each. At most 4. Empty when it states no target; never infer from past jobs.'),
     skills: stringList('Named tools, languages, frameworks, methods and certifications, as written, 1–3 words each. At most 20.'),
+    spoken_languages: stringList('Human languages the person speaks, as the résumé lists them (a "Languages" section, or "native Dutch"), in English, e.g. "Dutch", "French". Empty if the résumé names none; never guess from nationality or the résumé\'s own language.'),
     background: {
       type: 'string',
       description:
@@ -536,6 +539,7 @@ Rules:
     targetIndustries: list(data.target_industries, 20, 60),
     skills: list(data.skills, 30, 40),
     background: trim(data.background, 1200),
+    languages: spokenLanguages(data.spoken_languages),
     linkedinPremium: false,
     smartModel: true,
     shareOutcomes: true,

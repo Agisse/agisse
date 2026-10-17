@@ -64,8 +64,8 @@ import { exportUserData } from './lib/export'
 import { deleteInactiveAccounts, deleteStaleDeclined, eraseAccounts, pruneAdminActions, pruneModelOutput } from './lib/retention'
 import { repoNumbers } from './lib/github'
 import { getProgramme, programmeFacets, saveProgramme, searchProgrammes } from './lib/programmes'
-import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, vacancyFacets } from './lib/vacancies'
-import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
+import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, seekerOf, vacancyFacets } from './lib/vacancies'
+import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, spokenLanguages, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
 import { dueItems } from '../src/lib/followup'
 import type { SelectionProcess } from '../shared/selection'
 import { askWhichTest, contradictions, testCounts, testReportError, type TestReportRow } from '../shared/test-reports'
@@ -463,6 +463,7 @@ const ProfileSchema = z.object({
   targetIndustries: z.array(z.string().max(60)).max(20).default([]),
   skills: z.array(z.string().max(40)).max(30).default([]),
   background: z.string().max(1200).default(''),
+  languages: z.array(z.string().max(30)).max(16).default([]).transform(spokenLanguages),
   linkedinPremium: z.boolean().default(false),
   smartModel: z.boolean().default(true),
   shareOutcomes: z.boolean().default(true),
@@ -1452,7 +1453,9 @@ app.get('/api/vacancies', async (c) => {
   const userId = c.get('userId')
   const [allowed, profile] = await Promise.all([c.get('isAdmin') || countFeedPage(db, userId, feedDailyPages(c.env)), loadProfile(db, userId)])
   if (!allowed) return c.json({ error: FEED_CAP_MESSAGE }, 429)
-  return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])], profile?.degree))
+  // Profiles from before `languages` existed: the résumé's Languages section stands in while the profile lists none.
+  const resume = profile && !profile.languages.length ? await loadResumeText(db, userId) : null
+  return c.json(await searchVacancies(db, userId, { ...parsed.data, blocked: profile?.jobFeed?.blocked ?? [] }, seekerOf(profile, resume)))
 })
 
 app.get('/api/vacancies/facets', async (c) => {
