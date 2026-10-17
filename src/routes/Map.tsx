@@ -153,6 +153,8 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
   // ?import: the extension hands over a LinkedIn contact, which the contacted view's listener takes.
   const view = searchId ? 'searches' : q === 'contacted' || params.has('import') ? 'contacted' : 'searches'
   const tabs = (
+    <div className="intake">
+    <h1 className="display intake__title">People</h1>
     <nav className="posting-tabs" aria-label="People">
       {(['searches', 'contacted'] as const).map((v) => (
         <Link key={v} href={v === 'searches' ? '/contacts' : `/contacts?view=${v}`} aria-current={view === v ? 'page' : undefined}>
@@ -160,6 +162,7 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
         </Link>
       ))}
     </nav>
+    </div>
   )
 
   // Companies moved to Jobs; old links land there.
@@ -176,7 +179,7 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
     <main className="map map--stack">
       {tabs}
       {/* "Add a role at …" remounts the form with that booth's company and website filled in. */}
-      <IndexCard key={prefill?.at ?? 0} me={me} busy={!!pending} prefill={prefill} open={formOpen ?? (!!prefill || params.has('new') || list.data?.length === 0)} compact={!!(shown || pending)} onToggle={setFormOpen} onSubmit={submit} />
+      <IndexCard key={prefill?.at ?? 0} me={me} busy={!!pending} prefill={prefill} open={formOpen ?? (!!prefill || params.has('new') || list.data?.length === 0)} compact={!!(shown || pending)} canClose={!!(shown || pending || list.data?.length)} onToggle={setFormOpen} onSubmit={submit} />
 
       <section aria-live="polite" aria-busy={!!pending}>
         {pending ? (
@@ -221,7 +224,7 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
 
 /* ---------- The index card (search form) ---------- */
 
-function IndexCard({ me, busy, prefill, open, compact, onToggle, onSubmit }: { me: Me; busy: boolean; prefill: Prefill | null; open: boolean; compact: boolean; onToggle: (open: boolean) => void; onSubmit: (i: SearchForm) => void }) {
+function IndexCard({ me, busy, prefill, open, compact, canClose, onToggle, onSubmit }: { me: Me; busy: boolean; prefill: Prefill | null; open: boolean; compact: boolean; canClose: boolean; onToggle: (open: boolean) => void; onSubmit: (i: SearchForm) => void }) {
   const [company, setCompany] = useState(prefill?.company ?? '')
   const [domain, setDomain] = useState(prefill?.domain ?? '')
   const [roles, setRoles] = useState<string[]>(prefill?.role ? [prefill.role] : [])
@@ -252,11 +255,13 @@ function IndexCard({ me, busy, prefill, open, compact, onToggle, onSubmit }: { m
   return (
     <Intake
       id="index"
+      sub
       title="Find the right people to talk to"
       lede="Name a company and a role. Agisse ranks who is worth contacting, says why, and drafts the message you send yourself."
       action="New search"
       open={open}
       compact={compact}
+      canClose={canClose}
       onToggle={onToggle}
     >
 

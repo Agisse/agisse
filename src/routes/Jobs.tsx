@@ -83,6 +83,15 @@ addEventListener('pushState', () => {
   here = next
 })
 for (const ev of ['replaceState', 'popstate']) addEventListener(ev, () => (here = location.pathname + location.search))
+/** HIG back button: it names the screen it returns to. */
+function backLabel(href: string): string {
+  const [path, query = ''] = href.split('?')
+  if (path === '/') return 'Today'
+  if (path.startsWith('/contacts') || path.startsWith('/s/')) return 'People'
+  if (path.startsWith('/scout') || query.includes('view=companies')) return 'Companies'
+  if (path === '/jobs') return query.includes('view=track') ? 'My jobs' : 'Jobs'
+  return 'Back'
+}
 const DIMENSIONS = [
   ['cvMatch', 'Match with your CV'],
   ['northStar', 'Fits where you are heading'],
@@ -395,7 +404,7 @@ function PostingGhost({ id, tab }: { id: string; tab: PostingTab }) {
   return (
     <div className="booth posting">
       <Link href={cameFrom ?? `/jobs${boardQuery}`} className="booth__back">
-        <ArrowLeft aria-hidden="true" /> Back
+        <ArrowLeft aria-hidden="true" /> {backLabel(cameFrom ?? `/jobs${boardQuery}`)}
       </Link>
       <header className="booth__head" aria-hidden="true">
         <div className="booth__sign">
@@ -542,7 +551,7 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         href={cameFrom ?? `/jobs${boardQuery}`}
         className="booth__back"
       >
-        <ArrowLeft aria-hidden="true" /> Back
+        <ArrowLeft aria-hidden="true" /> {backLabel(cameFrom ?? `/jobs${boardQuery}`)}
       </Link>
       <header className="booth__head">
         <div className="booth__sign">
