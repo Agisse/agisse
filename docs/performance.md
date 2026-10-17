@@ -78,7 +78,7 @@ The preview server sends assets uncompressed, while Cloudflare compresses them i
 
 **Lighthouse, local preview** (uncompressed, so relative only). Landing, sign-in, Home and Jobs all land at FCP about 14.3 s, because all four wait for the same script. Home has a CLS of 0.086, Jobs 0.012. Scaled to compressed transfer, Jobs would be around 5 s.
 
-**Requests before Home shows data.** Four steps, one after the other: the HTML, the script, `/api/auth/get-session`, then `/api/me`, and only then `/api/referral`, `/api/contacted`, `/api/jobs` and `/api/due` in parallel. The Jobs feed waits for `/api/vacancies` (about 400 ms locally) and `/api/vacancies/facets` (about 600 ms).
+**Requests before Home shows data.** Four steps, one after the other: the HTML, the script, `/api/auth/get-session`, then `/api/me`, and only then `/api/contacted`, `/api/jobs` and `/api/due` in parallel. The Jobs feed waits for `/api/vacancies` (about 400 ms locally) and `/api/vacancies/facets` (about 600 ms).
 
 **API**, warm, against the dev database, median of five. Every signed-in route pays two round trips for the session check.
 

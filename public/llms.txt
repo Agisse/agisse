@@ -2,7 +2,7 @@
 
 > Agisse is an AI job-search copilot for students and early-career job seekers in Europe targeting consulting, finance and tech roles. It ranks open roles against your CV, tells you which postings to apply to and which to skip, tailors your CV and cover letter, finds the people worth messaging at a company, and prepares you for each interview round. You always press submit and send yourself; Agisse never applies or messages on your behalf.
 
-Agisse is in invite-only beta. Join the waitlist at https://agisse.xyz; referrals move you up the list, and approved users can invite friends directly. Creating an account is free and includes a first search. Contact: hello@agisse.xyz.
+Agisse is in open beta at https://agisse.xyz. Creating an account is free and everything is open from the start. Contact: hello@agisse.xyz.
 
 Who it is for: students and graduates in their first few years of work looking for internships, insight/spring weeks, summer and off-cycle internships, graduate programmes and first jobs across Europe.
 
@@ -35,7 +35,7 @@ Who it is for: students and graduates in their first few years of work looking f
 ## FAQ
 
 - **Who is Agisse for?** Students and people in their first few years of work, from the first search to the offer talk.
-- **What does it cost?** Agisse is free during the beta. Your first search works while you wait on the waitlist.
+- **What does it cost?** Agisse is free during the beta.
 - **Does Agisse apply or message people for me?** No. It drafts answers and messages; you fill in, submit and send them yourself.
 - **Does it scrape LinkedIn?** No. It uses the public web only and never logs into LinkedIn; profile links are opened by you.
 - **What does it need from me?** Your CV, imported as a PDF.

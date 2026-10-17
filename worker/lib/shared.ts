@@ -79,10 +79,10 @@ export function eurPerUsd(env: Money) {
   return Number(env.USD_TO_EUR) / (1 - margin)
 }
 
-/** A one-time credit puts OPENROUTER_CREDIT_MODELS first on Agisse's key until it's spent. Own keys and trial accounts never touch it. */
-export function creditFor(env: Money, creditEur: number | null | undefined, ownKey: boolean, trial: boolean): Meter['credit'] {
+/** A one-time credit puts OPENROUTER_CREDIT_MODELS first on Agisse's key until it's spent. Own keys never touch it. */
+export function creditFor(env: Money, creditEur: number | null | undefined, ownKey: boolean): Meter['credit'] {
   const models = (env.OPENROUTER_CREDIT_MODELS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
-  return !ownKey && !trial && (creditEur ?? 0) > 0 && models.length ? { models, eurPerUsd: eurPerUsd(env) } : undefined
+  return !ownKey && (creditEur ?? 0) > 0 && models.length ? { models, eurPerUsd: eurPerUsd(env) } : undefined
 }
 
 type Today = { usd: number; actions: number; mine: number; ownKey: boolean; credit: boolean }
@@ -184,15 +184,15 @@ export const budgetSpent = (b: Budget) =>
         ? `Free limit reached for today. ${ownKey}`
         : `You have used your €${b.limit.toFixed(2)} budget for this month. It resets on the 1st, or ask the administrator for more.`
 
-/** Fresh spend meter; carries the user's Smart model choice (trial accounts stay on Standard). */
-export async function newMeter(db: Db, env: Env, userId: string, trial: boolean): Promise<Meter> {
+/** Fresh spend meter; carries the user's Smart model choice. */
+export async function newMeter(db: Db, env: Env, userId: string): Promise<Meter> {
   const [rank, byok, u] = await Promise.all([
     modelRanking(db),
-    trial ? null : loadUserKey(db, env, userId),
-    trial ? null : db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { creditEur: true } }),
+    loadUserKey(db, env, userId),
+    db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { creditEur: true } }),
   ])
-  const meter: Meter = { tokens: 0, costUsd: 0, rank, byok: byok ?? undefined, credit: creditFor(env, u?.creditEur, !!byok, trial) }
-  if (trial || (await loadProfile(db, userId))?.smartModel === false) return meter
+  const meter: Meter = { tokens: 0, costUsd: 0, rank, byok: byok ?? undefined, credit: creditFor(env, u?.creditEur, !!byok) }
+  if ((await loadProfile(db, userId))?.smartModel === false) return meter
   const preferred = (env.OPENROUTER_SMART_MODELS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
   return { ...meter, smart: { preferred, maxUsdPerM: Number(env.SMART_MAX_USD_PER_M) || 2 } }
 }

@@ -20,4 +20,4 @@ What happens after you press apply: the online test, the video interview and the
 
 <ul><li v-for="id in PROVIDER_IDS" :key="id"><a :href="`/docs/tests/${slug(id)}`">{{ providerName(id) }}</a></li></ul>
 
-[Practise every test in Agisse](https://agisse.xyz/?utm_source=docs&utm_medium=guide) — invite-only beta.
+[Practise every test in Agisse](https://agisse.xyz/?utm_source=docs&utm_medium=guide) — free beta.

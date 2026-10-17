@@ -23,7 +23,7 @@ export async function sendEmail(env: Env, to: string, subject: string, lines: Ar
   const html = `<div style="font:16px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111;max-width:520px;margin:0 auto;padding:24px">
 ${lines.map((l) => `<p style="margin:0 0 14px">${typeof l === 'string' ? escape(l) : `<a href="${escape(l.href)}" style="color:#111">${escape(l.text)}</a>`}</p>`).join('')}
 ${cta ? `<p style="margin:24px 0"><a href="${escape(cta.url)}" style="background:#111;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">${escape(cta.label)}</a></p>` : ''}
-<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · ${Number(env.PUBLIC_LAUNCH) === 1 ? 'free and open source' : 'invite-only beta'} · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a>${unsubscribe ? ` · <a href="${escape(unsubscribe)}" style="color:#888">Unsubscribe</a>` : ''}</p></div>`
+<p style="margin:32px 0 0;color:#888;font-size:13px">Agisse · ${Number(env.PUBLIC_LAUNCH) === 1 ? 'free and open source' : 'free beta'} · <a href="mailto:${escape(from)}" style="color:#888">${escape(from)}</a>${unsubscribe ? ` · <a href="${escape(unsubscribe)}" style="color:#888">Unsubscribe</a>` : ''}</p></div>`
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -40,22 +40,10 @@ const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)}
 const firstName = (name: string) => name.trim().split(/\s+/)[0] || 'there'
 
 export const mails = {
-  waitlisted: (env: Env, to: { email: string; name: string }, origin: string, code: string, position: number) =>
-    sendEmail(env, to.email, `You're #${position} on the Agisse waitlist`, [
+  welcome: (env: Env, to: { email: string; name: string }, origin: string) =>
+    sendEmail(env, to.email, 'Welcome to Agisse', [
       `Hi ${firstName(to.name)},`,
-      `Agisse is an invite-only beta, getting better every day. You're #${position} in line, and you can already run one free search.`,
-      'Every friend who joins with your link moves you up the list.',
-    ], { label: 'Your invite link', url: `${origin}/?ref=${code}` }),
-  approved: (env: Env, to: { email: string; name: string }, origin: string) =>
-    sendEmail(env, to.email, "You're in: welcome to Agisse", [
-      `Hi ${firstName(to.name)},`,
-      'Your spot in the Agisse beta is open. Everything is unlocked: the job feed, tailored CVs, interview prep.',
-      'You also have invites for friends. Find your link on the Today page.',
-    ], { label: 'Open Agisse', url: origin }),
-  friendJoined: (env: Env, to: { email: string; name: string }, friend: string, origin: string, approved: boolean) =>
-    sendEmail(env, to.email, `${firstName(friend)} joined Agisse with your link`, [
-      `Hi ${firstName(to.name)},`,
-      approved ? `${friend} just joined with your invite and is straight in.` : `${friend} just joined with your link, which moves you up the waitlist.`,
+      'Your account is open. Everything is unlocked: the job feed, tailored CVs, interview prep.',
     ], { label: 'Open Agisse', url: origin }),
   inactive: (env: Env, to: { email: string; name: string }, origin: string, deleteOn: Date) =>
     sendEmail(env, to.email, 'Your Agisse account will be deleted', [

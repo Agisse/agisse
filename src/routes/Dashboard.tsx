@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'wouter'
-import { AlertCircle, ArrowRight, BriefcaseBusiness, Check, ChevronRight, Pencil, Play, Search, UserRound } from 'lucide-react'
+import { AlertCircle, ArrowRight, Blocks, Bot, BriefcaseBusiness, Check, ChevronRight, FileCheck, GraduationCap, MessagesSquare, Pencil, Play, Search, UserRound, Users, type LucideIcon } from 'lucide-react'
 import type { JobStatus } from '../../shared/types'
 import { EMPTY_FEED_PREFS } from '../../shared/listings'
 import { api, profileIsEmpty, type Me } from '../lib/api'
@@ -8,7 +8,7 @@ import { remembered, useResource } from '../lib/hooks'
 import { dueItems } from '../lib/followup'
 import { dueCard, personHref, todayNext, when, type Step, type TodayCard } from '../lib/today'
 import { weekCounts } from '../lib/week'
-import { InviteCard } from '../components/InviteCard'
+import { startTour } from '../components/Tour'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -24,6 +24,17 @@ const STAGES: [string, JobStatus[]][] = [
   ['applied', ['applied', 'responded']],
   ['interviewing', ['assessment', 'interview']],
   ['with an offer', ['offer']],
+]
+
+/** Everything else Agisse does, one row each, so Today is also the way in to it. */
+const EXPLORE: { href: string; icon: LucideIcon; title: string; detail: string }[] = [
+  { href: '/jobs?view=feed', icon: BriefcaseBusiness, title: 'Roles for you', detail: 'Open roles in Europe, ranked by fit to your CV' },
+  { href: '/contacts', icon: Users, title: 'Find someone to refer you', detail: 'People at a company, and a first message to send' },
+  { href: '/prepare', icon: GraduationCap, title: 'Practise online tests', detail: 'Numerical, verbal, logic and situational' },
+  { href: '/prepare/interviews', icon: MessagesSquare, title: 'Rehearse an interview', detail: 'Answer out loud, get feedback on every answer' },
+  { href: '/prepare/cv', icon: FileCheck, title: 'Score your CV', detail: 'Recruiter checks, line by line, free' },
+  { href: '/agent', icon: Bot, title: 'Connect your AI', detail: 'Interviews in your calendar, statuses from your inbox' },
+  { href: '/extension', icon: Blocks, title: 'Browser extension', detail: 'Save any posting in one click' },
 ]
 
 /** Coming up shows this many rows; the rest open on tap. */
@@ -53,10 +64,8 @@ const QUIET_LINK = 'text-primary underline-offset-4 hover:underline'
 
 /** Today: the one thing to do next, then what else is coming up, then the search in a line or two. The assistant lives in the dock. */
 export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> }) {
-  const trial = !!me.trial
   const people = useResource(() => api.contacted().then((r) => r.people), [])
-  // Trial accounts have no Jobs.
-  const jobs = useResource(() => (trial ? Promise.resolve([]) : api.jobs().then((r) => r.jobs)), [trial])
+  const jobs = useResource(() => api.jobs().then((r) => r.jobs), [])
 
   const due = dueItems(jobs.data ?? [], people.data ?? [])
   const error = people.error ?? jobs.error
@@ -66,19 +75,15 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
   // First run: four steps from an empty profile to a first application, each read from data already loaded.
   const steps: Step[] = [
     { done: !profileIsEmpty(me), label: 'Upload your CV', detail: 'Agisse matches roles and practice to it.', action: 'Upload CV', href: '/welcome' },
-    ...(trial
-      ? []
-      : [
-          {
-            done: JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) !== JSON.stringify(EMPTY_FEED_PREFS),
-            label: 'Say what you’re looking for',
-            detail: 'Field and country. Your feed fills from it.',
-            action: 'Choose',
-            href: '/welcome?step=looking',
-          },
-          { done: allJobs.length > 0, label: 'Save a role', detail: 'Pick one from your feed to track it here.', action: 'Open feed', href: '/jobs?view=feed' },
-          { done: allJobs.some((j) => j.appliedAt), label: 'Apply to one', detail: 'Mark it applied and Today reminds you to follow up.', action: 'Open my jobs', href: '/jobs?view=track' },
-        ]),
+    {
+      done: JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed }) !== JSON.stringify(EMPTY_FEED_PREFS),
+      label: 'Say what you’re looking for',
+      detail: 'Kind of role, field, country, languages. Your feed fills from it.',
+      action: 'Choose',
+      href: '/welcome?step=looking',
+    },
+    { done: allJobs.length > 0, label: 'Save a role', detail: 'Pick one from your feed to track it here.', action: 'Open feed', href: '/jobs?view=feed' },
+    { done: allJobs.some((j) => j.appliedAt), label: 'Apply to one', detail: 'Mark it applied and Today reminds you to follow up.', action: 'Open my jobs', href: '/jobs?view=track' },
   ]
   const week = weekCounts(allJobs)
   // ponytail: goal lives in this browser only; move it to the profile if seekers want it across devices.
@@ -104,7 +109,7 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
 
   const nextStep = loading ? undefined : steps.find((s) => !s.done)
   const checklist = !!nextStep && steps.length > 1
-  const card = loading ? undefined : todayNext({ step: nextStep, due, jobs: allJobs, trial })
+  const card = loading ? undefined : todayNext({ step: nextStep, due, jobs: allJobs })
   // The card shows the first thing due, so the list leaves it out.
   const rest = card?.kind === 'job' || card?.kind === 'person' ? due.slice(1) : due
   const [showAll, setShowAll] = useState(false)
@@ -226,12 +231,12 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
       )}
 
       {/* The search in a line or two: the pipeline, this week against an optional goal, and a CV nudge while it has room to grow. */}
-      {((!trial && allJobs.length > 0) || cvNudge) && (
+      {(allJobs.length > 0 || cvNudge) && (
         <section aria-labelledby="search-title" className="flex flex-col gap-1 px-1 text-sm text-muted-foreground">
           <h2 id="search-title" className="sr-only">
             Your search
           </h2>
-          {!trial && allJobs.length > 0 && (
+          {allJobs.length > 0 && (
             <>
               <p className="m-0 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <Link href="/jobs?view=track" className="inline-flex min-h-9 flex-wrap items-center gap-y-1 text-muted-foreground no-underline underline-offset-4 hover:text-foreground hover:underline">
@@ -309,8 +314,34 @@ export function DashboardRoute({ me }: { me: Me; refreshMe: () => Promise<void> 
         </section>
       )}
 
-      {/* Invites wait until the seeker has used Agisse once; a waitlisted account (no checklist) still sees its place and the code field. */}
-      {!loading && !checklist && <InviteCard />}
+      {/* The rest of Agisse, one quiet row each; the tour is one tap away for a longer look. */}
+      <section aria-labelledby="explore-title" className="flex flex-col gap-2">
+        <div className="flex min-h-8 items-center justify-between gap-4">
+          <SectionHead id="explore-title">More in Agisse</SectionHead>
+          <Button variant="ghost" size="sm" className="text-muted-foreground max-md:h-11" onClick={startTour}>
+            Take the tour
+          </Button>
+        </div>
+        <ul className={cn(GROUP, 'm-0 grid list-none p-0 md:grid-cols-2')}>
+          {EXPLORE.map((x) => (
+            <li key={x.href} className="border-b border-border last:border-b-0 md:odd:border-r md:last:odd:col-span-2 md:last:odd:border-r-0 md:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
+              <Link
+                href={x.href}
+                className="flex min-h-14 items-center gap-3 px-4 py-3 text-foreground no-underline transition-colors duration-150 outline-none hover:bg-muted/60 focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              >
+                <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary [&_svg]:size-4">
+                  <x.icon />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-[15px] font-medium">{x.title}</span>
+                  <span className="truncate text-[13px] text-muted-foreground">{x.detail}</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   )
 }

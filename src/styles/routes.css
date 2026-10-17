@@ -40,25 +40,9 @@
 .admin-page__section span { margin-left: var(--space-2); color: var(--ink-3); font-weight: 500; }
 .admin-page__section + .admin-page__filters { margin-top: var(--space-3); }
 
-.invites__new { display: flex; gap: var(--space-3); margin-top: var(--space-4); max-width: 640px; }
-.invites__new .field__input { flex: 1; min-width: 0; }
-.invites__new .invites__credit { flex: none; width: 8rem; }
-.invites__new .invites__days { width: 10rem; }
-.invites__fresh { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius); max-width: 640px; background: var(--green-tint); color: var(--green-ink); }
-.invites__link { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
-.invites__link input { flex: 1; min-width: 0; padding: 6px 10px; border-radius: var(--radius); background: var(--paper); color: var(--ink); border: 1px solid var(--blue); font: inherit; font-size: var(--fs-14); }
-.invites__link svg { width: 14px; height: 14px; }
-.invites__list { list-style: none; margin: var(--space-5) 0 0; padding: 0; border-top: 1px solid var(--rule-soft); }
-.invites__row { display: grid; grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr) 200px; align-items: center; gap: var(--space-5); padding: var(--space-3) 0; border-bottom: 1px solid var(--rule-soft); }
-.invites__row--withdrawn .invites__who strong { color: var(--ink-2); font-weight: 400; text-decoration: line-through; }
-.invites__who { display: grid; min-width: 0; }
-.invites__who strong { overflow-wrap: anywhere; }
-.invites__who small, .invites__detail { color: var(--ink-2); overflow-wrap: anywhere; }
-@media (max-width: 720px) { .invites__row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-3); } .invites__detail, .invites__row .admin-page__actions { grid-column: 1 / -1; justify-content: flex-start; } .invites__detail:empty { display: none; } .invites__new { flex-direction: column; } .invites__new .field__input { flex: none; } }
 
 
 @media (max-width: 900px) { .admin-page__row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3); } .admin-page__row > .admin-page__budget, .admin-page__row > .admin-page__actions { grid-column: 1 / -1; justify-content: flex-start; } }
-.invites__row .admin-page__actions:empty { display: none; }
 @media (max-width: 720px) { .admin-page__head { align-items: start; flex-direction: column; } }
 @media (max-width: 480px) { .admin-page__filters { width: auto; } .admin-page__filter { padding-inline: 10px; } }
 

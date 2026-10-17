@@ -14,19 +14,13 @@ import { PageSkeleton } from './components/PageSkeleton'
 // usually arrives first and frames the page while the rest loads.
 const loadSignedIn = () => import('./SignedInApp')
 const loadShell = () => import('./components/Shell').then((m) => ({ default: m.Shell }))
-if (sessionHint() === 'in' || sessionHint() === 'trial') {
+if (sessionHint() === 'in') {
   void loadShell()
   void loadSignedIn()
 }
 const SignedInApp = lazy(loadSignedIn)
 const Shell = lazy(loadShell)
 
-
-// ?ref= and ?invite= ride a 30-day cookie, so they survive the hop to /sign-in and the round trip through Google.
-for (const key of ['ref', 'invite']) {
-  const v = new URLSearchParams(window.location.search).get(key)?.trim()
-  if (v && /^[\w-]{4,40}$/.test(v)) document.cookie = `agisse_${key}=${v}; Max-Age=2592000; Path=/; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`
-}
 
 type Auth = { state: 'loading' } | { state: 'out' } | { state: 'declined' } | { state: 'in'; me: Me }
 
@@ -47,11 +41,11 @@ export default function App() {
   }, [])
 
   const load = useCallback(async () => {
-    // /api/me alone decides signed in (waitlisted accounts are trial), declined or out; a getSession call first only added a round trip.
+    // /api/me alone decides signed in, declined or out; a getSession call first only added a round trip.
     try {
       const me = await api.me()
       identifyUser(me.user)
-      sessionHint(me.trial ? 'trial' : 'in')
+      sessionHint('in')
       setAuth({ state: 'in', me })
     } catch (e) {
       const status = e instanceof ApiError && e.status === 403 ? (e.body as { status?: string } | null)?.status : undefined
@@ -90,8 +84,7 @@ export default function App() {
   // Until /api/me answers, draw the layout it gave last time instead of a loading screen.
   const hint = auth.state === 'loading' ? sessionHint() : null
   if (auth.state === 'out' || hint === 'out') {
-    // Invite links point at /?invite=…, so they skip the homepage and open the form.
-    if (location === '/' && !new URLSearchParams(window.location.search).has('invite')) return <Landing />
+    if (location === '/') return <Landing />
     if (location === '/reset-password') return <ResetPassword />
     return <SignIn onSignedIn={load} />
   }
@@ -99,7 +92,7 @@ export default function App() {
   if (auth.state === 'loading') {
     return location === '/welcome' ? <PageSkeleton /> : (
       <Suspense>
-        <Shell email="" trial={hint === 'trial'} isAdmin={false} onSignOut={signOut}>
+        <Shell email="" isAdmin={false} onSignOut={signOut}>
           <PageSkeleton />
         </Shell>
       </Suspense>
@@ -107,7 +100,7 @@ export default function App() {
   }
 
   return (
-    <Suspense fallback={location === '/welcome' ? <PageSkeleton /> : <Suspense><Shell email={auth.me.user.email} trial={!!auth.me.trial} isAdmin={auth.me.user.isAdmin} onSignOut={signOut}><PageSkeleton /></Shell></Suspense>}>
+    <Suspense fallback={location === '/welcome' ? <PageSkeleton /> : <Suspense><Shell email={auth.me.user.email} isAdmin={auth.me.user.isAdmin} onSignOut={signOut}><PageSkeleton /></Shell></Suspense>}>
       <SignedInApp me={auth.me} load={load} signOut={signOut} />
     </Suspense>
   )

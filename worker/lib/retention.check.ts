@@ -3,7 +3,7 @@
 import { and, eq, inArray, like, lt, sql } from 'drizzle-orm'
 import { createDb, schema } from '../db/index.ts'
 import { pruneExaCache } from './exa.ts'
-import { deleteInactiveAccounts, deleteStaleWaitlist, eraseOutsideCascade, pruneModelOutput } from './retention.ts'
+import { deleteInactiveAccounts, deleteStaleDeclined, eraseOutsideCascade, pruneModelOutput } from './retention.ts'
 
 // Erasure tells PostHog only when both PostHog vars are set, with the ids and nothing else; a PostHog failure never blocks it.
 {
@@ -34,20 +34,20 @@ import { deleteInactiveAccounts, deleteStaleWaitlist, eraseOutsideCascade, prune
 
 const url = process.env.DATABASE_URL
 const db = url ? createDb(url) : null
-// deleteStaleWaitlist works on the whole table, so never run it where other accounts could match.
-const others = db && (await db.select({ id: schema.user.id }).from(schema.user).where(and(inArray(schema.user.accessStatus, ['pending', 'rejected']), lt(schema.user.createdAt, sql`now() - interval '11 months'`))).limit(1))
+// deleteStaleDeclined works on the whole table, so never run it where other accounts could match.
+const others = db && (await db.select({ id: schema.user.id }).from(schema.user).where(and(eq(schema.user.accessStatus, 'rejected'), lt(schema.user.createdAt, sql`now() - interval '11 months'`))).limit(1))
 if (!db || others?.length) {
-  console.log(`retention ok (skipped: ${db ? 'this database has older waitlist accounts' : 'no DATABASE_URL'})`)
+  console.log(`retention ok (skipped: ${db ? 'this database has older declined accounts' : 'no DATABASE_URL'})`)
 } else {
   const run = Date.now()
   const old = new Date(Date.now() - 400 * 24 * 3600_000)
-  const account = (key: string, accessStatus: 'pending' | 'approved' | 'rejected', createdAt: Date) =>
+  const account = (key: string, accessStatus: 'approved' | 'rejected', createdAt: Date) =>
     ({ id: `retention-${run}-${key}`, name: 'Sam Example', email: `retention-${run}-${key}@example.com`, accessStatus, createdAt })
   const users = [
-    account('stale', 'pending', old),
+    account('stale', 'rejected', old),
     account('declined', 'rejected', old),
-    account('recent-session', 'pending', old),
-    account('new', 'pending', new Date()),
+    account('recent-session', 'rejected', old),
+    account('new', 'rejected', new Date()),
     account('approved', 'approved', old),
   ]
   const deleted = new Set<string>()
@@ -56,7 +56,7 @@ if (!db || others?.length) {
     await db.insert(schema.user).values(users)
     await db.insert(schema.session).values({ id: `retention-${run}`, token: `retention-${run}`, userId: users[2].id, expiresAt: new Date(Date.now() + 86_400_000) })
     await db.insert(schema.oauthConsent).values({ id: `retention-${run}`, clientId: 'retention-check', userId: users[0].id, scopes: ['openid'] })
-    await deleteStaleWaitlist({ RESUMES: files }, db)
+    await deleteStaleDeclined({ RESUMES: files }, db)
     const left = new Set((await db.select({ id: schema.user.id }).from(schema.user).where(like(schema.user.email, `retention-${run}-%`))).map((u) => u.id))
     const expectGone = [users[0].id, users[1].id]
     for (const u of users) if (left.has(u.id) === expectGone.includes(u.id)) throw new Error(`${u.id}: ${left.has(u.id) ? 'kept' : 'deleted'}`)
@@ -87,7 +87,7 @@ if (!db || olderApproved?.length) {
     session: account('session'),
     mcp: account('mcp'),
     admin: account('admin', { isAdmin: true }),
-    pending: account('pending', { accessStatus: 'pending' }),
+    declined: account('declined', { accessStatus: 'rejected' as const }),
     fresh: account('fresh', { createdAt: daysAgo(30) }),
   }
   const users = Object.values(a)
@@ -124,7 +124,7 @@ if (!db || olderApproved?.length) {
     check(sent.sort().join() === [a.idle.email, a.mailFails.email].sort().join(), `mailed only the unused, unwarned accounts: ${sent.join()}`)
     check(left.get(a.idle.id) instanceof Date, 'idle account marked as warned')
     check(left.get(a.mailFails.id) === null, 'a failed email marks nothing')
-    for (const u of [a.warnedBack, a.warnedRecent, a.session, a.mcp, a.admin, a.pending, a.fresh, a.idle, a.mailFails]) check(left.has(u.id), `${u.id} kept`)
+    for (const u of [a.warnedBack, a.warnedRecent, a.session, a.mcp, a.admin, a.declined, a.fresh, a.idle, a.mailFails]) check(left.has(u.id), `${u.id} kept`)
 
     // A second run the same day sends nothing new and deletes nothing: the warning is 30 days old at the earliest.
     sent.length = 0

@@ -40,9 +40,9 @@
     // Paid entries get a second try before the free chain. Nemotron Ultra after Super: it timed out on every eval call (2026-10-16).
     // Self-hosters who want no spend: drop the first entry.
     "OPENROUTER_MODELS": "mistralai/mistral-small-2603,nvidia/nemotron-3-super-120b-a12b:free,nvidia/nemotron-3-ultra-550b-a55b:free,dots-studio/dots-3-note-preview:free,apodex/apodex-1.1-mini:free",
-    // Accounts with a one-time credit (invite, an admin's ref link, or the sign-up credit) get these on Agisse's key first, until the credit is spent.
+    // Accounts with the one-time sign-up credit get these on Agisse's key first, until the credit is spent.
     "OPENROUTER_CREDIT_MODELS": "anthropic/claude-haiku-5.5",
-    // One-time credit in € for every new account (owner, 2026-10-16). An invite's or an admin's ref link's credit replaces it.
+    // One-time credit in € for every new account (owner, 2026-10-16).
     // Self-hosters: "0" turns it off; it only ever spends on OPENROUTER_CREDIT_MODELS.
     "SIGNUP_CREDIT_EUR": "1",
     // Paid models below run only on a seeker's own OpenRouter key.
@@ -79,5 +79,5 @@
   }
   // Secrets (set with `wrangler secret put <NAME>` or `npm run secrets`):
   // DATABASE_URL, BETTER_AUTH_SECRET
-  // Optional (feature stays off without them): OPENROUTER_API_KEY (else every user brings their own key), EXA_API_KEY, SENTRY_DSN, RESEND_API_KEY, EMAIL_FROM, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY, GROUP_INVITE
+  // Optional (feature stays off without them): OPENROUTER_API_KEY (else every user brings their own key), EXA_API_KEY, SENTRY_DSN, RESEND_API_KEY, EMAIL_FROM, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, TURNSTILE_SECRET_KEY
 }

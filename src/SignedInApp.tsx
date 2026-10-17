@@ -12,6 +12,7 @@ import { Welcome } from './routes/Welcome'
 import { NoteLimit } from './lib/hooks'
 import { AssistantProvider } from './lib/assistant'
 import { AssistantDock } from './components/AssistantDock'
+import { Tour } from './components/Tour'
 import { noteLimit } from '../shared/types'
 import { PageSkeleton } from './components/PageSkeleton'
 
@@ -27,6 +28,7 @@ const Banking = lazy(() => import('./features/interviews/Banking').then((m) => (
 const Admin = lazy(() => import('./routes/Admin').then((m) => ({ default: m.Admin })))
 const PracticeRunner = lazy(() => import('./features/assessments/components/PracticeRunner').then((m) => ({ default: m.PracticeRunner })))
 const PracticeRoute = lazy(() => import('./features/assessments/components/TrainingHub').then((m) => ({ default: m.PracticeRoute })))
+const AgentRoute = lazy(() => import('./routes/Agent').then((m) => ({ default: m.AgentRoute })))
 const ExtensionRoute = lazy(() => import('./routes/Extension').then((m) => ({ default: m.ExtensionRoute })))
 const ChangelogRoute = lazy(() => import('./routes/Changelog').then((m) => ({ default: m.ChangelogRoute })))
 const EducationRoute = lazy(() => import('./routes/Education').then((m) => ({ default: m.EducationRoute })))
@@ -43,7 +45,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
   if (location === '/welcome') return <Welcome me={me} refreshMe={load} />
   return (
     <AssistantProvider me={me} refreshMe={load}>
-    <Shell email={me.user.email} trial={!!me.trial} isAdmin={me.user.isAdmin} onSignOut={signOut}>
+    <Shell email={me.user.email} isAdmin={me.user.isAdmin} onSignOut={signOut}>
       <NoteLimit.Provider value={noteLimit(me.profile)}>
       <Suspense fallback={<PageSkeleton />}>
       <Switch>
@@ -69,7 +71,7 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
                 <Route path="/prepare/cv/:tab?">{(params) => <PrepareHub><CvReviewRoute me={me} refreshMe={load} tab={params.tab === 'match' || params.tab === 'linkedin' ? params.tab : 'score'} /></PrepareHub>}</Route>
         <Route path="/prepare/tests">{() => <Redirect to="/prepare" replace />}</Route>
         <Route path="/prepare">{() => <PrepareHub><PracticeRoute /></PrepareHub>}</Route>
-        {!me.trial && <Route path="/chat">{() => <ChatRoute />}</Route>}
+        <Route path="/chat">{() => <ChatRoute />}</Route>
         {/* One route for every tab so switching tabs keeps the loaded posting. */}
         <Route path="/jobs/:id/:tab?">{(params) => OLD_TAB[params.tab ?? ''] ? <Redirect to={`/jobs/${params.id}/${OLD_TAB[params.tab!]}`} replace /> : <JobsRoute me={me} refreshMe={load} jobId={params.id} tab={params.tab === 'apply' || params.tab === 'prepare' || params.tab === 'offer' ? params.tab : 'overview'} />}</Route>
         {/* Companies live in Jobs; /scout/:id keeps its path so the assistant still knows which search is open. */}
@@ -79,9 +81,10 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
         <Route path="/profile/review/:tab?">{(params) => <Redirect to={params.tab ? `/prepare/cv/${params.tab}` : '/prepare/cv'} replace />}</Route>
         <Route path="/badge">{() => <Redirect to="/profile" replace />}</Route>
         <Route path="/extension">{() => <ExtensionRoute />}</Route>
+        <Route path="/agent">{() => <AgentRoute />}</Route>
         <Route path="/changelog">{() => <ChangelogRoute />}</Route>
         <Route path="/consent">{() => <Consent />}</Route>
-        <Route path="/admin">{() => me.user.isAdmin ? <Admin myId={me.user.id} onBudgetChange={load} /> : <main className="center">Admin access required.</main>}</Route>
+        <Route path="/admin">{() => me.user.isAdmin ? <Admin onBudgetChange={load} /> : <main className="center">Admin access required.</main>}</Route>
         <Route>
           {() => (
             <main className="center">
@@ -94,7 +97,8 @@ export default function SignedInApp({ me, load, signOut }: { me: Me; load: () =>
         </Route>
       </Switch>
       </Suspense>
-      {!me.trial && <AssistantDock />}
+      <AssistantDock />
+      <Tour userId={me.user.id} />
       </NoteLimit.Provider>
     </Shell>
     </AssistantProvider>

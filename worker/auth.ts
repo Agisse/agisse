@@ -1,18 +1,14 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { captcha, jwt } from 'better-auth/plugins'
-import { eq, and, gt, isNull, or, sql } from 'drizzle-orm'
 import { mails } from './lib/email'
 import { eraseOutsideCascade } from './lib/retention'
 import { revokePlan } from './lib/byok'
-import { newReferralCode, readCookie, resolveReferral, waitlistPosition } from './lib/waitlist'
 import { mcp } from '@better-auth/mcp'
 import type { Db } from './db'
 import { schema } from './db'
 
 // The one admin account, set as a secret so the address stays out of the source. Unset means no admin.
-/** An invite past its expiry date opens nothing (no expiry = never). */
-export const unexpired = () => or(isNull(schema.invite.expiresAt), gt(schema.invite.expiresAt, sql`now()`))
 export const isAdminEmail = (env: Env, email?: string | null) => !!env.ADMIN_EMAIL && email?.toLowerCase() === env.ADMIN_EMAIL.trim().toLowerCase()
 
 // Workers Free allows ~10 ms CPU per request; Better Auth's default scrypt blows past that.
@@ -53,15 +49,8 @@ declare global {
     GOOGLE_CLIENT_ID?: string
     GOOGLE_CLIENT_SECRET?: string
     TURNSTILE_SECRET_KEY?: string
-    GROUP_INVITE?: string
   }
 }
-
-// The landing page drops these cookies from ?ref= / ?invite=, so they survive the round trip through Google.
-type Ctx = { headers?: Headers; request?: Request } | null
-const requestCookies = (ctx: Ctx) => (ctx?.request?.headers ?? ctx?.headers)?.get('cookie')
-// The email form sends its code as x-invite; Google sign-ups carry it in the cookie.
-const inviteCode = (ctx: Ctx) => (ctx?.request?.headers ?? ctx?.headers)?.get('x-invite')?.trim() || readCookie(requestCookies(ctx), 'agisse_invite')
 
 export function createAuth(env: Env, db: Db, origin: string) {
   return betterAuth({
@@ -73,35 +62,13 @@ export function createAuth(env: Env, db: Db, origin: string) {
     databaseHooks: {
       user: {
         create: {
-          before: async (user, ctx) => {
+          before: async (user) => {
             if (isAdminEmail(env, user.email)) throw new Error('This address is reserved. Sign in to the existing account.')
-            const cookies = requestCookies(ctx)
-            const ref = await resolveReferral(db, readCookie(cookies, 'agisse_ref'), user.email)
-            const invite = inviteCode(ctx)
-            const group = !!invite && !!env.GROUP_INVITE?.trim() && invite === env.GROUP_INVITE.trim()
-            // A personal invite from the admin skips the waitlist. The email route has already claimed it (usedAt set, usedBy not yet).
-            const personal = invite && !group ? await db.query.invite.findFirst({ where: and(eq(schema.invite.code, invite), isNull(schema.invite.usedBy), isNull(schema.invite.revokedAt), unexpired()), columns: { creditEur: true } }) : undefined
-            const approved = ref?.admits || group || !!personal
-            // One-time credit: the invite's, else the admin's ref link's, else the sign-up credit everyone gets.
-            const credit = personal?.creditEur || (ref?.referrer.isAdmin && ref.referrer.referralCreditEur) || Number(env.SIGNUP_CREDIT_EUR) || null
-            return { data: { ...user, referralCode: newReferralCode(), referredBy: ref?.referrer.id ?? null, ...(approved ? { accessStatus: 'approved', reviewedAt: new Date() } : {}), ...(credit ? { creditGrantedEur: credit, creditEur: credit } : {}) } }
+            // One-time sign-up credit everyone gets.
+            const credit = Number(env.SIGNUP_CREDIT_EUR) || null
+            return { data: { ...user, ...(credit ? { creditGrantedEur: credit, creditEur: credit } : {}) } }
           },
-          after: async (user, ctx) => {
-            const u = user as typeof user & { accessStatus?: string; referralCode?: string; referredBy?: string | null }
-            // Google sign-ups skip the email form's x-invite claim, so a one-off invite in the cookie is claimed here.
-            const invite = inviteCode(ctx)
-            if (invite) await db.update(schema.invite).set({ usedAt: new Date(), usedBy: user.id }).where(and(eq(schema.invite.code, invite), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt), unexpired()))
-            const approved = u.accessStatus === 'approved'
-            if (approved) await mails.approved(env, user, origin)
-            else {
-              const pos = await waitlistPosition(db, user.id)
-              await mails.waitlisted(env, user, origin, u.referralCode ?? '', pos?.position ?? 1)
-            }
-            if (u.referredBy) {
-              const referrer = await db.query.user.findFirst({ where: eq(schema.user.id, u.referredBy), columns: { email: true, name: true } })
-              if (referrer) await mails.friendJoined(env, referrer, user.name, origin, approved)
-            }
-          },
+          after: async (user) => { await mails.welcome(env, user, origin) },
         },
         update: { before: async (user) => {
           if (isAdminEmail(env, user.email)) throw new Error('This address is reserved.')
@@ -131,8 +98,6 @@ export function createAuth(env: Env, db: Db, origin: string) {
       },
       additionalFields: {
       accessStatus: { type: 'string', required: false, input: false },
-      referralCode: { type: 'string', required: false, input: false },
-      referredBy: { type: 'string', required: false, input: false },
       creditGrantedEur: { type: 'number', required: false, input: false },
       creditEur: { type: 'number', required: false, input: false },
       reviewedAt: { type: 'date', required: false, input: false },

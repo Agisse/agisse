@@ -8,7 +8,7 @@ import { requireMcpAuth } from '@better-auth/mcp'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import { createDb, dbTiming, schema, type Db } from './db'
 import { forgetSwitches, isSwitch, switchRows, SWITCHES, withSwitches } from './lib/settings'
-import { isAdminEmail, createAuth, unexpired, type Auth } from './auth'
+import { isAdminEmail, createAuth, type Auth } from './auth'
 import { buildMcpServer } from './lib/mcp'
 import { scrubUrl } from '../shared/scrub-url'
 import { checkClosedPostings } from './lib/closed'
@@ -61,9 +61,8 @@ import {
 import { mails } from './lib/email'
 import { sendDeadlineEmails, validUnsubscribe } from './lib/reminders'
 import { exportUserData } from './lib/export'
-import { deleteInactiveAccounts, deleteStaleWaitlist, eraseAccounts, pruneAdminActions, pruneModelOutput } from './lib/retention'
+import { deleteInactiveAccounts, deleteStaleDeclined, eraseAccounts, pruneAdminActions, pruneModelOutput } from './lib/retention'
 import { repoNumbers } from './lib/github'
-import { referralStatus } from './lib/waitlist'
 import { getProgramme, programmeFacets, saveProgramme, searchProgrammes } from './lib/programmes'
 import { countFeedPage, FEED_CAP_MESSAGE, feedCapDays, feedDailyPages, MAX_OFFSET, openVacancyStats, pruneFeedDays, quickFit, searchVacancies, seekerOf, vacancyFacets } from './lib/vacancies'
 import { ADZUNA_COUNTRIES, EMPTY_FEED_PREFS, FEED_LEVELS, PROGRAM_LABEL, SPOKEN_LANGUAGES, spokenLanguages, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES } from '../shared/listings'
@@ -73,7 +72,7 @@ import { askWhichTest, contradictions, testCounts, testReportError, type TestRep
 import { ANSWER_QUESTION_LIMIT, ANSWER_TEXT_LIMIT, type InterviewQuestion, type PracticeAnswer } from '../shared/interview'
 import { COGNITIVE_SKILLS, BENCHMARK_MIN_USERS, GAME_IDS, REPORT_KINDS, TRAINING_MODES, type AssessmentReport, type CompanyAssessment, type SkillBenchmark, type TrainingSession } from '../shared/assessments'
 import type { HelperMessage } from '../shared/helper'
-import { COMPANY_SIZES, CONTACT_VALUES, EMAIL_KINDS, EMPTY_PROFILE, GOALS, JD_TEXT_LIMIT, JOB_STATUSES, MEMORY_KINDS, MEMORY_LIMIT, MEMORY_TEXT_LIMIT, NOTE_LANGUAGES, RATED_TASKS, REPLY_STATUSES, RESUME_PDF_LIMIT, RESUME_TEXT_LIMIT, TRIAL_RESUME_READS, normalizeDomain, type JobEvaluation, type NoteLanguage, type Person, type Profile, type Scout, type ScoutSummary, type BubbleMapSummary, type SavedBubbleMap } from '../shared/types'
+import { COMPANY_SIZES, CONTACT_VALUES, EMAIL_KINDS, EMPTY_PROFILE, GOALS, JD_TEXT_LIMIT, JOB_STATUSES, MEMORY_KINDS, MEMORY_LIMIT, MEMORY_TEXT_LIMIT, NOTE_LANGUAGES, RATED_TASKS, REPLY_STATUSES, RESUME_PDF_LIMIT, RESUME_TEXT_LIMIT, normalizeDomain, type JobEvaluation, type NoteLanguage, type Person, type Profile, type Scout, type ScoutSummary, type BubbleMapSummary, type SavedBubbleMap } from '../shared/types'
 
 declare global {
   interface Env {
@@ -91,8 +90,6 @@ type Variables = {
   /** The signed-in user's row, as the session guard read it. */
   user: typeof schema.user.$inferSelect
   isAdmin: boolean
-  /** Pending account on its free try: one search, nothing else that costs money. */
-  trial: boolean
 }
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -204,38 +201,6 @@ app.get('/api/public/stats', async (c) => {
   return c.json({ ...stats, ...github }, 200, { 'Cache-Control': 'public, max-age=3600' })
 })
 
-// Sign-up is open and every account starts on the waitlist (pending, one free search) until approved.
-// A personal invite skips the waitlist (auth.ts user.create hook); it is claimed before Better Auth runs, so one code opens one account.
-const openInvite = (code: string) => and(eq(schema.invite.code, code), isNull(schema.invite.usedAt), isNull(schema.invite.revokedAt), unexpired())
-
-// GROUP_INVITE (declared in auth.ts): one reusable link for a group chat; every sign-up with it starts approved on the default budget.
-// Rotate or delete the secret to kill the link. ponytail: no use cap, add one if the link leaks.
-const isGroupInvite = (env: Env, code: string) => !!env.GROUP_INVITE?.trim() && code === env.GROUP_INVITE.trim()
-
-app.post('/api/auth/sign-up/email', async (c) => {
-  const db = c.get('db')
-  const code = c.req.header('x-invite')?.trim() ?? ''
-  // The group link is approved by the user.create hook in auth.ts, which reads the same header.
-  if (!code || isGroupInvite(c.env, code)) return c.get('auth').handler(c.req.raw)
-  const [claimed] = await db.update(schema.invite).set({ usedAt: new Date() }).where(openInvite(code)).returning({ code: schema.invite.code })
-  if (!claimed) return c.json({ code: 'INVITE_INVALID', message: 'This invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.' }, 403)
-  const res = await c.get('auth').handler(c.req.raw)
-  const user = res.ok ? ((await res.clone().json().catch(() => null)) as { user?: { id: string } } | null)?.user : undefined
-  if (!user) {
-    await db.update(schema.invite).set({ usedAt: null }).where(eq(schema.invite.code, code))
-    return res
-  }
-  await db.update(schema.invite).set({ usedBy: user.id }).where(eq(schema.invite.code, code))
-  return res
-})
-
-// Lets the door say a link is dead before anyone fills the form.
-app.get('/api/invite/:code', async (c) => {
-  if (isGroupInvite(c.env, c.req.param('code'))) return c.json({ valid: true })
-  const row = await c.get('db').query.invite.findFirst({ where: openInvite(c.req.param('code')), columns: { code: true } })
-  return c.json({ valid: !!row })
-})
-
 // MCP clients (Claude Code, Codex, ...) register a `http://127.0.0.1:<port>` callback without an
 // application_type, which Better Auth then treats as `web` and rejects. A loopback-only client is native.
 app.post('/api/auth/oauth2/register', async (c) => {
@@ -296,7 +261,7 @@ app.all('/mcp', async (c) => {
         const isAdmin = user?.isAdmin && isAdminEmail(c.env, user.email)
         if (!user || (user.accessStatus !== 'approved' && !isAdmin)) return c.json({ error: 'This account is not approved for MCP access.' }, 403)
         const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined })
-        const server = buildMcpServer(db, c.env, userId, false, !!isAdmin)
+        const server = buildMcpServer(db, c.env, userId, !!isAdmin)
         await server.connect(transport)
         return transport.handleRequest(request)
       },
@@ -309,22 +274,6 @@ app.all('/mcp', async (c) => {
     return mcpChallenge(origin)
   }
 })
-
-// What a pending account may do on its free try. Deleting is out so the try cannot be reset.
-const TRIAL_ROUTES = [
-  /^GET \/api\/(me|me\/export|searches|contacted|referral|vacancies|vacancies\/facets|programmes|programmes\/facets|programmes\/one|jobs)$/,
-  /^POST \/api\/programmes\/save$/,
-  // The feed and saving from it are plain database work; evaluating or tailoring stays closed (evaluateInto).
-  /^GET \/api\/jobs\/[^/]+$/,
-  /^POST \/api\/jobs$/,
-  /^GET \/api\/searches\/[^/]+$/,
-  /^POST \/api\/searches$/,
-  /^PUT \/api\/profile(\/resume)?$/,
-  /^POST \/api\/profile\/extract$/,
-  /^PATCH \/api\/people\/[^/]+$/,
-  /^POST \/api\/me\/invite$/,
-  /^PUT \/api\/me\/deadline-email$/,
-]
 
 // The Monday deadline email's unsubscribe link, signed so it works signed out (worker/lib/reminders.ts). GET only shows a
 // button, since mail scanners open links; POST turns the email off, and is also what List-Unsubscribe-Post one-click sends.
@@ -342,7 +291,7 @@ app.get('/auth/chatgpt', (c) => (chatgptAvailable(c.env) ? c.redirect(`${new URL
 
 // ---- Session guard for everything below ----
 app.use('/api/*', async (c, next) => {
-  if (c.req.path.startsWith('/api/auth') || c.req.path.startsWith('/api/invite/') || c.req.path === '/api/health' || c.req.path === '/api/public/stats' || c.req.path === '/api/unsubscribe') return next()
+  if (c.req.path.startsWith('/api/auth') || c.req.path === '/api/health' || c.req.path === '/api/public/stats' || c.req.path === '/api/unsubscribe') return next()
   const session = await c.get('auth').api.getSession({ headers: c.req.raw.headers })
   if (!session) return c.json({ error: 'Sign in to continue.' }, 401)
   const user = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, session.user.id) })
@@ -350,10 +299,6 @@ app.use('/api/*', async (c, next) => {
   const isAdmin = user.isAdmin && isAdminEmail(c.env, user.email)
   if (user.accessStatus === 'rejected' && !isAdmin) {
     return c.json({ error: 'Access was declined. Contact the administrator if this is a mistake.', status: user.accessStatus }, 403)
-  }
-  const trial = user.accessStatus === 'pending' && !isAdmin
-  if (trial && !TRIAL_ROUTES.some((r) => r.test(`${c.req.method} ${c.req.path}`))) {
-    return c.json({ error: 'This opens once the administrator approves your account.' }, 403)
   }
   // Writes are what reach paid models; reads stay unlimited. Admin is exempt.
   if (c.req.method !== 'GET' && !isAdmin && c.env.API_LIMITER) {
@@ -363,61 +308,25 @@ app.use('/api/*', async (c, next) => {
   c.set('userId', session.user.id)
   c.set('user', user)
   c.set('isAdmin', isAdmin)
-  c.set('trial', trial)
   await next()
 })
-
-// An invite that arrives after sign-up: the same codes as the sign-up route, claimed the same way. POSTs are rate limited above.
-app.post('/api/me/invite', async (c) => {
-  if (!c.get('trial')) return c.json({ error: 'Your account is already open.' }, 400)
-  const parsed = z.object({ code: z.string().trim().min(1).max(100) }).safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Paste your invite code.' }, 400)
-  const db = c.get('db')
-  const userId = c.get('userId')
-  const { code } = parsed.data
-  const [personal] = isGroupInvite(c.env, code) ? [] : await db.update(schema.invite).set({ usedAt: new Date(), usedBy: userId }).where(openInvite(code)).returning({ creditEur: schema.invite.creditEur })
-  if (!personal && !isGroupInvite(c.env, code)) return c.json({ error: 'This invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.' }, 403)
-  // Pending accounts never hold a credit (only invites and admins' links give one, and both approve), so this grants it once.
-  const credit = personal?.creditEur ? { creditGrantedEur: personal.creditEur, creditEur: personal.creditEur } : {}
-  const [user] = await db
-    .update(schema.user)
-    .set({ accessStatus: 'approved', reviewedAt: new Date(), updatedAt: new Date(), ...credit })
-    .where(and(eq(schema.user.id, userId), eq(schema.user.accessStatus, 'pending')))
-    .returning({ email: schema.user.email, name: schema.user.name })
-  if (user) c.executionCtx.waitUntil(mails.approved(c.env, user, new URL(c.req.url).origin))
-  return c.json({ ok: true })
-})
-
-// Your invite link, invites left and (while waiting) your place in line.
-app.get('/api/referral', async (c) => c.json(await referralStatus(c.get('db'), c.get('userId'))))
 
 app.get('/api/admin/users', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const db = c.get('db')
   const [users, used, capped, freeCapped, limitedNow, today] = await Promise.all([
-    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, referralCreditEur: true, creditGrantedEur: true, creditEur: true, referredBy: true } }),
+    db.query.user.findMany({ orderBy: desc(schema.user.createdAt), columns: { id: true, name: true, email: true, accessStatus: true, reviewedAt: true, createdAt: true, isAdmin: true, budgetEur: true, creditGrantedEur: true, creditEur: true } }),
     spendThisMonth(db),
     feedCapDays(db, feedDailyPages(c.env)),
     freeLimitDays(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     freeLimitToday(db, Number(c.env.FREE_DAILY_ACTIONS) || 0),
     spendToday(db, c.get('userId')),
   ])
-  // Per admin share link: how many joined with it, and how much of the credit it gave them they've spent.
-  const joined = new Map<string, { count: number; creditUsedEur: number }>()
-  for (const u of users) {
-    if (!u.referredBy) continue
-    const j = joined.get(u.referredBy) ?? { count: 0, creditUsedEur: 0 }
-    j.count++
-    j.creditUsedEur += (u.creditGrantedEur ?? 0) - (u.creditEur ?? 0)
-    joined.set(u.referredBy, j)
-  }
   return c.json({
     // Since midnight UTC, against the daily limits (0 = no limit).
     today: { usd: today.usd, usdCap: Number(c.env.GLOBAL_DAILY_USD_CAP) || 0, actions: today.actions, actionsCap: Number(c.env.FREE_DAILY_ACTIONS_ALL) || 0 },
     users: users.map((u) => ({
       ...u,
-      referredBy: undefined,
-      joined: u.isAdmin ? joined.get(u.id) ?? { count: 0, creditUsedEur: 0 } : null,
       createdAt: u.createdAt.toISOString(),
       reviewedAt: u.reviewedAt?.toISOString() ?? null,
       budget: toBudget(c.env, used.get(u.id), u.budgetEur),
@@ -457,34 +366,30 @@ app.patch('/api/admin/users/:id', async (c) => {
   if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
   const parsed = z
     .object({
-      status: z.enum(['approved', 'rejected', 'pending']).optional(),
+      status: z.enum(['approved', 'rejected']).optional(),
       // null = back to the default monthly budget.
       budgetEur: z.number().min(0).max(100_000).nullable().optional(),
-      // One-time credit for each friend who joins with an admin's ref link; null = none.
-      referralCreditEur: z.number().positive().max(100).nullable().optional(),
       // Added to the account's one-time credit (granted and left); logged.
       addCreditEur: z.number().positive().max(100).optional(),
       // Today's free daily actions start again from now: the logged 'reset' line is the reset (spendToday counts after it).
       resetFreeLimit: z.literal(true).optional(),
     })
     .safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Choose approved, rejected, or pending, a budget between €0 and €100,000, and a credit between €0 and €100.' }, 400)
-  const { status, budgetEur, referralCreditEur, addCreditEur, resetFreeLimit } = parsed.data
+  if (!parsed.success) return c.json({ error: 'Choose approved or rejected, a budget between €0 and €100,000, and a credit between €0 and €100.' }, 400)
+  const { status, budgetEur, addCreditEur, resetFreeLimit } = parsed.data
   const target = await c.get('db').query.user.findFirst({ where: eq(schema.user.id, c.req.param('id')) })
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin && status) return c.json({ error: 'The administrator account cannot be changed here.' }, 400)
-  if (!target.isAdmin && referralCreditEur) return c.json({ error: 'Only an administrator\'s link can carry a credit.' }, 400)
   const set: Partial<typeof schema.user.$inferInsert> = { updatedAt: new Date() }
-  if (status) Object.assign(set, { accessStatus: status, reviewedAt: status === 'pending' ? null : new Date() })
+  if (status) Object.assign(set, { accessStatus: status, reviewedAt: new Date() })
   if (budgetEur !== undefined) set.budgetEur = budgetEur
-  if (referralCreditEur !== undefined) set.referralCreditEur = referralCreditEur
   if (addCreditEur) Object.assign(set, { creditGrantedEur: sql`coalesce(${schema.user.creditGrantedEur}, 0) + ${addCreditEur}`, creditEur: sql`coalesce(${schema.user.creditEur}, 0) + ${addCreditEur}` })
   const [[user]] = await Promise.all([
-    c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, referralCreditEur: schema.user.referralCreditEur, creditEur: schema.user.creditEur }),
+    c.get('db').update(schema.user).set(set).where(eq(schema.user.id, target.id)).returning({ id: schema.user.id, accessStatus: schema.user.accessStatus, budgetEur: schema.user.budgetEur, creditEur: schema.user.creditEur }),
     addCreditEur && logAdminAction(c, 'credit', target.id),
     resetFreeLimit && logAdminAction(c, 'reset', target.id),
   ])
-  if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.approved(c.env, target, new URL(c.req.url).origin))
+  if (status === 'approved' && target.accessStatus !== 'approved') c.executionCtx.waitUntil(mails.welcome(c.env, target, new URL(c.req.url).origin))
   return c.json({ user })
 })
 
@@ -541,35 +446,6 @@ app.delete('/api/admin/users/:id', async (c) => {
   if (!target) return c.json({ error: 'Account not found.' }, 404)
   if (target.isAdmin) return c.json({ error: 'An administrator account can only be deleted from its own Profile.' }, 400)
   await Promise.all([eraseAccounts(c.env, c.get('db'), [id]), logAdminAction(c, 'delete', id)])
-  return c.json({ ok: true })
-})
-
-app.get('/api/admin/invites', async (c) => {
-  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
-  const rows = await c.get('db')
-    .select({ code: schema.invite.code, note: schema.invite.note, creditEur: schema.invite.creditEur, createdAt: schema.invite.createdAt, usedAt: schema.invite.usedAt, revokedAt: schema.invite.revokedAt, expiresAt: schema.invite.expiresAt, usedByName: schema.user.name, usedByEmail: schema.user.email, usedByCredit: { granted: schema.user.creditGrantedEur, left: schema.user.creditEur } })
-    .from(schema.invite)
-    .leftJoin(schema.user, eq(schema.user.id, schema.invite.usedBy))
-    .orderBy(desc(schema.invite.createdAt))
-  return c.json({ invites: rows.map(({ usedByCredit, ...r }) => ({ ...r, creditUsedEur: usedByCredit?.granted ? usedByCredit.granted - (usedByCredit.left ?? 0) : null, createdAt: r.createdAt.toISOString(), usedAt: r.usedAt?.toISOString() ?? null, revokedAt: r.revokedAt?.toISOString() ?? null, expiresAt: r.expiresAt?.toISOString() ?? null })) })
-})
-
-app.post('/api/admin/invites', async (c) => {
-  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
-  const parsed = z.object({ note: z.string().trim().min(1).max(120), creditEur: z.number().positive().max(100).nullable().optional(), expiresInDays: z.number().int().min(1).max(365).nullable().optional() }).safeParse(await c.req.json().catch(() => ({})))
-  if (!parsed.success) return c.json({ error: 'Say who the invite is for, in 120 characters or fewer, a credit between €0 and €100, and an expiry between 1 and 365 days.' }, 400)
-  const days = parsed.data.expiresInDays
-  const expiresAt = days ? new Date(Date.now() + days * 86_400_000) : null
-  // 9 random bytes = 12 URL-safe characters.
-  const code = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(9)))).replace(/\+/g, '-').replace(/\//g, '_')
-  const [row] = await c.get('db').insert(schema.invite).values({ code, note: parsed.data.note, creditEur: parsed.data.creditEur ?? null, expiresAt }).returning()
-  return c.json({ invite: { code: row!.code, note: row!.note, creditEur: row!.creditEur, createdAt: row!.createdAt.toISOString(), usedAt: null, revokedAt: null, expiresAt: expiresAt?.toISOString() ?? null, usedByName: null, usedByEmail: null, creditUsedEur: null } })
-})
-
-app.delete('/api/admin/invites/:code', async (c) => {
-  if (!c.get('isAdmin')) return c.json({ error: 'Admin access required.' }, 403)
-  const [row] = await c.get('db').update(schema.invite).set({ revokedAt: new Date() }).where(openInvite(c.req.param('code'))).returning({ code: schema.invite.code })
-  if (!row) return c.json({ error: 'That invite is already used, expired or withdrawn.' }, 409)
   return c.json({ ok: true })
 })
 
@@ -665,29 +541,19 @@ async function loadMeProfile(db: Db, userId: string) {
   return { profile: row ? { ...EMPTY_PROFILE, ...row.data } : null, briefing: row?.briefing ?? null, cvReview: row?.cvReview ?? null }
 }
 
-/** The free try is spent once a search did not fail (a running one counts, so it cannot be doubled up). */
-async function trialUsed(db: Db, userId: string) {
-  const [row] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(schema.search)
-    .where(and(eq(schema.search.userId, userId), ne(schema.search.status, 'failed')))
-  return (row?.n ?? 0) > 0
-}
-
 // ---- Me / profile ----
 
 app.get('/api/me', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const { id, name, email, isAdmin, budgetEur, creditEur, creditGrantedEur, deadlineEmail } = c.get('user')
-  const [{ profile, briefing, cvReview }, budget, used, memories, aiKey] = await Promise.all([
+  const [{ profile, briefing, cvReview }, budget, memories, aiKey] = await Promise.all([
     loadMeProfile(db, userId),
     loadBudget(db, c.env, userId, budgetEur),
-    c.get('trial') ? trialUsed(db, userId) : false,
     loadMemories(db, userId),
     db.query.aiKey.findFirst({ where: eq(schema.aiKey.userId, userId), columns: { provider: true, model: true, last4: true } }),
   ])
-  return c.json({ user: { id, name, email, isAdmin, deadlineEmail }, profile, briefing, cvReview, memories, budget, trial: c.get('trial') ? { used } : null, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null, chatgpt: chatgptAvailable(c.env) })
+  return c.json({ user: { id, name, email, isAdmin, deadlineEmail }, profile, briefing, cvReview, memories, budget, credit: creditGrantedEur ? { left: creditEur ?? 0, granted: creditGrantedEur } : null, adzuna: adzunaEnabled(c.env), aiKey: aiKey ?? null, chatgpt: chatgptAvailable(c.env) })
 })
 
 // The Monday deadline email (worker/lib/reminders.ts); off until the seeker turns it on in Profile.
@@ -698,7 +564,7 @@ app.put('/api/me/deadline-email', async (c) => {
   return c.json({ on: parsed.data.on })
 })
 
-/** "Download my data" (GDPR Art. 20); waitlisted accounts too. */
+/** "Download my data" (GDPR Art. 20). */
 app.get('/api/me/export', async (c) => {
   const data = await exportUserData(c.get('db'), c.env.RESUMES, c.get('userId'))
   return c.json(data, 200, { 'content-disposition': `attachment; filename="agisse-data-${data.exportedAt.slice(0, 10)}.json"` })
@@ -710,7 +576,6 @@ app.get('/api/me/export', async (c) => {
 const ModelId = z.string().trim().max(100).regex(/^[\w.:/-]*$/)
 
 app.put('/api/ai-key', async (c) => {
-  if (c.get('trial')) return c.json({ error: 'Your own key works once your account is approved.' }, 403)
   const parsed = z
     .object({ provider: z.enum(['openrouter', 'openai', 'anthropic', 'gemini', 'mistral']), key: z.string().trim().max(300), model: ModelId.default('') })
     .safeParse(await c.req.json().catch(() => ({})))
@@ -871,16 +736,9 @@ app.post('/api/profile/extract', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.issues[0]?.message ?? 'Invalid résumé text' }, 400)
   const db = c.get('db')
   const userId = c.get('userId')
-  if (c.get('trial')) {
-    const [row] = await db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(schema.usage)
-      .where(and(eq(schema.usage.userId, userId), eq(schema.usage.kind, 'resume')))
-    if ((row?.n ?? 0) >= TRIAL_RESUME_READS) return c.json({ error: 'Your free try covers a few résumé reads, and they are used. More opens once the administrator approves your account.' }, 403)
-  }
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     if ('linkedin' in parsed.data) {
       const text = await fetchProfileText(c.env, parsed.data.linkedin, meter, db)
@@ -953,7 +811,7 @@ app.post('/api/cv/rewrite', async (c) => {
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   // No row to point at: the id only ties a thumbs rating to this generation.
   meter.ref = crypto.randomUUID()
   try {
@@ -989,7 +847,7 @@ app.post('/api/cv/match', async (c) => {
   if (parsed.data.jobId && !row) return c.json({ error: 'Evaluate this posting first.' }, 404)
   const cv = parsed.data.cv?.trim() || cvText(profile, resumeText)
   if (cv.trim().length < 100) return c.json({ error: 'Import your résumé or paste your CV first: there is nothing to match yet.' }, 422)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const posting = row?.jdText ?? parsed.data.jdText!
     const keywords = row ? row.evaluation.keywords : await extractKeywords(c.env, posting, meter)
@@ -1038,7 +896,7 @@ app.post('/api/cv/headlines', async (c) => {
     db.selectDistinct({ role: schema.job.role }).from(schema.job).where(eq(schema.job.userId, userId)).limit(40),
   ])
   if (!resumeText?.trim() && !profile?.skills.length && !profile?.degree) return c.json({ error: 'Import your résumé or fill in your profile first: headlines are built from it.' }, 422)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const headlines = await suggestHeadlines(c.env, parsed.data.current.trim(), profile, resumeText, roles.map((r) => r.role), meter)
     if (!headlines.length) return c.json({ error: 'Every headline claimed something your CV does not say, so none is shown. Try again.' }, 422)
@@ -1062,13 +920,9 @@ app.post('/api/searches', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
 
-  // ponytail: two simultaneous trial requests can both pass this check; the client sends one.
-  if (c.get('trial') && (await trialUsed(db, userId))) {
-    return c.json({ error: 'Your free try is used. Full access opens once the administrator approves your account.' }, 403)
-  }
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
 
   // No website given: take it from a company Agisse already knows by exactly that name, else search without one.
   const known = parsed.data.domain ? [] : await db.select({ domain: schema.company.domain }).from(schema.company).where(sql`lower(${schema.company.name}) = lower(${parsed.data.company})`).limit(2)
@@ -1126,7 +980,7 @@ app.post('/api/searches/:id/more', async (c) => {
 
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
 
   const existing = await db.query.person.findMany({ where: eq(schema.person.searchId, row.id), orderBy: schema.person.rank })
@@ -1273,7 +1127,7 @@ app.post('/api/people/:id/outreach', async (c) => {
   if (!srch) return c.json({ error: 'Search not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { outreach } = await draftOutreach(
@@ -1320,7 +1174,7 @@ Name: ${row.name}
 Title: ${row.title} at ${row.company}
 What we know: ${row.summary}
 Shared ground: ${row.sharedGround.length ? row.sharedGround.map((g) => `${g.kind}: ${g.detail}`).join('; ') : 'none found'}`
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { email } = await draftEmail(c.env, 'intro', context, profile, resumeText, u?.name ?? '', lang as NoteLanguage, meter)
@@ -1346,7 +1200,7 @@ app.post('/api/people/:id/prep', async (c) => {
   if (!srch) return c.json({ error: 'Search not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { questions, talkingPoints } = await draftPrep(c.env, row, { company: srch.company, role: srch.role, location: srch.location, goal: srch.goal }, profile, meter)
@@ -1430,7 +1284,7 @@ app.post('/api/helper', async (c) => {
   const userId = c.get('userId')
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const reply = await askHelper(c.env, db, userId, parsed.data.messages as HelperMessage[], meter, parsed.data.path)
     return c.json({ reply })
@@ -1448,7 +1302,7 @@ app.post('/api/helper/briefing', async (c) => {
   const userId = c.get('userId')
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const reply = await askHelper(c.env, db, userId, [{ role: 'user', content: OPENING_QUESTION }], meter)
     const briefing = { ...reply, at: new Date().toISOString() }
@@ -1738,11 +1592,10 @@ app.post('/api/jobs/:id/evaluate', async (c) => {
 async function evaluateInto(c: Context<{ Bindings: Env; Variables: Variables }>, p: { url: string | null; jdText: string; savedId?: string; shared: Awaited<ReturnType<typeof sharedPosting>>['shared']; key: string | null }) {
   const db = c.get('db')
   const userId = c.get('userId')
-  if (c.get('trial')) return c.json({ error: 'Checking and tailoring open once your account is approved. Save the role for now.' }, 403)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const jdText = p.jdText || p.shared?.jdText || (await fetchProfileText(c.env, p.url!, meter, db)).slice(0, JD_TEXT_LIMIT)
     if (jdText.length < 200) return c.json({ error: 'That page could not be read. Paste the posting text instead.' }, 422)
@@ -1764,7 +1617,7 @@ app.post('/api/jobs/quick-fit', async (c) => {
   const db = c.get('db')
   const userId = c.get('userId')
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     return c.json(await quickFit(c.env, parsed.data.jdText, cvText(profile, resumeText), meter, c.req.raw.signal))
   } catch {
@@ -1853,7 +1706,7 @@ app.post('/api/jobs/:id/:doc{cv|cover}', async (c) => {
     loadResumeText(db, userId),
     db.query.user.findFirst({ where: eq(schema.user.id, userId), columns: { name: true } }),
   ])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const set =
@@ -1900,7 +1753,7 @@ NOTES: ${notes || 'none'}
 
 POSTING
 ${row.jdText.slice(0, 6000)}`
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { email } = await draftEmail(c.env, kind, context, profile, resumeText, u?.name ?? '', lang, meter)
@@ -1925,7 +1778,7 @@ app.post('/api/jobs/:id/answer', async (c) => {
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { answer } = await answerQuestion(c.env, row, parsed.data.question, parsed.data.maxChars, profile, resumeText, meter)
@@ -1956,7 +1809,7 @@ app.post('/api/jobs/:id/check', async (c) => {
   const [resume, source] = pasted ? [pasted, 'pasted' as const] : row.cv ? [cvPlain(row.cv), 'tailored' as const] : resumeText?.trim() ? [resumeText, 'imported' as const] : [record, 'badge' as const]
   if (resume.trim().length < 100) return c.json({ error: 'Paste your résumé first: there is nothing to check yet.' }, 422)
   const cover = parsed.data.cover?.trim() || row.coverLetter || ''
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { check } = await checkApplication(c.env, row, { resume, cover }, source, record, meter)
@@ -2050,7 +1903,7 @@ app.post('/api/jobs/:id/assessment/research', async (c) => {
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { assessment } = await researchAssessment(c.env, { company: row.company, role: row.role, location: row.location, jdText: row.jdText }, meter, db)
@@ -2104,7 +1957,7 @@ app.post('/api/jobs/:id/selection/research', async (c) => {
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const { selection } = await researchSelection(c.env, { company: row.company, role: row.role, location: row.location, jdText: row.jdText }, meter, db)
@@ -2169,7 +2022,7 @@ app.post('/api/jobs/:id/answer-feedback', async (c) => {
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, gaps] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId), recentGaps(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const feedback = await answerFeedback(c.env, row, cvText(profile, resumeText), question, answer, meter, gaps)
@@ -2193,7 +2046,7 @@ app.post('/api/interview/answer-feedback', async (c) => {
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const [profile, resumeText, gaps] = await Promise.all([loadProfile(db, userId), loadResumeText(db, userId), recentGaps(db, userId)])
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   const { field, question, answer } = parsed.data
   try {
     const feedback = await answerFeedback(c.env, { company: 'an employer in this field', role: `graduate role in ${field}`, location: null, jdText: '' }, cvText(profile, resumeText), question, answer, meter, gaps)
@@ -2232,7 +2085,7 @@ app.get('/api/jobs/:id/interview-questions', async (c) => {
   if (cached) return c.json({ questions: cached.questions, format })
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const reported = (await selectionFor(db, row))?.questions.map((q) => q.question) ?? []
@@ -2256,7 +2109,7 @@ app.post('/api/transcribe', async (c) => {
   const userId = c.get('userId')
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const text = await transcribe({ apiKey: c.env.OPENROUTER_API_KEY, model: c.env.OPENROUTER_AUDIO_MODEL, ...parsed.data, meter })
     return c.json({ text })
@@ -2275,7 +2128,7 @@ app.post('/api/jobs/:id/offer-brief', async (c) => {
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     const brief = await offerBrief(c.env, row, meter, db)
@@ -2296,7 +2149,7 @@ app.post('/api/jobs/:id/pay-check', async (c) => {
   if (!row) return c.json({ error: 'Posting not found' }, 404)
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   meter.ref = row.id
   try {
     // Wikidata facts only when a scout already cached them; no live lookup here.
@@ -2435,7 +2288,7 @@ app.post('/api/scouts/similar', async (c) => {
   const userId = c.get('userId')
   const budget = await loadBudget(db, c.env, userId, c.get('user').budgetEur)
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const companies = await similarCompanies(c.env, { name: parsed.data.name, domain: normalizeDomain(parsed.data.domain ?? '') || null }, meter, db)
     return c.json({ companies })
@@ -2526,7 +2379,7 @@ app.post('/api/scouts', async (c) => {
   if (budget.used >= budget.limit) return c.json({ error: budgetSpent(budget) }, 429)
   const input = parsed.data
   const profile = input.useProfile ? await loadProfile(db, userId) : null
-  const meter = await newMeter(db, c.env, userId, !!c.get('trial'))
+  const meter = await newMeter(db, c.env, userId)
   try {
     const { picks, candidates, model } = await scoutCompanies(c.env, input, profile, meter, db)
     const [row] = await db.insert(schema.scout).values({ id: crypto.randomUUID(), userId, input, result: { picks, candidates }, model }).returning()
@@ -2604,7 +2457,7 @@ export default {
     const db = env.DB ?? createDb(env.DATABASE_URL)
     console.log('closed postings', await checkClosedPostings(db))
     await pruneFeedDays(db)
-    console.log('stale waitlist accounts deleted', await deleteStaleWaitlist(env, db))
+    console.log('stale declined accounts deleted', await deleteStaleDeclined(env, db))
     await pruneAdminActions(db)
     await pruneModelOutput(db)
     await pruneExaCache(db)

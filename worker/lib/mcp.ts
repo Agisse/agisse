@@ -42,6 +42,7 @@ export const UpdateJobStatusInput = {
   jobId: z.string(),
   status: z.enum(JOB_STATUSES),
   expectedStatus: z.enum(JOB_STATUSES).optional(),
+  date: z.string().datetime({ offset: true }).nullable().optional().describe('The date the new status points to, as the web board keeps one: apply by (saved, evaluated), check back on (applied), test due (assessment), interview on (interview), reply by (offer). ISO datetime. Omit to clear it.'),
 }
 // Same filters as GET /api/vacancies; anything left out falls back to the seeker's saved feed filters.
 const saved = ' Omit to use the seeker\'s saved feed filter.'
@@ -170,7 +171,7 @@ const researchFor = (p: Person) => ({
 
 const READ = { readOnlyHint: true, openWorldHint: false } as const
 
-export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean, admin = false) {
+export function buildMcpServer(db: Db, env: Env, userId: string, admin = false) {
   const server = new McpServer({ name: 'agisse', version: '1.0.0' })
 
   server.registerTool(
@@ -317,7 +318,7 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean,
       if (!srch) return errorText('Search not found')
       const budgetBefore = await loadBudget(db, env, userId)
       if (budgetBefore.used >= budgetBefore.limit) return errorText(budgetSpent(budgetBefore))
-      const meter = await newMeter(db, env, userId, trial)
+      const meter = await newMeter(db, env, userId)
       meter.ref = row.id
       let result: { person: Person; model: string; charLimit: number }
       try {
@@ -346,7 +347,7 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean,
     {
       title: 'Update contact status',
       description:
-        "Update a contacted person's reply status, or mark a follow-up sent. Pass expectedStatus to only write when the current status still matches. Returns { before, after }.",
+        "Update a contacted person's reply status, or mark a follow-up sent. Pass expectedStatus to only write when the current status still matches, and date for the interview time, test deadline or offer reply-by an email gave. Returns { before, after }.",
       inputSchema: UpdateContactStatusInput,
       outputSchema: OutputSchemas.update_contact_status,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -474,14 +475,14 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean,
       outputSchema: OutputSchemas.update_job_status,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ jobId, status, expectedStatus }) => {
+    async ({ jobId, status, expectedStatus, date }) => {
       const mine = and(eq(schema.job.id, jobId), eq(schema.job.userId, userId))
       const before = await db.query.job.findFirst({ where: mine })
       if (!before) return errorText('Job not found')
       if (expectedStatus !== undefined && before.status !== expectedStatus)
         return errorText(`Status is "${before.status}", not the expected "${expectedStatus}". Nothing was changed.`)
-      // Mirrors PATCH /api/jobs/:id: applied stamps appliedAt, back to saved, evaluated or discarded clears it; the status date goes.
-      const set: PgUpdateSetSource<typeof schema.job> = { status, nextAt: null, history: pushStatus(status), updatedAt: new Date() }
+      // Mirrors PATCH /api/jobs/:id: applied stamps appliedAt, back to saved, evaluated or discarded clears it; the status date is the one passed, else it goes.
+      const set: PgUpdateSetSource<typeof schema.job> = { status, nextAt: date ? new Date(date) : null, history: pushStatus(status), updatedAt: new Date() }
       if (status === 'applied') set.appliedAt = new Date()
       if (status === 'saved' || status === 'evaluated' || status === 'discarded') set.appliedAt = null
       const [after] = await db

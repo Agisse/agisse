@@ -88,7 +88,7 @@ export function Landing() {
                   <span className="whitespace-nowrap">Never applies for you</span>
                 </>
               ) : (
-                'Invite-only beta, free while it lasts.'
+                'Free beta. Never applies for you.'
               )}
             </p>
           </div>
@@ -576,8 +576,8 @@ const STAR: [string, boolean][] = [
 const FAQ: [string, string][] = [
   ['Does Agisse apply or message people for me?', 'No, and that is on purpose. It drafts answers and messages; you fill in, submit and send them yourself, from your own accounts. Recruiters notice the difference.'],
   ['Who is Agisse for?', 'Students and graduates in their first few years of work who are looking for internships, graduate programmes and first jobs in Europe.'],
-  ['How do I get in?', 'Create an account and you join the waitlist. We let people in a few at a time. Share your personal invite link: each friend who joins with it moves you up. Already a member? You have three invites that let friends skip the waitlist entirely.'],
-  ['What does it cost?', 'Agisse is free during the beta. Your first search works while you wait on the waitlist.'],
+  ['How do I get in?', 'Create an account. Everything is open from the start.'],
+  ['What does it cost?', 'Agisse is free during the beta.'],
   ['What does it need from me?', 'Your CV. Import it as a PDF and check the fields it fills: your background is what the ranking and the drafts are built on.'],
   ['What does “Agisse” mean?', 'It is French: the present subjunctive of agir, to act. As in « il faut que j’agisse », I have to act.'],
 ]
