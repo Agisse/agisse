@@ -174,9 +174,6 @@ export const RESUME_TEXT_LIMIT = 24_000
 /** Largest résumé PDF kept on the server. */
 export const RESUME_PDF_LIMIT = 10 * 1024 * 1024
 
-/** Résumé reads a pending account gets on its free try (a read can fail and need a retry). */
-export const TRIAL_RESUME_READS = 3
-
 // ---- Job board: postings evaluated against the seeker's CV (ported from career-ops) ----
 
 /** Most posting text one evaluation reads. */

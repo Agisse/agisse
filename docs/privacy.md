@@ -7,13 +7,13 @@ description: What Agisse collects, why, who processes it and how to exercise you
 
 _Last updated: 16 October 2026_
 
-Agisse is in beta; full access is by invite. You must be at least 18 to use it. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
+Agisse is in beta. You must be at least 18 to use it. This policy explains what personal data we hold, why, who helps us process it, and what you can do about it. We keep it short; write to [hello@agisse.xyz](mailto:hello@agisse.xyz) with any question.
 
 ## What we hold
 
 | Data | What it is | Why |
 |---|---|---|
-| Account | Name, email, sign-in method (Google or email and password), waitlist position, referral and invite codes | To let you in and run the waitlist |
+| Account | Name, email, sign-in method (Google or email and password); for accounts from the closed beta, an unused referral code | To let you in |
 | Profile | Education, work history, skills, interests, job preferences, standard answers you save, and what you ask the assistant to remember | To rank roles and people against your background |
 | CV | The PDF you upload, stored in Cloudflare R2 in the EU, and the text read from it | To fill your profile, score postings and tailor your CV |
 | Searches | Companies, roles and locations you search for, and the results | To show and reuse your results |
@@ -62,7 +62,7 @@ Job and company lookups also query Adzuna and Wikidata with the search terms onl
 
 ## Cookies
 
-Agisse sets a sign-in cookie, and a 30-day cookie that remembers an invite or referral link until you sign up. It keeps some settings in your browser: the theme, the layout, and your assistant chats. There are no tracking cookies: analytics run without cookies or browser storage, so there is no consent banner.
+Agisse sets a sign-in cookie. It keeps some settings in your browser: the theme, the layout, and your assistant chats. There are no tracking cookies: analytics run without cookies or browser storage, so there is no consent banner.
 
 ## How long we keep it
 
@@ -71,7 +71,7 @@ Agisse sets a sign-in cookie, and a 30-day cookie that remembers an invite or re
 - Assistant chats: in your browser only, until you sign out.
 - Accounts unused for 24 months: we email you once, and delete the account 30 days later unless you sign in.
 - Cached web search results: deleted after a week. Company facts: about a month.
-- Waitlist sign-ups that never become active: deleted on request, or after 12 months of inactivity.
+- Declined accounts: deleted on request, or after 12 months of inactivity.
 - Analytics: as long as PostHog's retention period, at most 12 months. When you delete your account, we ask PostHog to delete the analytics tied to it.
 - Error reports: 90 days at Sentry, its retention on our plan. They don't carry your account id.
 - Database backups: deleted data leaves them within a day.

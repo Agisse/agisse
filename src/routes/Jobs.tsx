@@ -105,11 +105,8 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
   // "Open roles" from a Scout stop: ?careers=<name>&domain=<domain> opens the careers-page check for that company.
   const careers = q.get('careers') ? { name: q.get('careers')!, domain: q.get('domain') ?? '' } : null
   // ?view=feed|track|add; the old ?feed link, Scout's ?careers and the extension's ?import still land in the right view.
-  // A waitlisted account opens on the feed: checking a posting waits for approval (evaluateInto).
   const asked = q.get('view')
-  const picked: View = scoutId || (asked === 'companies' && !me.trial) ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.trial || me.profile?.skills?.length ? 'feed' : 'add'
-  // Adding a job checks it, which opens once the account is approved.
-  const view: View = me.trial && picked === 'add' ? 'feed' : picked
+  const view: View = scoutId || asked === 'companies' ? 'companies' : asked === 'feed' || asked === 'track' || asked === 'add' || asked === 'offers' ? asked : q.has('feed') ? 'feed' : careers || q.has('import') ? 'add' : me.profile?.skills?.length ? 'feed' : 'add'
   const abort = useAbortable()
   const shown = jobId && job?.id === jobId ? job : null
   useEffect(() => {
@@ -211,13 +208,11 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
             <nav className="posting-tabs" aria-label="Jobs">
               <Link href="/jobs?view=feed" aria-current={view === 'feed' ? 'page' : undefined}>For you</Link>
               <Link href="/jobs?view=track" aria-current={view === 'track' ? 'page' : undefined}>My jobs</Link>
-              {!me.trial && <Link href="/jobs?view=companies" aria-current={view === 'companies' ? 'page' : undefined}>Companies</Link>}
+              <Link href="/jobs?view=companies" aria-current={view === 'companies' ? 'page' : undefined}>Companies</Link>
             </nav>
-            {!me.trial && (
-              <Link href="/jobs?view=add" className="btn btn--sm btn--quiet" aria-current={view === 'add' ? 'page' : undefined}>
-                <Plus aria-hidden="true" /> Add a job
-              </Link>
-            )}
+            <Link href="/jobs?view=add" className="btn btn--sm btn--quiet" aria-current={view === 'add' ? 'page' : undefined}>
+              <Plus aria-hidden="true" /> Add a job
+            </Link>
           </div>
           {error && (
             <p className="notice notice--error" role="alert">
@@ -229,7 +224,7 @@ export function JobsRoute({ me, refreshMe, jobId, tab = 'overview', scoutId }: P
           ) : view === 'offers' ? (
             <OfferCompare ids={offers.map((j) => j.id)} loading={!list.data} />
           ) : view === 'feed' ? (
-            <VacancyFeed jobs={jobs} exhausted={exhausted} onEvaluate={evaluateRole} onSave={saveRole} profile={me.profile} onSavePrefs={(jobFeed) => api.saveProfile({ ...EMPTY_PROFILE, ...me.profile, jobFeed }).then(refreshMe)} onApplied={() => (void list.reload(), dispatchEvent(new Event('agisse:jobs')))} trial={!!me.trial} />
+            <VacancyFeed jobs={jobs} exhausted={exhausted} onEvaluate={evaluateRole} onSave={saveRole} profile={me.profile} onSavePrefs={(jobFeed) => api.saveProfile({ ...EMPTY_PROFILE, ...me.profile, jobFeed }).then(refreshMe)} onApplied={() => (void list.reload(), dispatchEvent(new Event('agisse:jobs')))} />
           ) : view === 'add' ? (
             <PostingForm me={me} jobs={jobs} busy={!!pending} hasResume={list.data?.hasResume ?? true} careers={careers} onSubmit={submit} onEvaluate={evaluateRole} onSave={saveRole} />
           ) : (

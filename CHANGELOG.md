@@ -13,12 +13,14 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- No more waitlist: a new account is open straight away, with everything unlocked. Accounts still waiting are let in. Invite codes, referral links and the invite card on Today are gone; Share Agisse in the account menu shares the homepage.
 - The homepage reads as open source: a GitHub link with the live star count in the header, "Star on GitHub" next to Get started, and the license under it. A new "Built in the open" section has a copyable `npx agisse`, the one-prompt agent setup, and links to the code, changelog, costs, methodology, manifesto and contributors.
 - Error reports go to Sentry in the EU (Frankfurt) instead of the USA, and now include errors in your browser: the error, the page address without its query string or ids, and your browser and OS. Never your name or email, nothing you typed or clicked; off when your browser sends Do Not Track. Kept 90 days.
 - Faster answers: job evaluations, cover letters, outreach and prep on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Tailored CVs stay on free models, which write them better. Free models stay as the fallback.
 
 ### For contributors and self-hosters
 
+- The waitlist, the pending/trial account mode, invites and referrals are removed: `GROUP_INVITE`, `/api/referral`, `/api/invite/:code`, `/api/me/invite` and `/api/admin/invites` are gone, and `newMeter` and `buildMcpServer` lose their `trial` argument. Migration `0042_no_waitlist` approves pending accounts and makes `approved` the default. The `invite` table and the referral columns stay until a later migration drops them.
 - `npx agisse` can run Agisse's AI on your own ChatGPT Plus or Pro plan: Profile → Your own AI key → ChatGPT plan → Connect. Sign-in goes through OpenAI with a callback on 127.0.0.1; the tokens stay encrypted in `agisse-data`. A hosted server keeps it off until OpenAI admits it from its waitlist, then turns it on with the `CHATGPT_PLAN` switch in /admin.
 - Optional `VITE_SENTRY_DSN` turns on browser error reports; the SDK loads after the page, so first paint doesn't grow. Sentry SDK v11 ignores `sendDefaultPii`, so the Worker and browser now set `dataCollection` to collect no user, cookies, query strings or bodies, and both scrub addresses with `shared/scrub-url.ts` (shared with PostHog). Source maps are kept out of the deployed assets (`public/.assetsignore`) and deleted after upload; `SENTRY_ORG` and `SENTRY_PROJECT` override the upload target.
 - `PUBLIC_LAUNCH` is `"1"` in `wrangler.jsonc`; the crawler FAQ in `index.html` follows the launch FAQ. CodeQL and Scorecard run weekly again, and Scorecard can be run by hand.

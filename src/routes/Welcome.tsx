@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation } from 'wouter'
 import { Check } from 'lucide-react'
 import { EMPTY_PROFILE, type Profile } from '../../shared/types'
-import { EMPTY_FEED_PREFS, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, type FeedPrefs } from '../../shared/listings'
+import { EMPTY_FEED_PREFS, PROGRAM_LABEL, SPOKEN_LANGUAGES, VACANCY_COUNTRIES, VACANCY_FUNCTIONS, VACANCY_INDUSTRIES, type FeedPrefs } from '../../shared/listings'
 import { api, type Me } from '../lib/api'
 import { localeCountry, mergeResume, suggestFields } from '../lib/profile'
 import { ResumeImport } from '../components/ResumeImport'
@@ -21,18 +21,21 @@ const FIRST_COUNTRIES = ['BE', 'NL', 'FR', 'DE', 'LU', 'GB', 'IE', 'CH', 'ES', '
 const chip =
   'h-11 gap-1.5 rounded-lg border-border px-4 text-[0.9375rem] font-normal text-foreground aria-pressed:border-primary aria-pressed:bg-primary/8 aria-pressed:text-primary dark:aria-pressed:bg-primary/15'
 
+const LANGUAGES = SPOKEN_LANGUAGES.map((k) => [k, k[0]!.toUpperCase() + k.slice(1)] as const)
+
 /**
- * First run after sign-up: the CV, then fields and where (one question a screen, both prefilled), then the feed ranked
- * against that CV. Level is left at "both"; the feed's filters change it. Every step can be skipped.
+ * First run after sign-up: the CV, then what kind of role, fields, employers, where and languages (one question a screen,
+ * prefilled where the CV or the browser can tell), then the feed ranked against all of it. Every question can be left
+ * empty and the whole thing skipped; Skip keeps what was answered.
  */
 export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<void> }) {
   const [, navigate] = useLocation()
-  // "looking" is one saved step shown as two screens.
-  const steps = ['cv', 'fields', 'where'] as const
+  // "looking" is one saved step shown as several screens.
+  const steps = ['cv', 'stage', 'fields', 'industries', 'where', 'languages'] as const
   // ?step=looking reopens at that step (the Today checklist links there).
   const [step, setStep] = useState(() => {
     const q = new URLSearchParams(window.location.search).get('step') ?? ''
-    return Math.max(0, (steps as readonly string[]).indexOf(q === 'looking' ? 'fields' : q))
+    return Math.max(0, (steps as readonly string[]).indexOf(q === 'looking' ? 'stage' : q))
   })
   const at = steps[step]!
   const [profile, setProfile] = useState<Profile>(() => ({ ...EMPTY_PROFILE, ...me.profile }))
@@ -107,6 +110,12 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
     }
   }
 
+  // Past the CV, Skip keeps the answers given so far: the feed is better for them and Today's checklist counts it.
+  const skip = async () => {
+    if (step > 0 && JSON.stringify(prefs) !== JSON.stringify({ ...EMPTY_FEED_PREFS, ...me.profile?.jobFeed })) await save({ ...profile, jobFeed: prefs })
+    await finish('/')
+  }
+
   const finish = async (href: string) => {
     posthog.capture('onboarding_finished', { href })
     await refreshMe()
@@ -127,10 +136,11 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <header className="mx-auto grid w-full max-w-2xl gap-4 px-4 pt-4 sm:px-6 sm:pt-6">
         <div className="flex h-9 items-center justify-between">
-          <span className="flex items-center gap-2 text-[0.9375rem] font-semibold tracking-tight">
+          {/* The logo goes home, as it does everywhere else; like Skip, it keeps the answers. */}
+          <button type="button" aria-label="Agisse, home" disabled={busy} onClick={() => void skip()} className="-ml-1 flex items-center gap-2 rounded-md px-1 text-[0.9375rem] font-semibold tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <BoothSignMark className="size-7!" /> Agisse
-          </span>
-          <Button type="button" variant="ghost" className="h-9 px-3 text-muted-foreground" onClick={() => void finish('/')}>
+          </button>
+          <Button type="button" variant="ghost" className="h-9 px-3 text-muted-foreground" disabled={busy} onClick={() => void skip()}>
             Skip for now
           </Button>
         </div>
@@ -151,9 +161,21 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
           </Screen>
         )}
 
+        {at === 'stage' && (
+          <Screen title="What kind of role are you after?" lede="Pick every kind you'd take. None picked shows them all.">
+            {toggles('Kind of role', prefs.programs, (programs) => setPrefs({ ...prefs, programs }), Object.entries(PROGRAM_LABEL))}
+          </Screen>
+        )}
+
         {at === 'fields' && (
           <Screen title="Which fields interest you?" lede={fromCv ? 'Picked from your CV. Change any.' : 'Pick as many as you like, or none for every field.'}>
             {toggles('Fields', prefs.functions, (functions) => setPrefs({ ...prefs, functions }), Object.entries(VACANCY_FUNCTIONS))}
+          </Screen>
+        )}
+
+        {at === 'industries' && (
+          <Screen title="What kind of employer?" lede="Roles at these rank higher. None picked means any.">
+            {toggles('Employers', prefs.industries, (industries) => setPrefs({ ...prefs, industries }), Object.entries(VACANCY_INDUSTRIES))}
           </Screen>
         )}
 
@@ -163,6 +185,19 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
             <label className="mt-2 flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-xl border border-border px-4 text-base">
               Remote only
               <Switch checked={prefs.remoteOnly} onCheckedChange={(remoteOnly) => setPrefs({ ...prefs, remoteOnly })} />
+            </label>
+          </Screen>
+        )}
+
+        {at === 'languages' && (
+          <Screen title="Which languages do you work in?" lede="Agisse hides roles that ask for a language you didn't pick. None picked hides nothing.">
+            {toggles('Languages', prefs.languages, (languages) => setPrefs({ ...prefs, languages }), LANGUAGES)}
+            <label className="mt-2 flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-xl border border-border px-4 text-base">
+              <span className="flex flex-col">
+                I need a visa sponsor
+                <span className="text-sm text-muted-foreground">Only employers on the Dutch and UK sponsor registers</span>
+              </span>
+              <Switch checked={prefs.sponsorsOnly} onCheckedChange={(sponsorsOnly) => setPrefs({ ...prefs, sponsorsOnly })} />
             </label>
           </Screen>
         )}
@@ -180,8 +215,8 @@ export function Welcome({ me, refreshMe }: { me: Me; refreshMe: () => Promise<vo
             <span />
           )}
           {/* The CV screen's own action is Choose PDF and it moves on by itself, so its footer only offers the way past. */}
-          <Button type="button" variant={at === 'cv' ? 'ghost' : 'default'} className={cn('h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36', at === 'cv' && 'text-muted-foreground')} disabled={busy} onClick={at === 'where' ? () => void saveLooking() : advance}>
-            {busy && <Spinner />} {at === 'cv' ? 'Continue without a CV' : at === 'fields' ? 'Continue' : busy ? 'Saving…' : 'See my roles'}
+          <Button type="button" variant={at === 'cv' ? 'ghost' : 'default'} className={cn('h-11 w-full text-[0.9375rem] sm:w-auto sm:min-w-36', at === 'cv' && 'text-muted-foreground')} disabled={busy} onClick={at === 'languages' ? () => void saveLooking() : advance}>
+            {busy && <Spinner />} {at === 'cv' ? 'Continue without a CV' : at !== 'languages' ? 'Continue' : busy ? 'Saving…' : 'See my roles'}
           </Button>
         </div>
       </footer>

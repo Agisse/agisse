@@ -14,16 +14,16 @@ declare global {
 /** What erasing an account needs: the CV bucket, and PostHog's keys when analytics are on. */
 type Eraser = Pick<Env, 'POSTHOG_PERSONAL_API_KEY' | 'POSTHOG_API_URL'> & { RESUMES: Pick<R2Bucket, 'delete'> }
 
-// docs/privacy.md: waitlist sign-ups that never become active are deleted after 12 months of inactivity. Inactive means
+// docs/privacy.md: declined accounts are deleted after 12 months of inactivity. Inactive means
 // signed up over 12 months ago and no session used since. The erasure matches Delete account: rows cascade from user,
 // the CV PDF and the MCP OAuth rows (no foreign key) are removed by hand (eraseAccounts). ponytail: 500 a day keeps one cron run short.
-export async function deleteStaleWaitlist(env: Eraser, db: Db) {
+export async function deleteStaleDeclined(env: Eraser, db: Db) {
   const cutoff = sql`now() - interval '12 months'`
   const recent = db.select({ id: schema.session.id }).from(schema.session).where(and(eq(schema.session.userId, schema.user.id), gt(schema.session.updatedAt, cutoff)))
   const stale = await db
     .select({ id: schema.user.id })
     .from(schema.user)
-    .where(and(inArray(schema.user.accessStatus, ['pending', 'rejected']), lt(schema.user.createdAt, cutoff), notExists(recent)))
+    .where(and(eq(schema.user.accessStatus, 'rejected'), lt(schema.user.createdAt, cutoff), notExists(recent)))
     .limit(500)
   const ids = stale.map((u) => u.id)
   if (!ids.length) return 0

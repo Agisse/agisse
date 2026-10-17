@@ -71,6 +71,8 @@ ok(!z.object(AddToShortlistInput).safeParse({ domain: 'acme.com' }).success, 'ad
 const jobStatus = z.object(UpdateJobStatusInput)
 ok(jobStatus.safeParse({ jobId: 'j1', status: 'applied' }).success, 'update_job_status: jobId + status')
 ok(jobStatus.safeParse({ jobId: 'j1', status: 'interview', expectedStatus: 'applied' }).success, 'update_job_status: valid expectedStatus')
+ok(jobStatus.safeParse({ jobId: 'j1', status: 'interview', date: '2026-10-22T14:00:00+02:00' }).success, 'update_job_status: date with an offset')
+ok(!jobStatus.safeParse({ jobId: 'j1', status: 'interview', date: 'next tuesday' }).success, 'update_job_status: rejects a free-text date')
 ok(!jobStatus.safeParse({ jobId: 'j1' }).success, 'update_job_status: status is required')
 ok(!jobStatus.safeParse({ jobId: 'j1', status: 'replied' }).success, 'update_job_status: rejects a reply status')
 const vac = z.object(ListVacanciesInput)
@@ -98,7 +100,7 @@ ok(z.object(ListContactedInput).safeParse({ status: 'replied' }).success, 'list_
 ok(!z.object(ListContactedInput).safeParse({ status: 'interview' }).success, 'list_contacted: rejects a job status')
 
 // Every tool carries annotations with readOnlyHint as intended. Handlers never run, so stub db/env are fine.
-const server = buildMcpServer({} as any, {} as any, 'u1', false) as unknown as {
+const server = buildMcpServer({} as any, {} as any, 'u1') as unknown as {
   _registeredTools: Record<string, { annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean }; _meta?: Record<string, unknown> }>
 }
 const tools = server._registeredTools
@@ -119,7 +121,7 @@ let rows: unknown[][] = []
 const fakeDb = drizzle(async (sql) => ({ rows: sql.startsWith('select count') ? [{ count: 7 }] : rows }), { schema, casing: 'snake_case' })
 const client = new Client({ name: 'check', version: '0' })
 const [a, b] = InMemoryTransport.createLinkedPair()
-await buildMcpServer(fakeDb as any, {} as any, 'u1', false).connect(a)
+await buildMcpServer(fakeDb as any, {} as any, 'u1').connect(a)
 await client.connect(b)
 const listed = await client.listTools()
 ok(listed.tools.every((t) => t.outputSchema?.type === 'object'), 'every listed tool has an object outputSchema')

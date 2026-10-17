@@ -51,9 +51,9 @@ export function knownTests(company: string): KnownTests | null {
 /**
  * Today's one card, most useful first: the next first-run step, then the soonest thing due,
  * then a test to practise for one of the seeker's own applications, then the best-scored role they saved but haven't applied to.
- * Nothing at all: a way to find the next role (or people, for a trial account).
+ * Nothing at all: a way to find the next role.
  */
-export function todayNext(o: { step?: Step; due: DueItem<Job, Person>[]; jobs: Job[]; trial: boolean; testsFor?: (company: string) => KnownTests | null; now?: number }): TodayCard {
+export function todayNext(o: { step?: Step; due: DueItem<Job, Person>[]; jobs: Job[]; testsFor?: (company: string) => KnownTests | null; now?: number }): TodayCard {
   const now = o.now ?? Date.now()
   if (o.step) return { kind: 'step', title: o.step.label, detail: o.step.detail, href: o.step.href, action: o.step.action }
   if (o.due[0]) return dueCard(o.due[0], now)
@@ -63,7 +63,5 @@ export function todayNext(o: { step?: Step; due: DueItem<Job, Person>[]; jobs: J
     .filter((j) => (j.status === 'saved' || j.status === 'evaluated') && (j.recommendation === 'apply_now' || j.recommendation === 'apply'))
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0]
   if (role) return { kind: 'role', title: `Apply to ${role.company}`, detail: `${role.role} · fit with your CV ${role.score?.toFixed(1)}/5`, href: `/jobs/${role.id}/apply`, action: 'Apply' }
-  return o.trial
-    ? { kind: 'clear', title: 'Nothing due', detail: 'Find people at a company you want to work for.', href: '/contacts', action: 'Find people' }
-    : { kind: 'clear', title: 'Nothing due', detail: 'Save a role with a deadline and it shows up here when it gets close.', href: '/jobs?view=feed', action: 'Find a role' }
+  return { kind: 'clear', title: 'Nothing due', detail: 'Save a role with a deadline and it shows up here when it gets close.', href: '/jobs?view=feed', action: 'Find a role' }
 }

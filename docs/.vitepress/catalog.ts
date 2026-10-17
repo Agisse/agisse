@@ -18,7 +18,7 @@ const length = (g: { realDuration: number | null; realRounds: number | null }) =
   [g.realDuration == null ? '' : g.realDuration < 120 ? `${g.realDuration} s` : `${Math.round(g.realDuration / 60)} min`, g.realRounds ? `${g.realRounds} rounds` : ''].filter(Boolean).join(', ') || 'set by the employer'
 // Only a known length can be reported; "set by the employer" stands on its own.
 const reported = (g: ProviderGame) => (g.realDuration != null || g.realRounds != null) && (g.basis === 'reconstructed' || !!g.note?.includes('reconstructed'))
-const CTA = '[Practise these in Agisse](https://agisse.xyz/?utm_source=docs&utm_medium=guide) — invite-only beta.'
+const CTA = '[Practise these in Agisse](https://agisse.xyz/?utm_source=docs&utm_medium=guide) — free beta.'
 
 export function firmPage(c: CuratedAssessment) {
   const p = c.provider ? providerName(c.provider) : null

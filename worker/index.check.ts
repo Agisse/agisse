@@ -57,19 +57,6 @@ if (!databaseUrl) {
     const health = await call('GET', '/api/health')
     check(health.status === 200 && health.json?.ok === true, 'health', health)
     check((await call('GET', '/api/me')).status === 401, 'signed out /api/me is 401')
-    // An expired invite opens nothing; one with no expiry or a future one still does.
-    const codes = ['expired', 'later', 'never'].map((k) => `index-check-${k}-${crypto.randomUUID().slice(0, 8)}`)
-    try {
-      await db.insert(schema.invite).values([
-        { code: codes[0]!, note: 'Index check', expiresAt: new Date(Date.now() - 60_000) },
-        { code: codes[1]!, note: 'Index check', expiresAt: new Date(Date.now() + 86_400_000) },
-        { code: codes[2]!, note: 'Index check' },
-      ])
-      const valid = await Promise.all(codes.map(async (code) => (await call('GET', `/api/invite/${code}`)).json?.valid))
-      check(valid.join() === 'false,true,true', 'invite expiry', valid)
-    } finally {
-      await db.delete(schema.invite).where(sql`${schema.invite.code} in ${codes}`)
-    }
     const signUp = await call('POST', '/api/auth/sign-up/email', { email, password: 'index-check-password', name: 'Index Check' })
     check(signUp.status === 200 && !!cookie, 'sign-up', signUp)
 
@@ -86,8 +73,6 @@ if (!databaseUrl) {
       const [me1] = await db.select({ id: schema.user.id }).from(schema.user).where(eq(schema.user.email, email))
       const stranger = crypto.randomUUID()
       await db.insert(schema.user).values({ id: stranger, name: 'Index Check Stranger', email: `index-check-stranger-${stranger.slice(0, 8)}@example.com` })
-      // A new sign-up waits for approval; these routes need an approved account.
-      await db.update(schema.user).set({ accessStatus: 'approved' }).where(eq(schema.user.id, me1!.id))
       try {
         const job = (id: string, userId: string) => ({ id, userId, company: 'Index Check Test Co', role: 'Analyst', jdText: 'Synthetic.', status: 'assessment' as const })
         const [answered, dismissed, theirs] = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()]
@@ -177,11 +162,6 @@ if (!databaseUrl) {
     } finally {
       await db.delete(schema.setting).where(sql`${schema.setting.key} in ('FREE_DAILY_ACTIONS_ALL', 'FEED_DAILY_PAGES')`)
     }
-    // Admins set an invite's expiry in days.
-    check((await call('POST', '/api/admin/invites', { note: 'Index check', expiresInDays: 0 })).status === 400, 'invite expiry: 1 day at least')
-    const made = (await call('POST', '/api/admin/invites', { note: 'Index check', expiresInDays: 7 })).json?.invite as { code: string; expiresAt: string } | undefined
-    await db.delete(schema.invite).where(eq(schema.invite.code, made?.code ?? ''))
-    check(Math.round((Date.parse(made?.expiresAt ?? '') - Date.now()) / 86_400_000) === 7, 'invite expires in 7 days', made)
     delete (env as { ADMIN_EMAIL?: string }).ADMIN_EMAIL
     // The daily cron keeps 30 days of counts.
     await db.insert(schema.feedDay).values([{ userId: user!.id, day: sql`current_date - 30`, pages: 1 }, { userId: user!.id, day: sql`current_date - 31`, pages: 1 }])

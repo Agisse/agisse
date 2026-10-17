@@ -6,7 +6,7 @@ Agisse runs a remote MCP server so an AI client (Claude Desktop, Claude Code, ..
 
 - Endpoint: `https://agisse.xyz/mcp`
 - Auth: OAuth. Your client discovers the flow itself via the standard metadata Better Auth serves at `/.well-known/*`; when it prompts, sign in with your Agisse account.
-- Your account must be **approved** (or the admin account) — a pending account gets a 403 with `This account is not approved for MCP access.`
+- A declined account gets a 403 with `This account is not approved for MCP access.`
 
 Example client config (Claude Desktop / Claude Code, `~/.claude.json` or the equivalent MCP settings):
 
@@ -40,7 +40,7 @@ sign-in link. I sign in with my Agisse account and confirm the consent screen.
 
 When connected, call `list_board` to confirm it works and show me the result.
 If you get a 403 "This account is not approved for MCP access", stop and tell
-me: my account is still pending approval, there is nothing to fix on your side.
+me: my account was declined, there is nothing to fix on your side.
 ```
 
 ## Tools
@@ -64,7 +64,7 @@ me: my account is still pending approval, there is nothing to fix on your side.
 | `add_to_shortlist` | Save a company to target (`name`, optional `domain`, `why`). Saving the same name again updates it. No model call. |
 | `list_shortlist` | List the companies on your shortlist, newest first, with why. Read-only. |
 | `list_vacancies` | Your Jobs for you feed: open early-career postings in Europe, ranked for you, 30 per page (`cursor` / `nextCursor`). Each has `title`, `company`, `url`, `location`, `fit` (0–100), `reasons` (Jev's verdict first when there is one) and `deadline`. Filters (`q`, `countries`, `level`, `functions`, `industries`, `languages`, `remoteOnly`, `deadlineWithin`, `sort`) default to your saved feed filters. Read-only, no model call. |
-| `update_job_status` | Move a job to another status (`applied`, `interview`, `offer`, …), as on the web. Optional `expectedStatus` makes it a no-op with an error if the status has changed. Returns `{ before, after }`. |
+| `update_job_status` | Move a job to another status (`applied`, `interview`, `offer`, …), as on the web. Optional `date` (ISO datetime) sets the date that status points to: interview time, test deadline, offer reply-by. Optional `expectedStatus` makes it a no-op with an error if the status has changed. Returns `{ before, after }`. |
 
 Every tool declares an `outputSchema` and returns its result both as JSON text and as `structuredContent`; errors come back as `isError` text.
 
@@ -80,5 +80,16 @@ The web app evaluates postings and scouts companies with Agisse's own models, pa
 2. For a posting, pass its text to `get_seeker_brief`: you get the same rubric and output schema the web app uses. Your AI evaluates the posting by that rubric.
 3. `add_job` stores the evaluation. The job shows up in Jobs and Applications like any other, with score and recommendation, and costs nothing from the budget.
 4. Discover → track: `list_vacancies` shows your feed, your AI picks the roles worth it, evaluates them and saves them with `add_job`, then `update_job_status` moves each one along as you apply, hear back and interview.
+
+## Recurring tasks
+
+Give your agent its own mail and calendar access too and it can run these on a schedule (a scheduled task in Claude, Tasks in ChatGPT, `/schedule` in Claude Code). The ready-to-copy prompts are on the **Connect your AI** page in the account menu (`/agent`).
+
+- **Statuses from your inbox:** read replies from companies on `list_board` and call `update_job_status` with `expectedStatus` and the `date` the mail gives.
+- **Interviews and tests in your calendar:** create an event for every interview, test deadline and offer reply-by in `list_board` (`nextAt`).
+- **Deadlines in your agenda:** an apply-by reminder for saved roles with a deadline.
+- **Morning brief:** `list_due_followups`, the week's dates and the best new match from `list_vacancies`.
+
+Agisse never reads your mail or calendar; your agent does, with the access you gave it.
 
 The server makes no model call for any of these tools. `draft_outreach` is the only MCP tool that spends budget.

@@ -75,7 +75,7 @@ export function useCopy() {
 /** The share sheet on phones, the clipboard elsewhere. */
 export async function shareLink(link: string, copy: (text: string) => Promise<void>) {
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-    await navigator.share({ title: 'Agisse', text: 'I got you into the Agisse beta. Job search with AI on your side.', url: link }).catch(() => {})
+    await navigator.share({ title: 'Agisse', text: 'Job search with AI on your side.', url: link }).catch(() => {})
     return
   }
   await copy(link)
@@ -106,8 +106,8 @@ export function remembered<T extends string>(key: string, allowed: readonly T[],
 }
 
 /** What /api/me said last time in this browser, so the right layout draws before it answers. Not a secret: the server stays the authority. */
-export type SessionHint = 'in' | 'trial' | 'rejected' | 'out'
-export const sessionHint = (value?: SessionHint) => remembered<SessionHint>('session', ['in', 'trial', 'rejected', 'out'], 'out', value)
+export type SessionHint = 'in' | 'rejected' | 'out'
+export const sessionHint = (value?: SessionHint) => remembered<SessionHint>('session', ['in', 'rejected', 'out'], 'out', value)
 
 /** The map's search form, filled in with this company. */
 export const boothHref = (p: { name: string; domain: string | null }) => `/contacts?${new URLSearchParams({ company: p.name, ...(p.domain ? { domain: p.domain } : {}) })}`

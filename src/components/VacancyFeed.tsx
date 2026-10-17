@@ -26,8 +26,6 @@ type Props = {
   onSavePrefs: (prefs: FeedPrefs) => Promise<unknown>
   /** A role was marked applied from the "Applied to X?" prompt. */
   onApplied: () => void
-  /** Waitlisted: tailoring and marking applied open once the account is approved. */
-  trial: boolean
 }
 
 type View = 'match' | 'soon' | 'new' | 'deadline'
@@ -125,7 +123,7 @@ export function Checks({ labels, counts, chosen, onToggle }: { labels: Record<st
 }
 
 /** "Jobs for you": the scraped early-career European vacancies, filtered by the seeker's dealbreakers and ranked by fit. */
-export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSavePrefs, onApplied, trial }: Props) {
+export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSavePrefs, onApplied }: Props) {
   const [prefs, setPrefs] = useState<FeedPrefs>(() => ({ ...EMPTY_FEED_PREFS, ...profile?.jobFeed }))
   const [query, setQuery] = useState(prefs.query)
   const [view, setView] = useState<View>('match')
@@ -293,7 +291,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
       exhausted={exhausted}
       onToggle={() => setExpanded(expanded === v.url ? null : v.url)}
       onSave={onSave}
-      onTailor={trial ? undefined : () => {
+      onTailor={() => {
         posthog.capture('feed_tailor_clicked', { source: sourceOf(v), score: v.score, has_deadline: Boolean(v.deadline) })
         onEvaluate(listingOf(v), sourceOf(v), { then: 'cv' })
       }}
@@ -305,7 +303,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
         posthog.capture('feed_similar_clicked', { from: 'row' })
       }}
       onOpen={() => {
-        if (!trial) leftFor.current = v
+        leftFor.current = v
       }}
     />
   )

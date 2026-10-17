@@ -15,17 +15,16 @@ export const user = pgTable('user', {
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
-  accessStatus: text('access_status').$type<'pending' | 'approved' | 'rejected'>().notNull().default('pending'),
+  accessStatus: text('access_status').$type<'approved' | 'rejected'>().notNull().default('approved'),
   reviewedAt: timestamp('reviewed_at'),
   isAdmin: boolean('is_admin').notNull().default(false),
   // Monthly allowance in € set by the admin; null = MONTHLY_BUDGET_EUR.
   budgetEur: doublePrecision('budget_eur'),
-  // One-time credit in € from an invite or an admin's ref link: granted once, never reset. Null = none.
+  // One-time sign-up credit in €: granted once, never reset. Null = none.
   creditGrantedEur: doublePrecision('credit_granted_eur'),
   creditEur: doublePrecision('credit_eur'), // what's left of it
-  // Admins only: the credit each friend who joins with this account's ref link gets.
+  // Unused since the waitlist went (2026-10-17); left until a migration drops them, with the invite table.
   referralCreditEur: doublePrecision('referral_credit_eur'),
-  // Their share link is /?ref=<referralCode>. Friends who join with it point back here via referredBy.
   referralCode: text('referral_code').unique(),
   referredBy: text('referred_by'),
   // When the daily cron emailed that this account will be deleted after 24 months unused (worker/lib/retention.ts).
@@ -37,7 +36,7 @@ export const user = pgTable('user', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
-// Admin-issued personal invites: each code opens one account, which skips the waitlist.
+// Unused since the waitlist went (2026-10-17): admin-issued invites, kept until a migration drops the table.
 export const invite = pgTable('invite', {
   code: text('code').primaryKey(),
   // Who the admin meant it for; only the admin sees it.
