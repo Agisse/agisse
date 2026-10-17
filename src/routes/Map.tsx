@@ -545,7 +545,7 @@ function BoothIndex({ searches, loading, error }: { searches: Search[] | null; l
           {groupByCompany(searches).map((g) =>
             g.length === 1 ? (
               <li key={g[0]!.id}>
-                <SearchRow s={g[0]!} fallback={searches.length - searches.indexOf(g[0]!)} />
+                <SearchRow s={g[0]!} />
               </li>
             ) : (
               <li key={g[0]!.id} className="company-group">
@@ -557,7 +557,7 @@ function BoothIndex({ searches, loading, error }: { searches: Search[] | null; l
                 <ol className="booth-index">
                   {g.map((x) => (
                     <li key={x.id}>
-                      <SearchRow s={x} fallback={searches.length - searches.indexOf(x)} nested />
+                      <SearchRow s={x} nested />
                     </li>
                   ))}
                 </ol>
@@ -575,10 +575,9 @@ function BoothIndex({ searches, loading, error }: { searches: Search[] | null; l
   )
 }
 
-function SearchRow({ s, fallback, nested }: { s: Search; fallback: number; nested?: boolean }) {
+function SearchRow({ s, nested }: { s: Search; nested?: boolean }) {
   return (
     <Link href={`/s/${s.id}`} className={`booth-row search-row${nested ? ' job-row--nested' : ''}`}>
-      <span className="booth-row__num tnum">{String(s.number ?? fallback).padStart(2, '0')}</span>
       {nested ? <span aria-hidden="true" /> : <CompanyLogo company={s.company} domain={s.domain} />}
       <span className="booth-row__details">
         <span className="booth-row__heading">

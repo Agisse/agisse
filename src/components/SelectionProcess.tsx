@@ -138,7 +138,12 @@ export function SelectionProcess({ job, me, onSpend }: { job: Job; me: Me; onSpe
           {s.values.length > 0 && <Row label="What they look for" value={s.values.join(', ')} />}
           <Row label="Last verified" value={monthYear(s.sourceDate)} />
         </dl>
-        {s.notes && <p className="prep__meta">{s.notes}</p>}
+        {s.notes && (
+          <details className="req__fold">
+            <summary className="prep__meta">What the search found</summary>
+            <p className="prep__meta">{s.notes}</p>
+          </details>
+        )}
       </section>
 
       <Tips id="sel-advice" title="Advice from people who went through it" tips={s.advice} cite={cite} />
@@ -164,20 +169,25 @@ export function SelectionProcess({ job, me, onSpend }: { job: Job; me: Me; onSpe
       <StoriesForPosting job={job} />
 
       <section className="posting__block" aria-labelledby="sel-sources">
-        <h3 id="sel-sources" className="label">
-          Sources
-        </h3>
-        <ol className="prep__sources">
-          {sources.map((x) => (
-            <li key={x.url}>
-              <a href={x.url} target="_blank" rel="noopener noreferrer">
-                {x.title} <ExternalLink aria-hidden="true" />
-              </a>
-              <span className="prep__meta"> {x.kind}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="booth__model">Reviews and forum posts are one person's experience and may be dated. Open the source before you rely on a point.</p>
+        {/* The reading list backs the points above; it opens on demand. */}
+        {sources.length > 0 ? (
+          <details className="posting__fold">
+            <summary id="sel-sources" className="label">Sources · {sources.length}</summary>
+            <ol className="prep__sources">
+              {sources.map((x) => (
+                <li key={x.url}>
+                  <a href={x.url} target="_blank" rel="noopener noreferrer">
+                    {x.title} <ExternalLink aria-hidden="true" />
+                  </a>
+                  <span className="prep__meta"> {x.kind}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="booth__model">Reviews and forum posts are one person's experience and may be dated. Open the source before you rely on a point.</p>
+          </details>
+        ) : (
+          <h3 id="sel-sources" className="sr-only">Sources</h3>
+        )}
         {researchButton('Research again')}
       </section>
     </div>

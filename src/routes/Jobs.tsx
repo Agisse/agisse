@@ -530,6 +530,9 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
     .sort((a, b) => Number(b.importance === 'critical') - Number(a.importance === 'critical'))
     .slice(0, 2)
 
+  const toWork = (ev?.requirements ?? []).filter((r) => r.match === 'partial' || r.match === 'missing')
+  const met = (ev?.requirements ?? []).filter((r) => r.match !== 'partial' && r.match !== 'missing')
+
   const writeCover = async (rewrite: boolean) => {
     setBusy(true)
     setDocError(null)
@@ -784,30 +787,14 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
         <h3 id="req-title" className="label">
           Requirements against your CV
         </h3>
-        <ol className="reqs">
-          {ev.requirements.map((r, i) => (
-            <li key={i} className={`req req--${r.match}`}>
-              <span className="req__match label">{MATCH[r.match]}</span>
-              {/* One line per requirement; the quote and the reasoning open on demand. A gap's advice stays out. */}
-              <div>
-                {r.jdQuote || r.cvEvidence ? (
-                  <details className="req__fold">
-                    <summary className="req__name">
-                      {r.requirement} <span className="req__importance">{IMPORTANCE[r.importance]}{r.evidenceTier === 'inferred' ? ', estimated' : ''}</span>
-                    </summary>
-                    {r.jdQuote && <p className="req__quote">“{r.jdQuote}”</p>}
-                    {r.cvEvidence && <p className="req__evidence">{r.cvEvidence}</p>}
-                  </details>
-                ) : (
-                  <p className="req__name">
-                    {r.requirement} <span className="req__importance">{IMPORTANCE[r.importance]}{r.evidenceTier === 'inferred' ? ', estimated' : ''}</span>
-                  </p>
-                )}
-                {r.mitigation && <p className="req__mitigation">How to handle it: {r.mitigation}</p>}
-              </div>
-            </li>
-          ))}
-        </ol>
+        {/* What to work on comes first; what the CV already covers folds away. */}
+        {toWork.length > 0 ? <Reqs reqs={toWork} /> : <p className="muted">Your CV covers every requirement.</p>}
+        {met.length > 0 && (
+          <details className="req__fold reqs__met">
+            <summary className="req__name">{met.length} you already meet</summary>
+            <Reqs reqs={met} />
+          </details>
+        )}
       </section>
 
       {/* The detail behind the score, folded: the verdict and requirements above carry the decision. */}
@@ -867,6 +854,34 @@ function Posting({ job, tab, me, offers, error, onChange, onSpend, onDelete }: {
       </>
       )}
     </div>
+  )
+}
+
+/** One line per requirement; the quote and the reasoning open on demand. A gap's advice stays out. */
+function Reqs({ reqs }: { reqs: Requirement[] }) {
+  return (
+    <ol className="reqs">
+      {reqs.map((r, i) => {
+        const name = <>{r.requirement} <span className="req__importance">{IMPORTANCE[r.importance]}{r.evidenceTier === 'inferred' ? ', estimated' : ''}</span></>
+        return (
+          <li key={i} className={`req req--${r.match}`}>
+            <span className="req__match label">{MATCH[r.match]}</span>
+            <div>
+              {r.jdQuote || r.cvEvidence ? (
+                <details className="req__fold">
+                  <summary className="req__name">{name}</summary>
+                  {r.jdQuote && <p className="req__quote">“{r.jdQuote}”</p>}
+                  {r.cvEvidence && <p className="req__evidence">{r.cvEvidence}</p>}
+                </details>
+              ) : (
+                <p className="req__name">{name}</p>
+              )}
+              {r.mitigation && <p className="req__mitigation">How to handle it: {r.mitigation}</p>}
+            </div>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 
@@ -1361,15 +1376,23 @@ function KeywordLine({ job }: { job: Job }) {
   const m = missing.data
   return (
     <div className="keyword-line">
-      <p className="muted">
-        <span className="tnum">{total - m.length} of {total}</span> posting keywords are in your {job.cv ? 'tailored ' : ''}CV{m.length ? '. Not found word for word:' : '.'}
-      </p>
-      {m.length > 0 && (
-        <ul className="chips keyword-line__chips">
-          {m.map((k) => (
-            <li key={k} className="chip">{k}</li>
-          ))}
-        </ul>
+      {/* The count is the news; the missing words open on demand. */}
+      {m.length > 0 ? (
+        <details className="req__fold">
+          <summary className="muted">
+            <span className="tnum">{total - m.length} of {total}</span> posting keywords are in your {job.cv ? 'tailored ' : ''}CV
+          </summary>
+          <p className="muted">Not found word for word:</p>
+          <ul className="chips keyword-line__chips">
+            {m.map((k) => (
+              <li key={k} className="chip">{k}</li>
+            ))}
+          </ul>
+        </details>
+      ) : (
+        <p className="muted">
+          <span className="tnum">{total}</span> of {total} posting keywords are in your {job.cv ? 'tailored ' : ''}CV.
+        </p>
       )}
     </div>
   )

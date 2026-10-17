@@ -875,6 +875,11 @@ h2.intake__title { font-size: var(--fs-20); }
 .board__people svg { width: 13px; height: 13px; }
 .board__people--find { color: var(--blue-ink); }
 .board__people--find:hover { text-decoration: underline; }
+/* Thirty cards each saying "Find people" is noise: with a pointer it shows on the card in hand; touch keeps it. */
+@media (hover: hover) {
+  .board__people--find { opacity: 0; transition: opacity var(--dur-fast); }
+  .board__card:hover .board__people--find, .board__card:focus-within .board__people--find { opacity: 1; }
+}
 /* Move without dragging: a quiet pill select. */
 .board__move {
   appearance: none;
@@ -1167,6 +1172,11 @@ h2.intake__title { font-size: var(--fs-20); }
 .req__fold > summary { cursor: pointer; list-style: none; }
 .req__fold > summary::after { margin-left: 6px; }
 .req__fold > summary:hover { color: var(--blue-ink); }
+/* One-line folds under a block: a full 44px row to tap. */
+.req__fold > summary.prep__meta, .keyword-line .req__fold > summary { display: flex; align-items: center; min-height: 44px; }
+.reqs__met { border-top: 1px solid var(--rule-soft); }
+.reqs__met > summary { display: flex; align-items: center; min-height: 44px; color: var(--ink-2); }
+.reqs__met > .reqs { padding-bottom: var(--space-2); }
 .outcome-line { font-size: var(--fs-14); color: var(--ink-2); }
 .outcome-line > summary { display: flex; align-items: center; min-height: 44px; text-wrap: pretty; }
 .outcome-line > p { margin: var(--space-1) 0 var(--space-2); }
@@ -1220,7 +1230,7 @@ h2.intake__title { font-size: var(--fs-20); }
 /* Fixed score and status columns so they line up down the whole board. */
 .job-row { grid-template-columns: 40px minmax(0, 1fr) 3ch 104px; padding-left: 8px; }
 .job-row .booth-row__num { padding-left: 0; text-align: right; }
-.search-row { grid-template-columns: 56px 40px minmax(0, 1fr) auto; }
+.search-row { grid-template-columns: 40px minmax(0, 1fr) auto; padding-left: 8px; }
 .job-row--nested { padding-block: 8px; }
 /* "Check back on 12 Oct" is wider than the column: let it wrap instead of spilling out of the row. */
 .job-row .booth-row__meta { white-space: normal; text-align: right; }
@@ -1231,12 +1241,9 @@ h2.intake__title { font-size: var(--fs-20); }
   padding: var(--space-4) 8px var(--space-1);
 }
 .company-group__head .label { margin-left: auto; }
-.company-group:has(.search-row) .company-group__head { padding-left: 72px; }
 @media (max-width: 480px) {
   .job-row, .search-row { gap: var(--space-3); }
   .job-row { grid-template-columns: 40px minmax(0, 1fr) 3ch 88px; }
-  .search-row { grid-template-columns: 36px 40px minmax(0, 1fr) auto; }
-  .company-group:has(.search-row) .company-group__head { padding-left: 48px; }
 }
 
 /* Where the application stands: a pill led by its status dot. Closed ones fade. */
@@ -1574,6 +1581,8 @@ h2.intake__title { font-size: var(--fs-20); }
   font-size: var(--fs-12);
   vertical-align: 1px;
 }
+.stop__fold > summary { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--fs-14); color: var(--ink-2); }
+.stop__fold > p + p { margin-top: var(--space-2); }
 .stop__facts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--space-3); font-size: var(--fs-13); color: var(--ink-2); }
 .stop__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 2px; }
 .stop__actions .is-filled { fill: currentColor; }
@@ -1617,7 +1626,7 @@ h2.intake__title { font-size: var(--fs-20); }
   white-space: nowrap;
 }
 .saved-row__name:hover { text-decoration: underline; text-underline-offset: 0.18em; }
-.scout-row { grid-template-columns: 48px minmax(0, 1fr) auto; }
+.scout-row { grid-template-columns: minmax(0, 1fr) auto; padding-left: 8px; }
 .scout-row[aria-current='page'] { background: var(--paper-2); }
 .scout-row .booth-row__company { display: block; }
 .index-card__options-fields.how { margin-top: 0; }

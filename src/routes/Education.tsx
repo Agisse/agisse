@@ -4,7 +4,7 @@ import { deadlineLabel } from '../../shared/listings'
 import { countryLabel, EMPTY_PROGRAMME_FILTERS, fieldLabel, languageLabel, PROGRAMME_KINDS, STUDY_MODES, type Programme, type ProgrammeFacets, type ProgrammeFilters } from '../../shared/programmes'
 import { api, isAbort } from '../lib/api'
 import { CompanyLogo, LogoCredit } from '../components/CompanyLogo'
-import { Checks, closeMenus, Menu } from '../components/VacancyFeed'
+import { Checks, CHIPS_SHOWN, closeMenus, Menu } from '../components/VacancyFeed'
 
 type View = 'match' | 'soon' | 'saved'
 const VIEWS: Record<View, { label: string; empty: string }> = {
@@ -25,6 +25,7 @@ export function EducationRoute() {
   const [query, setQuery] = useState('')
   const [view, setView] = useState<View>('match')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [allChips, setAllChips] = useState(false)
   const [items, setItems] = useState<Programme[] | null>(null)
   const [more, setMore] = useState(false)
   const [total, setTotal] = useState<number | null>(null)
@@ -152,12 +153,13 @@ export function EducationRoute() {
 
           {chosen.length > 0 && (
             <div className="feed-chosen">
-              {chosen.map((c) => (
+              {(allChips ? chosen : chosen.slice(0, CHIPS_SHOWN)).map((c) => (
                 <button key={c.key} type="button" className="chip" aria-pressed="true" onClick={c.remove} aria-label={`Remove filter ${c.label}`}>
                   {c.label}
                   <X aria-hidden="true" className="feed-chosen__x" />
                 </button>
               ))}
+              {!allChips && chosen.length > CHIPS_SHOWN && <button type="button" className="btn btn--quiet btn--sm" onClick={() => setAllChips(true)}>{chosen.length - CHIPS_SHOWN} more</button>}
               {chosen.length > 1 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
             </div>
           )}

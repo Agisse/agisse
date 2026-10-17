@@ -105,6 +105,9 @@ export function closeMenus(root: HTMLElement | null, e: Event) {
 }
 
 /** Checkbox choices with live counts, busiest first; chosen ones always show, empty ones hide. */
+/** Active-filter chips shown before the rest fold behind "N more". */
+export const CHIPS_SHOWN = 4
+
 export function Checks({ labels, counts, chosen, onToggle }: { labels: Record<string, string>; counts?: Record<string, number>; chosen: string[]; onToggle: (k: string) => void }) {
   const keys = Object.keys(labels)
     .filter((k) => !counts || chosen.includes(k) || (counts[k] ?? 0) > 0)
@@ -128,6 +131,7 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
   const [query, setQuery] = useState(prefs.query)
   const [view, setView] = useState<View>('match')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [allChips, setAllChips] = useState(false)
   // "More like this": from a row's detail, or ?similar=<url>&title=<title> from a posting's page.
   const search = useSearch()
   const [similar, setSimilar] = useState<{ url: string; title: string } | null>(() => {
@@ -384,12 +388,16 @@ export function VacancyFeed({ jobs, exhausted, onEvaluate, onSave, profile, onSa
           {items && !loading && chosen.length > 0 && visible.length > 0 && visible.length < 5 && (
             <span className="feed-chosen__thin">Only {visible.length} {visible.length === 1 ? 'role matches' : 'roles match'}. Remove a filter:</span>
           )}
-          {chosen.map((c) => (
+          {/* A long row of chips buries the feed: show a few, the rest on demand. Few results show them all, to remove one. */}
+          {(allChips || visible.length < 5 ? chosen : chosen.slice(0, CHIPS_SHOWN)).map((c) => (
             <button key={c.key} type="button" className="chip" aria-pressed="true" onClick={c.remove} aria-label={`Remove filter ${c.label}`}>
               {c.label}
               <X aria-hidden="true" className="feed-chosen__x" />
             </button>
           ))}
+          {!allChips && visible.length >= 5 && chosen.length > CHIPS_SHOWN && (
+            <button type="button" className="btn btn--quiet btn--sm" onClick={() => setAllChips(true)}>{chosen.length - CHIPS_SHOWN} more</button>
+          )}
           {/* One chip: its own × already clears it. */}
           {chosen.length > 1 && <button type="button" className="btn btn--quiet btn--sm" onClick={clearAll}>Clear all</button>}
           {current !== saved && <button type="button" className="btn btn--sm feed-chosen__save" onClick={saveDefaults}>Save as my defaults</button>}
