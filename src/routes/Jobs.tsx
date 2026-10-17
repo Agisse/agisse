@@ -1379,8 +1379,9 @@ function KeywordLine({ job }: { job: Job }) {
       {/* The count is the news; the missing words open on demand. */}
       {m.length > 0 ? (
         <details className="req__fold">
+          {/* One span: the summary is a flex row, which would drop the space after the number. */}
           <summary className="muted">
-            <span className="tnum">{total - m.length} of {total}</span> posting keywords are in your {job.cv ? 'tailored ' : ''}CV
+            <span><span className="tnum">{total - m.length} of {total}</span> posting keywords are in your {job.cv ? 'tailored ' : ''}CV</span>
           </summary>
           <p className="muted">Not found word for word:</p>
           <ul className="chips keyword-line__chips">
