@@ -18,7 +18,7 @@ Agisse is in beta; full access is by invite. You must be at least 18 to use it. 
 | CV | The PDF you upload, stored in Cloudflare R2 in the EU, and the text read from it | To fill your profile, score postings and tailor your CV |
 | Searches | Companies, roles and locations you search for, and the results | To show and reuse your results |
 | Contacts found | Names, roles and public profile links of people at a company, found on the public web | To suggest who to contact; you decide whether to |
-| Job tracker | Postings you save, their status, dates, notes, drafts and practice answers | To run your application board |
+| Job tracker | Postings you save, their status, dates, notes, drafts and practice answers; programmes you save in Education | To run your application board and keep your saved programmes |
 | AI usage logs | Which AI feature ran, when, the model, token counts and cost; what it wrote, and your thumbs up or down and note on it | To enforce fair-use limits, control cost and check the quality of answers |
 | Analytics | Pages viewed (without codes or ids in the address) and the features you use, with your account id (never your name or email), without cookies. Off when your browser sends Do Not Track | To learn which parts of Agisse help |
 | Error reports | Technical details when something breaks: the error message and where in the code it happened, the page address without its query string or ids, and your browser and operating system. Never your account id, name or email | To fix bugs |
