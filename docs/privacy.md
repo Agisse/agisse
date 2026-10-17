@@ -51,7 +51,7 @@ We never sell your data and never use it to advertise to you.
 | Nominatim (OpenStreetMap Foundation) | Turns job locations into map points; your browser sends it the location text and your IP address | UK |
 | OpenFreeMap | Map tiles for the world map; your browser sends it your IP address | Hungary (EU); may be delivered through Cloudflare's network |
 | logo.dev | Company logos; your browser sends it the company's domain or name and your IP address | USA |
-| PostHog | Product analytics and browser error reports, cookieless | EU |
+| PostHog | Product analytics, cookieless | EU |
 | Resend | Sending email from hello@agisse.xyz | USA |
 | Google | Sign in with Google, if you choose it | USA |
 | Sentry | Error reports from the server and the browser | EU (Frankfurt, Germany) |

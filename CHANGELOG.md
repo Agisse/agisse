@@ -14,7 +14,7 @@ Each version lists what changes for people using Agisse first. Changes that only
 ### Changed
 
 - The homepage reads as open source: a GitHub link with the live star count in the header, "Star on GitHub" next to Get started, and the license under it. A new "Built in the open" section has a copyable `npx agisse`, the one-prompt agent setup, and links to the code, changelog, costs, methodology, manifesto and contributors.
-- Error reports go to Sentry in the EU (Frankfurt) instead of the USA, and now include errors in your browser: the error, the page address without its query string or ids, and your browser and OS. Never your name or email, nothing you typed or clicked; off when your browser sends Do Not Track. Kept 90 days.
+- Error reports go to Sentry in the EU (Frankfurt) instead of the USA, and now include errors in your browser: the error, the page address without its query string or ids, and your browser and OS. Never your name or email, nothing you typed or clicked; off when your browser sends Do Not Track. Kept 90 days. Analytics no longer receive browser errors, so no error report carries your account id.
 - Faster answers: job evaluations, cover letters, outreach and prep on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Tailored CVs stay on free models, which write them better. Free models stay as the fallback.
 
 ### For contributors and self-hosters
