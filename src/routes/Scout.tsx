@@ -390,6 +390,7 @@ function Entrance({ input }: { input: ScoutInput }) {
 
 function Stop({ pick, n, saved, dreamed, onSave, onDream }: { pick: ScoutPick; n: number; saved: boolean; dreamed: boolean; onSave: () => void; onDream: () => void }) {
   const f = pick.facts
+  const fromWikidata = !!pick.sourceUrl && /^https:\/\/(www\.)?wikidata\.org\//.test(pick.sourceUrl)
   const facts = f ? [f.industry, f.country, f.employees && `${f.employees.toLocaleString()} people`, f.founded && `since ${f.founded}`].filter(Boolean) : []
   return (
     <li className="stop" style={{ '--i': n } as CSSProperties}>
@@ -429,10 +430,10 @@ function Stop({ pick, n, saved, dreamed, onSave, onDream }: { pick: ScoutPick; n
                 {facts.length > 0 && <span className="tnum">{facts.join(' · ')}</span>}
                 {pick.sourceUrl && (
                   <a href={pick.sourceUrl} target="_blank" rel="noopener noreferrer">
-                    {pick.sourceUrl.includes('wikidata.org') ? 'Wikidata' : 'Source'} <ExternalLink aria-hidden="true" />
+                    {fromWikidata ? 'Wikidata' : 'Source'} <ExternalLink aria-hidden="true" />
                   </a>
                 )}
-                {f && !pick.sourceUrl?.includes('wikidata.org') && (
+                {f && !fromWikidata && (
                   <a href={`https://www.wikidata.org/wiki/${f.qid}`} target="_blank" rel="noopener noreferrer">
                     Wikidata <ExternalLink aria-hidden="true" />
                   </a>
