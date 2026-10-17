@@ -13,6 +13,8 @@ Each version lists what changes for people using Agisse first. Changes that only
 
 ### Changed
 
+- "Jobs for you" learns from you and knows what you can't take. Roles close to ones you saved or tailored a CV for move up; a role you discarded never comes back; roles you applied to make way for new ones. Roles asking for a language you don't speak, 3+ years of experience, or a licensed profession (law, medicine, teaching) you didn't pick move down, and say why when you open them ("Asks for German"). Internships rank lower once you've graduated, and the same posting found on two sites shows once.
+- Your profile has a new "Languages you speak" field, filled from your CV. Until you fill it, Agisse reads the languages from your skills or your CV's Languages section.
 - The homepage reads as open source: a GitHub link with the live star count in the header, "Star on GitHub" next to Get started, and the license under it. A new "Built in the open" section has a copyable `npx agisse`, the one-prompt agent setup, and links to the code, changelog, costs, methodology, manifesto and contributors.
 - Error reports go to Sentry in the EU (Frankfurt) instead of the USA, and now include errors in your browser: the error, the page address without its query string or ids, and your browser and OS. Never your name or email, nothing you typed or clicked; off when your browser sends Do Not Track. Kept 90 days.
 - Faster answers: job evaluations, cover letters, outreach and prep on Agisse's key now run on Mistral Small 4, on Mistral's servers in the EU, instead of free models that took 15–90 seconds. Tailored CVs stay on free models, which write them better. Free models stay as the fallback.

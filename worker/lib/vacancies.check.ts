@@ -3,7 +3,8 @@ import { and, eq as is } from 'drizzle-orm'
 import { PgDialect } from 'drizzle-orm/pg-core'
 import { createDb, schema } from '../db/index.ts'
 import { FAIRNESS } from './pipeline.ts'
-import { degreeQuery, FIT_Q, reasonsFor, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
+import { dedupe, degreeQuery, FIT_Q, reasonsFor, seekerOf, stageOf, titleWords, vacancyFilters, type VacancyQuery } from './vacancies.ts'
+import { languagesInResume, spokenLanguages } from '../../shared/listings.ts'
 
 const eq = (got: unknown, want: unknown, what: string) => {
   if (JSON.stringify(got) !== JSON.stringify(want)) throw new Error(`${what} = ${JSON.stringify(got)}, want ${JSON.stringify(want)}`)
@@ -42,6 +43,23 @@ eq(reasonsFor({ ...row, jev: 1 / 3 }, [], [], today)[0], 'A stretch', 'jev stret
 eq(reasonsFor({ ...row, jev: 0 }, [], [], today), ['Closes in 6 days'], 'jev wrong field: no chip, no heuristic')
 // Cosine alone sits in 0.83–0.87 for a whole field, so it never claims a fit.
 eq(reasonsFor({ ...row, jev: null }, [], [], today), ['Closes in 6 days'], 'no jev: no chip')
+// What held a role back comes right after the fit chip; language names among the skills never count as "Mentions".
+eq(reasonsFor({ ...row, jev: 1, unspoken: ['german'] }, [], ['English', 'Excel'], today), ['Strong fit', 'Asks for German', 'Mentions Excel'], 'unspoken language')
+eq(reasonsFor({ ...row, minYears: 3, liked: 0.9 }, [], [], today), ['Asks for 3+ years', 'Like roles you saved', 'Closes in 6 days'], 'years and taste')
+eq(reasonsFor({ ...row, liked: 0.6 }, [], [], today), ['Closes in 6 days'], 'a loose likeness says nothing')
+// Stage from the graduation year (in October 2026): next year is the final year; two years out is early; past July is graduated.
+const oct = new Date('2026-10-17T12:00:00Z')
+eq([stageOf('2025', oct), stageOf('2026', oct), stageOf('2027', oct), stageOf('2028', oct), stageOf('', oct)], ['graduated', 'graduated', 'final', 'early', null], 'stages')
+eq(stageOf('2026', new Date('2026-03-01T12:00:00Z')), 'final', 'graduating this spring')
+// Spoken languages: native names and levels; English added once any is known; none known stays unknown.
+eq(spokenLanguages(['Nederlands (moedertaal)', 'Français C1', 'Python', 'German']), ['dutch', 'french', 'german'], 'spoken languages')
+eq(seekerOf({ skills: ['Excel', 'Dutch'], targetIndustries: [], degree: '', gradYear: '' }).languages, ['english', 'dutch'], 'languages from skills')
+eq(seekerOf({ skills: ['Excel'], targetIndustries: [], degree: '', gradYear: '' }).languages, [], 'no languages known')
+eq(seekerOf({ skills: [], targetIndustries: [], degree: '', gradYear: '' }, 'Experience\nGerman multinational\nLanguages: Dutch (native), French (fluent)').languages, ['english', 'dutch', 'french'], 'languages from the résumé section')
+eq(languagesInResume('Worked for a German bank. Studied French literature.'), [], 'language words outside the section')
+eq(languagesInResume('Native Spanish speaker, fluent in Italian'), ['spanish', 'italian'], 'native / fluent')
+// The same posting from two sources: one row, the first (better-ranked) one.
+eq(dedupe([{ title: 'Internship Coverage Analyst', company: 'Société Générale', n: 1 }, { title: 'Internship  Coverage Analyst', company: 'Societe Generale CIB', n: 2 }, { title: 'Internship Coverage Analyst', company: 'ING', n: 3 }]).map((r) => r.n), [1, 3], 'dedupe')
 // Programme types and "just opened" are parameterised like the rest.
 const views = render({ programs: ['summer', 'graduate_programme'], newWithin: 7 })
 eq(views.params, ['summer', 'graduate_programme', 7], 'programme + new params')

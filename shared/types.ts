@@ -21,6 +21,8 @@ export type Profile = {
   skills: string[]
   /** A few dense sentences on experience and projects, usually lifted from a résumé; context for ranking and the note. */
   background: string
+  /** Languages the seeker speaks, as SPOKEN_LANGUAGES keys; the feed moves roles asking for others down. */
+  languages: string[]
   /** Premium accounts get 300 characters per connection note, free ones 200. */
   linkedinPremium: boolean
   /** Smart = paid models within a price cap, only on the seeker's own OpenRouter key; Agisse's key uses OPENROUTER_MODELS (Mistral Small 4, then free models). */
@@ -45,6 +47,7 @@ export const EMPTY_PROFILE: Profile = {
   targetIndustries: [],
   skills: [],
   background: '',
+  languages: [],
   linkedinPremium: false,
   smartModel: true,
   shareOutcomes: true,

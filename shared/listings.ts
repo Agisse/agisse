@@ -231,6 +231,33 @@ export const PROGRAM_LABEL: Record<string, string> = {
 
 /** Languages a seeker can say they speak (the scraper's lowercase English names). */
 export const SPOKEN_LANGUAGES = ['english', 'french', 'dutch', 'german', 'spanish', 'italian', 'portuguese', 'polish', 'swedish', 'danish', 'norwegian', 'finnish', 'czech', 'hungarian', 'romanian', 'greek'] as const
+// The same languages as CVs write them: native names, and English with a level ("Dutch (native)").
+const LANGUAGE_NAMES: Record<string, (typeof SPOKEN_LANGUAGES)[number]> = {
+  nederlands: 'dutch', flemish: 'dutch', vlaams: 'dutch', français: 'french', francais: 'french', deutsch: 'german', español: 'spanish', espanol: 'spanish', castellano: 'spanish',
+  italiano: 'italian', português: 'portuguese', portugues: 'portuguese', polski: 'polish', svenska: 'swedish', dansk: 'danish', norsk: 'norwegian', suomi: 'finnish',
+  čeština: 'czech', cestina: 'czech', magyar: 'hungarian', română: 'romanian', romana: 'romanian', ελληνικά: 'greek', engels: 'english', anglais: 'english', englisch: 'english',
+}
+const languageOf = (word: string) => ((SPOKEN_LANGUAGES as readonly string[]).includes(word) ? word : LANGUAGE_NAMES[word])
+/** The SPOKEN_LANGUAGES named in a list of skills or languages ("Dutch (native)", "Français C1"), in their first order. */
+export function spokenLanguages(xs: string[]): string[] {
+  return [...new Set(xs.map((x) => languageOf(x.toLowerCase().split(/[^\p{L}]+/u).find(Boolean) ?? '')).filter((l): l is string => !!l))]
+}
+
+/**
+ * The languages a résumé says its owner speaks: the words under a "Languages" heading (in the common CV languages),
+ * and any language word next to "native", "fluent" or "mother tongue". Elsewhere a language word is too often
+ * about something else ("German multinational", "French literature").
+ */
+export function languagesInResume(text: string): string[] {
+  const words = (s: string) => s.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean)
+  const section = text.match(/(?:^|\n)\s*(?:languages?|language skills|talen|taalkennis|langues|sprachen|sprachkenntnisse|idiomas|lingue|języki)\s*[:\n]([^]{0,240})/iu)?.[1] ?? ''
+  const level = 'native|fluent|mother tongue|bilingual|moedertaal|langue maternelle|muttersprache'
+  // Two passes: "Native Spanish speaker, fluent in Italian" has a language after one level word and before the next.
+  const after = [...text.matchAll(new RegExp(`(?:${level})\\W+(?:in\\W+)?(\\p{L}+)`, 'giu'))].map((m) => m[1]!)
+  const before = [...text.matchAll(new RegExp(`(\\p{L}+)\\W{0,3}(?:${level})`, 'giu'))].map((m) => m[1]!)
+  const near = [...after, ...before]
+  return spokenLanguages([...words(section), ...near])
+}
 
 export type Vacancy = {
   url: string

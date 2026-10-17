@@ -10,7 +10,7 @@ import { schema } from '../db'
 import { draftOutreach } from './pipeline'
 import { EvaluationOutput, cvText, evaluationBrief, evaluationSchema, finalizeEvaluation, findPosting, insertJob, pushStatus } from './jobs'
 import { SavedCompanyInput, toSaved, upsertSavedCompany } from './companies'
-import { countFeedPage, FEED_CAP_MESSAGE, feedDailyPages, MAX_OFFSET, PAGE, searchVacancies } from './vacancies'
+import { countFeedPage, FEED_CAP_MESSAGE, feedDailyPages, MAX_OFFSET, PAGE, searchVacancies, seekerOf } from './vacancies'
 import { dueItems } from '../../src/lib/followup'
 import { budgetSpent, charge, decodeCursor, loadBudget, loadContactedPeople, loadJobSummaries, loadMemories, loadProfile, loadResumeText, loadSearchList, loadSearchWithPeople, modelError, newMeter, toJob, userStyle, toPerson, type Page, type PageQuery } from './shared'
 import { EMPTY_FEED_PREFS, FEED_LEVELS, SPOKEN_LANGUAGES } from '../../shared/listings'
@@ -457,8 +457,7 @@ export function buildMcpServer(db: Db, env: Env, userId: string, trial: boolean,
         db,
         userId,
         { q: f.q ?? p.query, countries: f.countries?.map((x) => x.toUpperCase()) ?? p.countries, level: f.level ?? p.level, functions: f.functions ?? p.functions, industries: f.industries ?? p.industries, languages: f.languages ?? p.languages, remoteOnly: f.remoteOnly ?? p.remoteOnly, deadlineWithin: f.deadlineWithin ?? null, sort, offset, blocked: p.blocked, sponsorsOnly: p.sponsorsOnly },
-        [...(profile?.skills ?? []), ...(profile?.targetIndustries ?? [])],
-        profile?.degree,
+        seekerOf(profile),
       )
       const items = vacancies.map((x) => ({ url: x.url, title: x.title, company: x.company, location: x.location, fit: x.score, reasons: x.reasons, deadline: x.deadline, visaSponsor: x.sponsors }))
       return structured({ items, nextCursor: more ? String(offset + PAGE) : null, profiled })
