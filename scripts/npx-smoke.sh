@@ -13,12 +13,12 @@ cd "$dir"
 if [ "$runtime" = bun ]; then
   bun init -y >/dev/null && bun add "$tgz" >/dev/null
   port=3918
-  GROUP_INVITE=npx-smoke PORT=$port bun --bun ./node_modules/.bin/agisse > server.log 2>&1 &
+  PORT=$port bun --bun ./node_modules/.bin/agisse > server.log 2>&1 &
 else
   npm init -y >/dev/null && npm install --no-audit --no-fund "$tgz" >/dev/null
   # The bin npx would run, started directly so $! is the server itself and the trap stops it.
   port=3917
-  GROUP_INVITE=npx-smoke PORT=$port ./node_modules/.bin/agisse > server.log 2>&1 &
+  PORT=$port ./node_modules/.bin/agisse > server.log 2>&1 &
 fi
 pid=$!
 
@@ -49,8 +49,6 @@ other=$dir/other
   -d '{"email":"npx-smoke-other@example.com","password":"npx-smoke-password","name":"Other"}' "$url/api/auth/sign-up/email")" = 200 ] ||
   { cat server.log; echo "Second sign-up failed"; exit 1; }
 as_other() { code -b "$other" -H "origin: $url" -H 'content-type: application/json' "$@"; }
-# An open account (GROUP_INVITE), so the routes below reach their ownership check instead of the trial guard.
-[ "$(as_other -d '{"code":"npx-smoke"}' "$url/api/me/invite")" = 200 ] || { cat server.log; echo "Invite failed"; exit 1; }
 [ "$(as_other "$url/api/jobs/$job")" = 404 ] || { echo "Another account can read a saved posting"; exit 1; }
 [ "$(as_other -X PATCH -d '{"status":"applied"}' "$url/api/jobs/$job")" = 404 ] || { echo "Another account can change a saved posting"; exit 1; }
 [ "$(as_other -X DELETE "$url/api/jobs/$job")" = 200 ] || { echo "Delete as another account didn't reach the route"; exit 1; }

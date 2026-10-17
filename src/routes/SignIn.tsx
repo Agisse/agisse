@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ComponentProps, type FormEvent, type ReactNode } from 'react'
-import { CircleAlert, TicketCheck, TicketX } from 'lucide-react'
-import { api, inviteCode } from '../lib/api'
+import { CircleAlert } from 'lucide-react'
 import { authClient } from '../lib/auth-client'
 import { sessionHint } from '../lib/hooks'
 import { Button } from '@/components/ui/button'
@@ -50,23 +49,7 @@ const GoogleMark = () => (
 export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
   // Read per mount: the homepage links here client-side with ?mode=sign-up.
   const [query] = useState(() => new URLSearchParams(window.location.search))
-  const linkedInvite = query.get('invite')?.trim() || ''
-  const [mode, setMode] = useState<Mode>(linkedInvite || query.get('mode') === 'sign-up' ? 'sign-up' : 'sign-in')
-  const [invite, setInvite] = useState(linkedInvite)
-  // Most people sign up without a code, so the field waits behind a link; a code from the link keeps it open.
-  const [inviteOpen, setInviteOpen] = useState(!!linkedInvite)
-  // Only a code that arrived in the link is checked up front; a typed one is checked on submit.
-  const [linkState, setLinkState] = useState<'checking' | 'valid' | 'invalid' | null>(linkedInvite ? 'checking' : null)
-  useEffect(() => {
-    if (!linkedInvite) return
-    api.checkInvite(linkedInvite).then(
-      (r) => {
-        setLinkState(r.valid ? 'valid' : 'invalid')
-        if (!r.valid) setInvite('')
-      },
-      () => setLinkState(null),
-    )
-  }, [linkedInvite])
+  const [mode, setMode] = useState<Mode>(query.get('mode') === 'sign-up' ? 'sign-up' : 'sign-in')
   const [name, setName] = useState('')
   const [email, setEmail] = useState(() => query.get('email') ?? '')
   const [password, setPassword] = useState('')
@@ -104,23 +87,20 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     e.preventDefault()
     setError(null)
     if (!email.trim() || !password) return setError('Email and password are both needed.')
-    const code = inviteCode(invite)
     if (mode === 'sign-up' && !name.trim()) return setError('Enter your name.')
     if (password.length < 8) return setError('Use at least 8 characters for the password.')
     if (!captcha.ready) return setError('One second, checking you are not a bot…')
     setBusy(true)
     const res =
       mode === 'sign-up'
-        ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password }, { headers: { ...captcha.headers, ...(code ? { 'x-invite': code } : {}) } })
+        ? await authClient.signUp.email({ name: name.trim(), email: email.trim(), password }, { headers: captcha.headers })
         : await authClient.signIn.email({ email: email.trim(), password }, { headers: captcha.headers })
     setBusy(false)
     captcha.reset()
     if (res.error) {
       const code = res.error.code
       setError(
-        code === 'INVITE_INVALID'
-          ? 'That invite is not valid, already used, expired or withdrawn. Ask the person who invited you for a new link.'
-          : code === 'USER_ALREADY_EXISTS'
+        code === 'USER_ALREADY_EXISTS'
           ? 'That email already has an account. Sign in instead.'
           : code === 'INVALID_EMAIL_OR_PASSWORD'
             ? 'Email or password does not match. Signed up with Google? Use the Google button.'
@@ -133,7 +113,6 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     posthog.capture(mode === 'sign-up' ? 'account_created' : 'signed_in', { method: 'email' })
     // A new account starts in onboarding; a returning one lands where it was going.
     if (mode === 'sign-up') window.history.replaceState(null, '', '/welcome')
-    else if (linkedInvite) window.history.replaceState(null, '', window.location.pathname)
     onSignedIn()
   }
 
@@ -141,16 +120,6 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
 
   return (
     <AuthShell title={mode === 'sign-up' ? 'Create your account' : 'Welcome back'}>
-      {mode === 'sign-up' && linkState === 'valid' && (
-        <p className="flex items-start gap-2 rounded-lg bg-(--green-tint) px-3 py-2.5 text-sm text-(--green-ink)" role="status">
-          <TicketCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" /> Invite accepted. Choose a name and password.
-        </p>
-      )}
-      {mode === 'sign-up' && linkState === 'invalid' && (
-        <p className="flex items-start gap-2 rounded-lg bg-(--red-tint) px-3 py-2.5 text-sm text-(--red)" role="alert">
-          <TicketX aria-hidden="true" className="mt-0.5 size-4 shrink-0" /> This invite link is used, expired or withdrawn. Ask for a new one, or paste another code below.
-        </p>
-      )}
       <Button type="button" variant="outline" className="h-11 w-full gap-2.5 text-[0.9375rem]" onClick={google} disabled={busy}>
         <GoogleMark /> Continue with Google
       </Button>
@@ -172,9 +141,6 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
         />
-        {mode === 'sign-up' && inviteOpen && linkState !== 'valid' && linkState !== 'checking' && (
-          <AuthField id="invite" label="Invite code" hint="Optional" value={invite} onChange={(e) => setInvite(e.target.value)} autoComplete="off" spellCheck={false} autoFocus={!linkedInvite} />
-        )}
         {error && <AuthError>{error}</AuthError>}
         {sent && <p className="text-sm text-muted-foreground" role="status">If that email has an account, a reset link is on its way.</p>}
         <div ref={captcha.box} className="empty:hidden" />
@@ -188,19 +154,6 @@ export function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
           {mode === 'sign-up' ? 'Sign in' : 'Create an account'}
         </button>
       </p>
-      {mode === 'sign-up' && linkState !== 'valid' && (
-        <p className="text-center text-[0.8125rem] leading-relaxed text-pretty text-muted-foreground">
-          Invite-only beta. New accounts join the waitlist and get one free search while they wait. A friend's invite skips the line.
-          {!inviteOpen && (
-            <>
-              {' '}
-              <button type="button" className="-my-3 py-3 font-medium text-primary underline-offset-4 hover:underline" onClick={() => setInviteOpen(true)}>
-                Have an invite code?
-              </button>
-            </>
-          )}
-        </p>
-      )}
       <p className="-mt-2 text-center text-[0.8125rem] text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:text-foreground">
         By continuing you {mode === 'sign-up' && "confirm you're 18 or over and "}agree to the <a href="/docs/terms">Terms</a> and <a href="/docs/privacy">Privacy Policy</a>.
       </p>

@@ -62,6 +62,7 @@ export function AssistantDock() {
         ref={button}
         type="button"
         className="assistant-dock__button"
+        data-tour="assistant"
         aria-expanded={open}
         aria-controls="assistant-dock"
         aria-label={open ? 'Close the assistant' : 'Ask the assistant about this page (Ctrl+J)'}

@@ -10,7 +10,7 @@ const day = (n: number) => new Date(now + n * 86_400_000).toISOString()
 type J = Parameters<typeof todayNext>[0]['jobs'][number]
 const job = (id: string, company: string, status: J['status'], x: Partial<J> = {}): J => ({ id, company, role: 'Graduate', status, nextAt: null, appliedAt: null, score: null, recommendation: null, ...x })
 const tests = (c: string) => (c === 'Deloitte' ? { publisher: 'HireVue', games: ['a'], minutes: 20 } : null)
-const run = (jobs: J[], step?: Parameters<typeof todayNext>[0]['step'], trial = false) => todayNext({ step, due: dueItems(jobs, [], now), jobs, trial, testsFor: tests, now })
+const run = (jobs: J[], step?: Parameters<typeof todayNext>[0]['step']) => todayNext({ step, due: dueItems(jobs, [], now), jobs, testsFor: tests, now })
 
 // A first-run step beats everything.
 const step = { done: false, label: 'Upload your CV', detail: 'd', action: 'Upload CV', href: '/welcome' }
@@ -28,5 +28,4 @@ const roles = [job('m', 'Meridian', 'evaluated', { score: 4.2, recommendation: '
 eq([run(roles).title, run(roles).href], ['Apply to Northwind', '/jobs/n/apply'], 'best role')
 // Nothing at all: a way in.
 eq([run([]).kind, run([]).href], ['clear', '/jobs?view=feed'], 'empty')
-eq(run([], undefined, true).href, '/contacts', 'trial')
 console.log('today.check ok')

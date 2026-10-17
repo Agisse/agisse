@@ -13,7 +13,7 @@ You must be at least 18 to use Agisse.
 
 ## A beta
 
-Agisse is in beta; full access is by invite. Getting better every day. Features may change, break or disappear, and data could be lost. Agisse is free. If this ever changes, we'll tell you first and never charge you without your agreement.
+Agisse is in beta. Getting better every day. Features may change, break or disappear, and data could be lost. Agisse is free. If this ever changes, we'll tell you first and never charge you without your agreement.
 
 ## No guarantees
 
@@ -32,10 +32,6 @@ Agisse drafts messages, answers, CVs and cover letters. You decide what to send 
 ## Your content
 
 You keep ownership of your CV, profile and anything you write. You give us permission to store and process it only to provide Agisse to you and to check the quality of its answers, as described in the [privacy policy](/privacy).
-
-## Invite links
-
-Your referral link and invites are personal. Share them with people you know; do not sell them, spam them or post them in bulk. We may remove invites that are misused.
 
 ## Ending things
 

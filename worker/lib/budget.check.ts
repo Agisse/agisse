@@ -22,8 +22,8 @@ for (const paused of ['free', 'you'] as const) if (!budgetSpent({ ...b, paused }
 // One-time credit: Haiku first while credit is left; never on an own key or a trial account; nothing once it's 0.
 const money = { USD_TO_EUR: '0.9', PRICE_MARGIN: '0.3333333333', OPENROUTER_CREDIT_MODELS: 'anthropic/claude-haiku-5.5' }
 if (Math.abs(eurPerUsd(money) - 1.35) > 1e-6) throw new Error(`$1 should cost €1.35 (cost + 50%), got ${eurPerUsd(money)}`)
-if (creditFor(money, 3.2, false, false)?.models[0] !== 'anthropic/claude-haiku-5.5') throw new Error('credit left: Haiku first')
-const none: Array<[string, number | null, boolean, boolean]> = [['spent', 0, false, false], ['none', null, false, false], ['own key', 5, true, false], ['trial', 5, false, true]]
-for (const [name, credit, ownKey, trial] of none) if (creditFor(money, credit, ownKey, trial)) throw new Error(`${name}: no credit models`)
-if (creditFor({ ...money, OPENROUTER_CREDIT_MODELS: '' }, 5, false, false)) throw new Error('no credit models set: free chain only')
+if (creditFor(money, 3.2, false)?.models[0] !== 'anthropic/claude-haiku-5.5') throw new Error('credit left: Haiku first')
+const none: Array<[string, number | null, boolean]> = [['spent', 0, false], ['none', null, false], ['own key', 5, true]]
+for (const [name, credit, ownKey] of none) if (creditFor(money, credit, ownKey)) throw new Error(`${name}: no credit models`)
+if (creditFor({ ...money, OPENROUTER_CREDIT_MODELS: '' }, 5, false)) throw new Error('no credit models set: free chain only')
 console.log('budget ok')

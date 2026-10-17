@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { AuthShell } from './SignIn'
 
-// Only a declined account lands here: a pending one is a trial account and sees the app (TRIAL_ROUTES).
+// Only a declined account lands here.
 export function AccessDeclined({ onSignOut }: { onSignOut: () => Promise<void> }) {
   return (
     <AuthShell

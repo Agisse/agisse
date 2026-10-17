@@ -2,10 +2,11 @@ import '../styles/app.css'
 import '../styles/components.css'
 import '../styles/routes.css'
 import { Link, useLocation } from 'wouter'
-import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, University, UserRound, Users } from 'lucide-react'
+import { Blocks, BookOpen, Bot, BriefcaseBusiness, ChevronsUpDown, Compass, GraduationCap, House, LogOut, Monitor, Moon, ScrollText, Share2, Shield, Sun, University, UserRound, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { shareLink, useCopy } from '../lib/hooks'
+import { startTour } from './Tour'
 import { setTheme, useTheme, type Theme } from '../lib/theme'
 import { hasNews } from '../lib/whats-new'
 import posthog from '../lib/posthog'
@@ -49,28 +50,27 @@ function useActive(href: string) {
   return href === '/' ? loc === '/' : [href, ...(ALSO[href] ?? [])].some((p) => loc.startsWith(p))
 }
 
-type Section = { href: string; label: string; icon: typeof House; badge?: number; trialHidden?: boolean }
+type Section = { href: string; label: string; icon: typeof House; tour: string; badge?: number }
 
-export function Shell({ email, trial, isAdmin, onSignOut, children }: { email: string; trial: boolean; isAdmin: boolean; onSignOut: () => void; children: ReactNode }) {
+export function Shell({ email, isAdmin, onSignOut, children }: { email: string; isAdmin: boolean; onSignOut: () => void; children: ReactNode }) {
   // One small request per page change keeps the Jobs count current after acting on it elsewhere.
   const [loc] = useLocation()
   const [due, setDue] = useState(0)
   useEffect(() => {
-    if (trial) return
     const load = () => void api.due().then((r) => setDue(r.count), () => {})
     load()
     // Also after a change that stays on the page (marked applied from For you).
     addEventListener('agisse:jobs', load)
     return () => removeEventListener('agisse:jobs', load)
-  }, [trial, loc])
+  }, [loc])
 
   const sections: Section[] = [
-    { href: '/', label: 'Today', icon: House },
-    { href: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, badge: due },
-    { href: '/education', label: 'Education', icon: University },
-    { href: '/prepare', label: 'Prepare', icon: GraduationCap, trialHidden: true },
-    { href: '/contacts', label: 'People', icon: Users },
-  ].filter((s) => !(trial && s.trialHidden))
+    { href: '/', label: 'Today', icon: House, tour: 'today' },
+    { href: '/jobs', label: 'Jobs', icon: BriefcaseBusiness, tour: 'jobs', badge: due },
+    { href: '/education', label: 'Education', icon: University, tour: 'education' },
+    { href: '/prepare', label: 'Prepare', icon: GraduationCap, tour: 'prepare' },
+    { href: '/contacts', label: 'People', icon: Users, tour: 'people' },
+  ]
 
   return (
     <TooltipProvider>
@@ -96,7 +96,7 @@ export function Shell({ email, trial, isAdmin, onSignOut, children }: { email: s
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter>
-            <AccountMenu email={email} trial={trial} isAdmin={isAdmin} onSignOut={onSignOut} />
+            <AccountMenu email={email} isAdmin={isAdmin} onSignOut={onSignOut} />
           </SidebarFooter>
           <SidebarRail />
         </Sidebar>
@@ -108,7 +108,7 @@ export function Shell({ email, trial, isAdmin, onSignOut, children }: { email: s
               <BoothSignMark className="size-6" />
               Agisse
             </Link>
-            <AccountMenu email={email} trial={trial} isAdmin={isAdmin} onSignOut={onSignOut} compact />
+            <AccountMenu email={email} isAdmin={isAdmin} onSignOut={onSignOut} compact />
           </header>
           {children}
           <nav
@@ -129,7 +129,7 @@ export function Shell({ email, trial, isAdmin, onSignOut, children }: { email: s
 function SidebarNavItem({ section: s }: { section: Section }) {
   const active = useActive(s.href)
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem data-tour={s.tour}>
       <SidebarMenuButton
         isActive={active}
         tooltip={s.label}
@@ -149,6 +149,7 @@ function TabBarItem({ section: s }: { section: Section }) {
   return (
     <Link
       href={s.href}
+      data-tour={s.tour}
       aria-current={active ? 'page' : undefined}
       aria-label={s.badge ? `${s.label}, ${s.badge} due` : undefined}
       className={cn('relative flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium no-underline', active ? 'text-primary' : 'text-muted-foreground')}
@@ -167,22 +168,19 @@ const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
 ]
 
 /** The account behind the email: profile, the extras, appearance, sign out. */
-function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: string; trial: boolean; isAdmin: boolean; onSignOut: () => void; compact?: boolean }) {
+function AccountMenu({ email, isAdmin, onSignOut, compact }: { email: string; isAdmin: boolean; onSignOut: () => void; compact?: boolean }) {
   const [loc, navigate] = useLocation()
   const theme = useTheme()
-  const { copied, copy } = useCopy()
   const shared = useCopy()
-  // Fetched when the menu opens, so the click can copy within the same gesture (Safari needs that).
-  const [shareUrl, setShareUrl] = useState<Promise<string | null> | null>(null)
   // Re-read on every page change, so the dot goes once What's new has been opened.
   const news = loc !== '/changelog' && hasNews()
   const label = `Account, ${email}${news ? ", something new in What's new" : ''}`
   const dot = <span aria-hidden="true" className="absolute top-0 right-0 size-2.5 rounded-full bg-primary ring-2 ring-background" />
   const initial = <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{email[0]?.toUpperCase()}</AvatarFallback>
   return (
-    <DropdownMenu onOpenChange={(open) => open && !shareUrl && setShareUrl(api.referral().then((r) => `${location.origin}/?ref=${r.code}`, () => (setShareUrl(null), null)))}>
+    <DropdownMenu>
       {compact ? (
-        <DropdownMenuTrigger className="-mr-1.5 grid size-11 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={label}>
+        <DropdownMenuTrigger data-tour="account" className="-mr-1.5 grid size-11 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={label}>
           <span className="relative">
             <Avatar className="size-8">{initial}</Avatar>
             {news && dot}
@@ -191,7 +189,7 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
       ) : (
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenuTrigger render={<SidebarMenuButton size="lg" aria-label={label} />}>
+            <DropdownMenuTrigger data-tour="account" render={<SidebarMenuButton size="lg" aria-label={label} />}>
               <span className="relative shrink-0">
                 <Avatar className="size-8">{initial}</Avatar>
                 {news && dot}
@@ -226,23 +224,17 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
             closeOnClick={false}
             onClick={() => {
               posthog.capture('invite_link_shared', { source: 'account_menu' })
-              void shareUrl?.then((link) => link ? shareLink(link, shared.copy) : undefined)
+              void shareLink(location.origin, shared.copy)
             }}
           >
             <Share2 aria-hidden="true" /> {shared.copied ? 'Link copied' : 'Share Agisse'}
           </DropdownMenuItem>
-          {!trial && (
-            <DropdownMenuItem
-              closeOnClick={false}
-              title="Copies a setup prompt. Paste it into Claude Code or Codex."
-              onClick={() => {
-                void copy(MCP_PROMPT)
-                posthog.capture('mcp_prompt_copied')
-              }}
-            >
-              <Bot aria-hidden="true" /> {copied ? 'Copied. Paste it into your agent' : 'Connect an AI agent'}
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={() => navigate('/agent')}>
+            <Bot aria-hidden="true" /> Connect your AI
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={startTour}>
+            <Compass aria-hidden="true" /> Take the tour
+          </DropdownMenuItem>
           {isAdmin && (
             <DropdownMenuItem onClick={() => navigate('/admin')}>
               <Shield aria-hidden="true" /> Admin
@@ -276,23 +268,3 @@ function AccountMenu({ email, trial, isAdmin, onSignOut, compact }: { email: str
     </DropdownMenu>
   )
 }
-
-/* ---------- Onboard an AI agent onto the MCP server ---------- */
-
-// Mirrors the "Connect agent" prompt in docs/mcp.md.
-const MCP_PROMPT = `Connect me to the Agisse MCP server.
-
-- Endpoint: https://agisse.xyz/mcp (remote server, streamable HTTP transport)
-- Auth: OAuth 2.1 with dynamic client registration. Discovery metadata is at
-  https://agisse.xyz/.well-known/oauth-protected-resource and
-  https://agisse.xyz/.well-known/oauth-authorization-server. No API key exists;
-  do not ask me for one.
-
-Add a server named "agisse" pointing at that URL to your MCP configuration,
-using your own CLI or config file (for Claude Code: \`claude mcp add --transport
-http agisse https://agisse.xyz/mcp\`). Then start the OAuth flow and give me the
-sign-in link. I sign in with my Agisse account and confirm the consent screen.
-
-When connected, call \`list_board\` to confirm it works and show me the result.
-If you get a 403 "This account is not approved for MCP access", stop and tell
-me: my account is still pending approval, there is nothing to fix on your side.`

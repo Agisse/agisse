@@ -151,7 +151,7 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
           {saved ? (
             <span className="profile__saved" role="status">
               <Check aria-hidden="true" /> Saved
-              {firstSave && !me.trial && <>. Next: <Link href="/jobs?view=feed">say what you are looking for</Link></>}
+              {firstSave && <>. Next: <Link href="/jobs?view=feed">say what you are looking for</Link></>}
             </span>
           ) : (
             unsaved && <span className="field__hint">Filled from your résumé, not saved yet</span>
@@ -166,13 +166,13 @@ export function ProfileRoute({ me, refreshMe }: { me: Me; refreshMe: () => Promi
 
       <DeadlineEmail me={me} refreshMe={refreshMe} />
 
-      {!me.trial && <MemoryPanel me={me} refreshMe={refreshMe} />}
+      <MemoryPanel me={me} refreshMe={refreshMe} />
 
       <section className="profile__group" aria-labelledby="ai-heading">
         <h2 className="profile__h" id="ai-heading">AI</h2>
         <UsagePanel me={me} />
-        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.trial ? "Runs on Agisse's shared AI." : me.credit && me.credit.left > 0 ? `${euro(me.credit.left)} of your ${euro(me.credit.granted)} starter credit left` : me.budget.paused && me.budget.paused !== 'cap' ? "Runs on Agisse's shared AI. Your own OpenRouter key keeps you going today." : "Runs on Agisse's shared AI. Your own OpenRouter key gives sharper results."}</p>
-        {!me.trial && <OwnKey me={me} refreshMe={refreshMe} />}
+        <p className="profile__note">{me.aiKey ? 'Runs on your own AI key.' : me.credit && me.credit.left > 0 ? `${euro(me.credit.left)} of your ${euro(me.credit.granted)} starter credit left` : me.budget.paused && me.budget.paused !== 'cap' ? "Runs on Agisse's shared AI. Your own OpenRouter key keeps you going today." : "Runs on Agisse's shared AI. Your own OpenRouter key gives sharper results."}</p>
+        <OwnKey me={me} refreshMe={refreshMe} />
       </section>
 
       <DeleteAccount />
@@ -415,20 +415,6 @@ const moreCount = (p: Profile) => p.skills.length + p.interests.length + p.targe
 const answerCount = (p: Profile) => Object.values(p.answers).filter((a) => a.trim()).length
 
 function UsagePanel({ me }: { me: Me }) {
-  if (me.trial) {
-    return (
-      <div className="profile__budget">
-        <div className="meter">
-          <span className="meter__label">
-            <span>Free search</span>
-            <span className="tnum">{me.trial.used ? '1 / 1' : '0 / 1'}</span>
-          </span>
-          <progress max={1} value={me.trial.used ? 1 : 0} aria-label="Free-search usage" />
-        </div>
-        <p className="profile__note">Your monthly allowance opens when your account is approved.</p>
-      </div>
-    )
-  }
   // Starter credit left: the credit line under this panel says it all; the meter shows once it's used up.
   if (!me.aiKey && me.credit && me.credit.left > 0) return null
   const remaining = Math.max(0, me.budget.limit - me.budget.used)

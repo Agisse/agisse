@@ -9,8 +9,8 @@ import { Badge, GhostBadge } from '../components/Badge'
 import { nextStep } from '../lib/followup'
 
 /** Everyone contacted, across searches and added by hand: People → Contacted. */
-export function Visited({ trial }: { trial: boolean }) {
-  const jobs = useResource(() => (trial ? Promise.resolve([]) : api.jobs().then((r) => r.jobs)), [trial])
+export function Visited() {
+  const jobs = useResource(() => api.jobs().then((r) => r.jobs), [])
   const applicationAt = (company: string) => jobs.data?.find((j) => j.company.trim().toLowerCase() === company.trim().toLowerCase())
   const res = useResource(() => api.contacted().then((r) => r.people), [])
   const people = res.data ?? []
@@ -79,7 +79,7 @@ export function Visited({ trial }: { trial: boolean }) {
           <Check aria-hidden="true" /> <span>{saved} saved from LinkedIn and marked contacted.</span>
         </p>
       )}
-      {!trial && <AddContact key={draft?.profileUrl} draft={draft} onAdded={onAdded} />}
+      <AddContact key={draft?.profileUrl} draft={draft} onAdded={onAdded} />
 
       {res.loading && !res.data ? (
         <div className="badge-grid">
@@ -101,7 +101,7 @@ export function Visited({ trial }: { trial: boolean }) {
                 {followUp.map((p, i) => (
                   <div key={p.id} className="visited__follow-up-item">
                     {p.search ? <Link href={`/s/${p.search.id}`}>{p.search.company} · {p.search.role}</Link> : <span className="muted">{p.company} · added by hand</span>}
-                    <Badge person={p} draftingAvailable={!trial && !!p.search} index={i} onChange={onChange} compact />
+                    <Badge person={p} draftingAvailable={!!p.search} index={i} onChange={onChange} compact />
                   </div>
                 ))}
               </div>
@@ -117,7 +117,7 @@ export function Visited({ trial }: { trial: boolean }) {
               </div>
               <div className="badge-grid">
                 {people.map((p, i) => (
-                  <Badge key={p.id} person={p} draftingAvailable={!trial && !!search} index={i} onChange={onChange} compact />
+                  <Badge key={p.id} person={p} draftingAvailable={!!search} index={i} onChange={onChange} compact />
                 ))}
               </div>
             </section>

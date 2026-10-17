@@ -24,12 +24,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Accepts the bare code or the whole invite link pasted into the field. */
-export const inviteCode = (raw: string) => {
-  const s = raw.trim()
-  try { return new URL(s).searchParams.get('invite') ?? s } catch { return s }
-}
-
 /** The caller pressed Cancel: not an error to show. */
 export const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
 
@@ -44,7 +38,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
-export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean; /** Opted in to the Monday deadline email. */ deadlineEmail: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** Set while the account awaits approval: one free search. */ trial: { used: boolean } | null; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null; /** "Connect ChatGPT" is offered: local mode, or a hosted server OpenAI admitted. */ chatgpt: boolean }
+export type Me = { user: { id: string; name: string; email: string; isAdmin: boolean; /** Opted in to the Monday deadline email. */ deadlineEmail: boolean }; profile: Profile | null; briefing: HelperBriefing | null; /** Last CV review score, null until one is run. */ cvReview: CvReviewSummary | null; /** What the assistant may use beyond the CV; only what the seeker approved. */ memories: Memory[]; budget: Budget; /** One-time credit from an invite or an admin's share link, in €; never resets. */ credit: { left: number; granted: number } | null; adzuna: boolean; /** The seeker's own AI key, if set; never the key itself. */ aiKey: AiKeyInfo | null; /** "Connect ChatGPT" is offered: local mode, or a hosted server OpenAI admitted. */ chatgpt: boolean }
 /** No school, employers, organizations or skills: nothing to find shared ground with. */
 export function profileIsEmpty(me: Me) {
   const p = me.profile
@@ -55,23 +49,16 @@ export function profileIsEmpty(me: Me) {
 export type JudgedOption = { text: string; pick: boolean; unsupported: boolean }
 /** Exact keyword match plus Jev's reading: keywords shown in other words, and a fit verdict when it had the posting. */
 export type CvMatch = { keywords: string[]; matched: string[]; inOtherWords: string[]; missing: string[]; pct: number; recruiterPct: number; fit: { fit: number; label: string } | null; jobId: string | null; label: string }
-export type AccessStatus = 'pending' | 'approved' | 'rejected'
+export type AccessStatus = 'approved' | 'rejected'
 export type LiveSwitch = { key: 'GLOBAL_DAILY_USD_CAP' | 'FREE_DAILY_ACTIONS' | 'FREE_DAILY_ACTIONS_ALL' | 'MONTHLY_BUDGET_EUR' | 'FEED_DAILY_PAGES' | 'CHATGPT_PLAN'; value: string; changedBy: string | null; changedAt: string | null }
-export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; referralCreditEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number; freeLimitToday: boolean; /** Admins only: accounts that joined with their share link, and the credit those spent. */ joined: { count: number; creditUsedEur: number } | null }
+export type AdminUser = { id: string; name: string; email: string; accessStatus: AccessStatus; createdAt: string; reviewedAt: string | null; isAdmin: boolean; budgetEur: number | null; creditGrantedEur: number | null; creditEur: number | null; budget: Budget; actions: number; feedCapDays: number; freeLimitDays: number; freeLimitToday: boolean }
 
 /** Since midnight UTC: provider spend and free actions on the server's key, against their daily caps (0 = none). */
 export type AdminToday = { usd: number; usdCap: number; actions: number; actionsCap: number }
 /** One line of /admin's action log; `target` is the account's email, null once it's deleted. */
 export type AdminAction = { action: string; at: string; admin: string | null; targetId: string; target: string | null }
-export type Invite = { code: string; note: string; creditEur: number | null; createdAt: string; usedAt: string | null; revokedAt: string | null; expiresAt: string | null; usedByName: string | null; usedByEmail: string | null; /** What the joiner has spent of their one-time credit, in €. */ creditUsedEur: number | null }
 
 export const api = {
-  checkInvite: (code: string) => request<{ valid: boolean }>(`/api/invite/${encodeURIComponent(code)}`),
-  redeemInvite: (code: string) => request<{ ok: true }>('/api/me/invite', { method: 'POST', body: JSON.stringify({ code }) }),
-  referral: () => request<{ code: string; referrals: number; invitesLeft: number | null; waitlist: { position: number; total: number } | null }>('/api/referral'),
-  invites: () => request<{ invites: Invite[] }>('/api/admin/invites'),
-  createInvite: (note: string, creditEur: number | null, expiresInDays: number | null) => request<{ invite: Invite }>('/api/admin/invites', { method: 'POST', body: JSON.stringify({ note, creditEur, expiresInDays }) }),
-  revokeInvite: (code: string) => request<{ ok: true }>(`/api/admin/invites/${encodeURIComponent(code)}`, { method: 'DELETE' }),
   me: () => request<Me>('/api/me'),
   saveAiKey: (body: { provider: AiProvider; key: string; model: string }) => request<{ aiKey: AiKeyInfo }>('/api/ai-key', { method: 'PUT', body: JSON.stringify(body) }),
   setAiModel: (model: string) => request<{ aiKey: AiKeyInfo }>('/api/ai-key', { method: 'PATCH', body: JSON.stringify({ model }) }),
@@ -90,7 +77,6 @@ export const api = {
   resetFreeLimit: (id: string) => request<{ user: { id: string } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ resetFreeLimit: true }) }),
   settings: () => request<{ switches: LiveSwitch[] }>('/api/admin/settings'),
   setSetting: (key: LiveSwitch['key'], value: number | null) => request<{ ok: true }>(`/api/admin/settings/${key}`, value === null ? { method: 'DELETE' } : { method: 'PUT', body: JSON.stringify({ value }) }),
-  setReferralCredit: (id: string, referralCreditEur: number | null) => request<{ user: { id: string; referralCreditEur: number | null } }>(`/api/admin/users/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ referralCreditEur }) }),
   setDeadlineEmail: (on: boolean) => request<{ on: boolean }>('/api/me/deadline-email', { method: 'PUT', body: JSON.stringify({ on }) }),
   saveProfile: (profile: Profile) => request<{ profile: Profile }>('/api/profile', { method: 'PUT', body: JSON.stringify(profile) }),
   uploadResume: (file: File) =>

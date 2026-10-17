@@ -168,7 +168,7 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
     return (
       <main className="map map--stack">
         {tabs}
-        <Visited trial={!!me.trial} />
+        <Visited />
       </main>
     )
 
@@ -185,7 +185,6 @@ export function MapRoute({ me, refreshMe, searchId }: Props) {
           <Booth
             search={shown}
             budget={me.budget}
-            trial={!!me.trial}
             profile={me.profile}
             error={error}
             note={moreNote}
@@ -233,12 +232,12 @@ function IndexCard({ me, busy, prefill, open, compact, onToggle, onSubmit }: { m
   const [sharedOnly, setSharedOnly] = useState(false)
   const [touched, setTouched] = useState(false)
 
-  const exhausted = me.trial ? me.trial.used : me.budget.used >= me.budget.limit
+  const exhausted = me.budget.used >= me.budget.limit
   const draftRole = roleDraft.trim()
   const submittedRoles = draftRole && !roles.some((role) => role.toLowerCase() === draftRole.toLowerCase()) ? [...roles, draftRole] : roles
   const companyErr = touched && !company.trim() ? 'Name the company.' : null
   const domainErr = touched && domain.trim() && !normalizeDomain(domain) ? 'That website does not look right, e.g. https://www.google.com' : null
-  const rolesErr = touched && !submittedRoles.length ? 'Name at least one role you are after.' : me.trial && submittedRoles.length > 1 ? 'Your free try covers one role.' : null
+  const rolesErr = touched && !submittedRoles.length ? 'Name at least one role you are after.' : null
   const selectedOptions = contactTypes.length + Number(sharedOnly) + Number(!!goal)
   const toggleType = (t: ContactValue) => setContactTypes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]))
 
@@ -246,7 +245,7 @@ function IndexCard({ me, busy, prefill, open, compact, onToggle, onSubmit }: { m
     e.preventDefault()
     setTouched(true)
     const host = normalizeDomain(domain)
-    if (!company.trim() || (domain.trim() && !host) || !submittedRoles.length || (me.trial && submittedRoles.length > 1) || busy || exhausted) return
+    if (!company.trim() || (domain.trim() && !host) || !submittedRoles.length || busy || exhausted) return
     onSubmit({ company: company.trim(), domain: host ?? '', roles: submittedRoles, location: location.trim(), goal, contactTypes, sharedOnly })
   }
 
@@ -319,16 +318,7 @@ function IndexCard({ me, busy, prefill, open, compact, onToggle, onSubmit }: { m
         <button type="submit" className="btn btn--primary btn--sign" disabled={busy || exhausted}>
           {busy ? 'Finding people…' : submittedRoles.length > 1 ? `Find people for ${submittedRoles.length} roles` : 'Find people'}
         </button>
-        {me.trial ? (
-          <p className="notice" role="status">
-            <Clock aria-hidden="true" />
-            <span>
-              {me.trial.used
-                ? 'You have used your free search. More searches and drafted messages open after approval.'
-                : 'Your account is awaiting approval. Meanwhile you get one free try: one company, one role.'}
-            </span>
-          </p>
-        ) : exhausted ? (
+        {exhausted ? (
           <p className="notice" role="status">
             <Clock aria-hidden="true" />
             <span>
@@ -371,7 +361,6 @@ function BoothRunning({ pending, onCancel }: { pending: Pending; onCancel: () =>
 function Booth({
   search,
   budget,
-  trial,
   profile,
   error,
   note,
@@ -385,8 +374,6 @@ function Booth({
 }: {
   search: SearchWithPeople
   budget: Me['budget']
-  /** Pending account: only its one free search, so no new rounds or deletes. */
-  trial: boolean
   profile: Me['profile']
   error: string | null
   note: string | null
@@ -401,10 +388,10 @@ function Booth({
   onDelete: () => void
 }) {
   const contactedCount = search.people.filter((p) => p.contactedAt).length
-  const exhausted = trial || budget.used >= budget.limit
+  const exhausted = budget.used >= budget.limit
   const { copied, copy } = useCopy()
   // The way back to the posting: the seeker's applications at this company (matched by name, as the posting matches its search).
-  const jobs = useResource(() => (trial ? Promise.resolve([]) : api.jobs().then((r) => r.jobs)), [trial])
+  const jobs = useResource(() => api.jobs().then((r) => r.jobs), [])
   const applications = (jobs.data ?? []).filter((j) => j.company.trim().toLowerCase() === search.company.trim().toLowerCase())
   return (
     <div className="booth">
@@ -446,11 +433,9 @@ function Booth({
           <span className="tnum">
             {contactedCount} contacted · {formatDate(search.createdAt)}
           </span>
-          {!trial && (
-            <button type="button" className="btn btn--sm btn--quiet" onClick={onAddRole}>
-              <Plus aria-hidden="true" /> Add a role
-            </button>
-          )}
+          <button type="button" className="btn btn--sm btn--quiet" onClick={onAddRole}>
+            <Plus aria-hidden="true" /> Add a role
+          </button>
           <button
             type="button"
             className="btn btn--sm btn--quiet"
@@ -462,11 +447,9 @@ function Booth({
           >
             {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />} {copied ? 'Copied' : 'Copy research prompt'}
           </button>
-          {!trial && (
-            <button type="button" className="btn btn--sm btn--quiet btn--danger" onClick={onDelete}>
-              <Trash2 aria-hidden="true" /> Delete search
-            </button>
-          )}
+          <button type="button" className="btn btn--sm btn--quiet btn--danger" onClick={onDelete}>
+            <Trash2 aria-hidden="true" /> Delete search
+          </button>
         </div>
       </header>
 
@@ -492,7 +475,7 @@ function Booth({
       {(search.people.length > 0 || busy) && (
         <div className="badge-grid">
           {search.people.map((p, i) => (
-            <Badge key={p.id} person={p} draftingAvailable={!trial} index={Math.max(0, i - enterFrom)} entering={i >= enterFrom} onChange={onPersonChange} />
+            <Badge key={p.id} person={p} draftingAvailable index={Math.max(0, i - enterFrom)} entering={i >= enterFrom} onChange={onPersonChange} />
           ))}
           {busy && Array.from({ length: 4 }, (_, i) => <GhostBadge key={`ghost-${i}`} rank={search.people.length + i + 1} live />)}
         </div>
@@ -515,9 +498,7 @@ function Booth({
               <X aria-hidden="true" /> Cancel
             </button>
           )}
-          {trial ? (
-            <span className="booth__more-hint">Opens once your account is approved.</span>
-          ) : exhausted ? (
+          {exhausted ? (
             <span className="booth__more-hint">
               Monthly budget used up. See <Link href="/profile">Profile</Link> for the reset date.
             </span>
