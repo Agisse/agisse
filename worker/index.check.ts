@@ -21,8 +21,9 @@ const RESUMES = {
   delete: async (key: string) => void files.delete(key),
 }
 const env = { ...vars, DATABASE_URL: databaseUrl ?? 'postgresql://user:password@db.example.com/none', BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'index-check-secret-index-check-secret', ASSETS: { fetch: () => new Response('app shell') }, RESUMES } as unknown as Env
-// Node has no Cache API; edgeCached() then always misses.
-Object.assign(globalThis, { caches: { default: { match: async () => undefined, put: async () => {} } } })
+// Node has no Cache API; normally miss, with explicit hits for the database-free route checks.
+const cacheResponses = new Map<string, Response>()
+Object.assign(globalThis, { caches: { default: { match: async (req: Request) => cacheResponses.get(new URL(req.url).pathname), put: async () => {} } } })
 const ctx = { waitUntil() {}, passThroughOnException() {}, props: {} } as unknown as ExecutionContext
 
 let cookie = ''
@@ -49,7 +50,13 @@ const shell = await worker.fetch(new Request('http://localhost/') as never, env,
 check(shell.status === 200 && shell.headers.get('x-content-type-options') === 'nosniff', 'app shell', shell.status)
 
 if (!databaseUrl) {
-  console.log('index ok (no DATABASE_URL: app shell only)')
+  const health = await call('GET', '/api/health')
+  check(health.status === 200 && health.json?.ok === true, 'health without a database', health)
+  cacheResponses.set('/api/public/stats', Response.json({ open: 7 }))
+  cacheResponses.set('/_cache/github', Response.json({ stars: 0, hired: 0 }))
+  const stats = await call('GET', '/api/public/stats')
+  check(stats.status === 200 && stats.json?.open === 7, 'cached public stats without a database', stats)
+  console.log('index ok (no DATABASE_URL: database-free routes)')
 } else {
   const email = `index-check-${crypto.randomUUID().slice(0, 8)}@example.com`
   const db = createDb(databaseUrl)
