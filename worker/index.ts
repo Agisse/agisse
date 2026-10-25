@@ -148,18 +148,23 @@ const authCache = new Map<string, Auth>()
 
 // Also covers the MCP endpoint and its OAuth discovery routes, which live outside /api.
 const withDbAuth = createMiddleware<{ Bindings: Env; Variables: Variables }>(async (c, next) => {
+  // Uptime checks must not wake Neon. Public stats only need a database on an edge-cache miss.
+  if (c.req.path === '/api/health') return next()
+  const publicStats = c.req.path === '/api/public/stats'
   const url = c.env.DATABASE_URL
   if (!dbCache || dbCache.url !== url) dbCache = { url, db: c.env.DB ?? createDb(url) }
-  const origin = new URL(c.req.url).origin
-  let auth = authCache.get(origin)
-  if (!auth) {
-    auth = createAuth(c.env, dbCache.db, origin)
-    authCache.set(origin, auth)
+  if (!publicStats) {
+    const origin = new URL(c.req.url).origin
+    let auth = authCache.get(origin)
+    if (!auth) {
+      auth = createAuth(c.env, dbCache.db, origin)
+      authCache.set(origin, auth)
+    }
+    c.set('auth', auth)
+    // Limits an admin changed in /admin override wrangler.jsonc's vars (worker/lib/settings.ts).
+    c.env = withSwitches(c.env, await switchRows(dbCache.db))
   }
   c.set('db', dbCache.db)
-  c.set('auth', auth)
-  // Limits an admin changed in /admin override wrangler.jsonc's vars (worker/lib/settings.ts).
-  c.env = withSwitches(c.env, await switchRows(dbCache.db))
   // Database round trips and time (summed, so parallel queries can exceed total), visible in DevTools.
   const start = Date.now()
   const t = { queries: 0, ms: 0 }
