@@ -59,7 +59,7 @@
     "better-auth": "^1.7.6",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@assistant-ui/react": "^0.15.27",
@@ -89,7 +89,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-force-graph-2d": "^1.29.2",
-    "shadcn": "^4.21.4",
+    "shadcn": "^4.23.0",
     "tailwindcss": "^4.3.3",
     "thinking-orbs": "^0.3.2",
     "tsx": "^4.23.15",
